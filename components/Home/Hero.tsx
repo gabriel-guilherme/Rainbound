@@ -61,7 +61,7 @@ export default function Hero() {
   return (
     <section
       ref={heroRef}
-      className="relative h-[200vh] w-full bg-darkest font-display"
+      className="relative h-[200vh] w-full bg-darkest font-display border-b border-contrast"
     >
       <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16">
@@ -101,7 +101,7 @@ export default function Hero() {
                 haven&apos;t finished yet
               </p>
 
-              <button className="mt-8 rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-contrast transition-colors hover:bg-interaction">
+              <button className="cursor-pointer mt-8 rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-contrast transition-colors hover:bg-interaction">
                 Continue reading
               </button>
             </motion.div>

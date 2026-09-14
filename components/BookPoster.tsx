@@ -35,6 +35,7 @@ export default function BookPoster({ book }: BookCardProps) {
           alt={`Capa do livro ${book.title}`}
           fill
           loading="eager"
+          title={book.title}
           className="rounded-md object-cover shadow-md shadow-black/50"
         />
 

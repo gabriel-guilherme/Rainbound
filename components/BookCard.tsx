@@ -38,7 +38,9 @@ export default function BookCard({ book }: BookCardProps) {
           >
             {book.title}
           </h3>
-          <p className="text-base text-contrast">{book.author}</p>
+          <p className="text-base text-contrast" title={book.author}>
+            {book.author}
+          </p>
           <div className="flex gap-10 w-full">
             <p className="flex text-sm text-contrast opacity-75 items-end">
               Livro

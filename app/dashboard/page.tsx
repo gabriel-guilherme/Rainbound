@@ -2,11 +2,10 @@ import BookStatus from "@/components/Widgets/BookStatus";
 import Reading from "@/components/Widgets/Reading";
 import RecentlyAdded from "@/components/Widgets/RecentlyAdded";
 
-export default async function HomePage() {
+export default async function DashBoardPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 pt-32">
-      <h1 className="mb-1 text-2xl font-bold text-contrast">Aga um</h1>
-      <p className="mb-8 text-primary">Alguma frase bacana...</p>
+      <h1 className="mb-10 text-2xl font-bold text-contrast">Dashboard</h1>
 
       {/* Grid de estatísticas */}
       <BookStatus />

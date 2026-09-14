@@ -24,11 +24,12 @@ export default function BookPosterSimplified({ book }: BookCardProps) {
           alt={`Capa do livro ${book.title}`}
           fill
           className="rounded-md object-cover shadow-md shadow-black/50"
+          title={book.title}
         />
       </div>
 
       <div className="flex justify-between text-contrast">
-        <p>{book.title}</p>
+        <p title={book.title}>{book.title}</p>
       </div>
     </div>
   );
