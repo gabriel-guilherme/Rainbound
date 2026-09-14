@@ -32,5 +32,8 @@
     "prisma": "7.10.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "@tsparticles/engine@4.4.0": true
   }
 }

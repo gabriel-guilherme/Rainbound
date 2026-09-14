@@ -46,7 +46,7 @@ export default function Navbar() {
       }}
       className="fixed left-0 top-0 z-50 h-24 w-full bg-primary shadow-md shadow-black/25"
     >
-      <div className="mx-auto grid h-full grid-cols-[1fr_auto] items-center px-2 sm:grid-cols-[1fr_auto_1fr] sm:px-4">
+      <div className="font-sans mx-auto grid h-full grid-cols-[1fr_auto] items-center px-2 sm:grid-cols-[1fr_auto_1fr] sm:px-4">
         <div className="hidden sm:block" />
 
         <div className="flex items-center justify-self-start gap-3 sm:gap-6 sm:justify-self-auto">

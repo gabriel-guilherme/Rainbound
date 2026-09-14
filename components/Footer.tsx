@@ -2,10 +2,10 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-primary px-6 py-20 text-contrast sm:px-10 lg:px-16 xl:px-24">
+    <footer className="font-sans relative overflow-hidden bg-primary px-6 py-20 text-contrast sm:px-10 lg:px-16 xl:px-24">
       <div className="mx-auto flex min-h-[70vh] w-full max-w-7xl flex-col items-center justify-center text-center">
         {/* Branding */}
-        <div className="flex flex-col items-center gap-5">
+        <div className="font-display flex flex-col items-center gap-5">
           <span className="text-xs tracking-[0.35em] text-contrast/40">
             RAINBOUND
           </span>

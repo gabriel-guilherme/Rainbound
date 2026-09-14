@@ -59,9 +59,12 @@ export default function Hero() {
   );
 
   return (
-    <section ref={heroRef} className="relative h-[200vh] w-full bg-darkest">
+    <section
+      ref={heroRef}
+      className="relative h-[200vh] w-full bg-darkest font-display"
+    >
       <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16 2xl:max-w-[1500px]">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16">
           {/* Conteúdo */}
           <motion.div
             className="col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1"

@@ -1,104 +1,160 @@
 "use client";
 
-import { motion } from "motion/react";
-import NoSsr from "../NoSsr";
 import { useEffect, useRef } from "react";
-
-const drops = Array.from({ length: 100 }, (_, i) => ({
-  id: i,
-  left: -20 + Math.random() * 160,
-  diagonal: 30 + Math.random() * 10,
-  delay: Math.random() * 2,
-  duration: 0.8 + Math.random() * 0.6,
-  height: 15 + Math.random() * 25,
-  opacity: 0 + Math.random() * 0.3,
-}));
 
 type RainProps = {
   isPaused: boolean;
   isMuted: boolean;
 };
 
+type Drop = {
+  x: number;
+  y: number;
+  speed: number;
+  length: number;
+  opacity: number;
+  diagonal: number;
+};
+
+const DROP_COUNT = 500;
+
+// Quanto espaço extra existe fora da tela para gerar as gotas
+const SPAWN_PADDING = 250;
+
 export default function Rain({ isPaused, isMuted }: RainProps) {
-  const audioRef1 = useRef<HTMLAudioElement | null>(null);
-  const audioRef2 = useRef<HTMLAudioElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const pausedRef = useRef(isPaused);
 
   useEffect(() => {
-    const a1 = audioRef1.current;
-    const a2 = audioRef2.current;
-    if (!a1 || !a2) return;
+    pausedRef.current = isPaused;
+  }, [isPaused]);
 
-    a1.volume = 0.4;
-    a2.volume = 0.4;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    if (isMuted) {
-      a1.pause();
-      a2.pause();
-    } else {
-      a1.play().catch(() => {});
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-      const handleTimeUpdate = () => {
-        if (a1.duration - a1.currentTime < 0.5 && a2.paused) {
-          a2.currentTime = 0;
-          a2.play().catch(() => {});
+    let animationFrame: number;
+
+    let width = 0;
+    let height = 0;
+
+    const drops: Drop[] = [];
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      width = rect.width;
+      height = rect.height;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const createDrop = (randomY = true): Drop => ({
+      // Permite que algumas gotas nasçam fora do lado direito
+      x: Math.random() * (width + SPAWN_PADDING),
+
+      y: randomY ? Math.random() * height : -50,
+
+      speed: 8 + Math.random() * 8,
+
+      length: 15 + Math.random() * 25,
+
+      opacity: Math.random() * 0.3,
+
+      // Movimento horizontal da gota
+      diagonal: 5 + Math.random() * 2,
+    });
+
+    const resetDrop = (drop: Drop) => {
+      // Quando sair pela parte inferior/esquerda,
+      // ela volta para a região superior/direita
+      drop.x = Math.random() * (width + SPAWN_PADDING);
+
+      drop.y = -drop.length;
+
+      drop.speed = 8 + Math.random() * 8;
+
+      drop.length = 15 + Math.random() * 25;
+
+      drop.opacity = Math.random() * 0.3;
+    };
+
+    const init = () => {
+      drops.length = 0;
+
+      for (let i = 0; i < DROP_COUNT; i++) {
+        drops.push(createDrop());
+      }
+    };
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.lineWidth = 1;
+
+      for (const drop of drops) {
+        ctx.beginPath();
+
+        ctx.strokeStyle = `rgba(147, 197, 253, ${drop.opacity})`;
+
+        // A linha acompanha o movimento diagonal
+        ctx.moveTo(drop.x, drop.y);
+
+        ctx.lineTo(drop.x - drop.diagonal, drop.y + drop.length);
+
+        ctx.stroke();
+
+        if (!pausedRef.current) {
+          // Movimento diagonal
+          drop.y += drop.speed;
+          drop.x -= drop.diagonal;
         }
-      };
 
-      const handleTimeUpdate2 = () => {
-        if (a2.duration - a2.currentTime < 0.5 && a1.paused) {
-          a1.currentTime = 0;
-          a1.play().catch(() => {});
+        // Saiu pela parte inferior ou esquerda
+        if (drop.y > height + drop.length || drop.x < -50) {
+          resetDrop(drop);
         }
-      };
+      }
 
-      a1.addEventListener("timeupdate", handleTimeUpdate);
-      a2.addEventListener("timeupdate", handleTimeUpdate2);
+      animationFrame = requestAnimationFrame(render);
+    };
 
-      return () => {
-        a1.removeEventListener("timeupdate", handleTimeUpdate);
-        a2.removeEventListener("timeupdate", handleTimeUpdate2);
-      };
-    }
-  }, [isMuted, isPaused]);
+    resize();
+    init();
+    render();
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
 
   return (
-    <NoSsr>
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* transicao sem corte com 2 audios */}
-        <audio ref={audioRef1} src="/sounds/rain.mp3" preload="auto" />
-        <audio ref={audioRef2} src="/sounds/rain.mp3" preload="auto" />
+    <>
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        aria-hidden="true"
+      />
 
-        {drops.map((drop) => (
-          <motion.div
-            key={drop.id}
-            className="absolute w-[1px] origin-top rotate-[25deg] bg-blue-300"
-            style={{
-              left: `${drop.left}%`,
-              height: drop.height,
-              top: 0,
-              opacity: drop.opacity,
-            }}
-            animate={
-              isPaused
-                ? { top: `${drop.height - 50}px`, left: `${drop.left}%` }
-                : {
-                    top: ["-5%", "105%"],
-                    left: [`${drop.left}%`, `${drop.left - drop.diagonal}%`],
-                  }
-            }
-            transition={
-              isPaused
-                ? { duration: 0 }
-                : {
-                    duration: drop.duration,
-                    delay: drop.delay,
-                    repeat: Infinity,
-                    ease: "linear",
-                  }
-            }
-          />
-        ))}
-      </div>
-    </NoSsr>
+      <audio
+        src="/sounds/rain.mp3"
+        preload="auto"
+        muted={isMuted}
+        autoPlay={!isMuted}
+        loop
+      />
+    </>
   );
 }

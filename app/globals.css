@@ -8,4 +8,27 @@
   --color-interaction-contrast: #114d4d;
   --color-interaction: #6e9987;
   --color-contrast: #e0e4ce;
+
+  /* =========================
+     Fontes — Serif
+     ========================= */
+
+  --font-cormorant: "Cormorant Garamond", serif;
+  --font-instrument: "Instrument Serif", serif;
+  --font-lora: "Lora", serif;
+  --font-dm-serif: "DM Serif Display", serif;
+  --font-playfair: "Playfair Display", serif;
+
+  /* =========================
+     Fontes — Sans
+     ========================= */
+
+  --font-inter: "Inter", sans-serif;
+  --font-manrope: "Manrope", sans-serif;
+  --font-dm-sans: "DM Sans", sans-serif;
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-geist: "Geist", sans-serif;
+
+  --font-display: "Lora", serif;
+  --font-sans: "Manrope", sans-serif;
 }

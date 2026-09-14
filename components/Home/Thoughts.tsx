@@ -86,7 +86,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-secundary px-4 sm:px-8 lg:px-16 xl:px-24"
+      className="font-display relative flex h-screen w-full items-center justify-center overflow-hidden bg-secundary px-4 sm:px-8 lg:px-16 xl:px-24"
     >
       {/* Balão 1 */}
       <motion.div
