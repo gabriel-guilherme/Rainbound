@@ -15,7 +15,7 @@ type BookCardProps = {
 
 export default function BookCard({ book }: BookCardProps) {
   return (
-    <div className="group block rounded-xl bg-primary p-4 shadow-md shadow-black/50 transition hover:shadow-sm">
+    <div className="group block rounded-xl bg-primary p-4 shadow-[-5px_7px_10px_rgba(0,0,0,0.25)] transition hover:shadow-sm">
       <div className="grid grid-cols-[70px_1fr_30px] items-center gap-4">
         <div className="relative h-25 w-[70px]">
           <Image
