@@ -32,7 +32,7 @@ export default function Collection({ books }: CollectionProps) {
   const opacity = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0, 1, 1, 0]);
 
   return (
-    <section className="flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24">
+    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24">
       <h3 className="shrink-0 text-lg text-contrast opacity-50">
         YOUR COLLECTION
       </h3>
@@ -44,7 +44,9 @@ export default function Collection({ books }: CollectionProps) {
       >
         {/* Header */}
         <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <h1 className="text-3xl text-contrast sm:text-4xl">Your library</h1>
+          <h1 className="font-display text-3xl text-contrast sm:text-4xl">
+            Your library
+          </h1>
 
           <Link
             href="/books"
