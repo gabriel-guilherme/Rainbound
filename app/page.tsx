@@ -23,12 +23,12 @@ export default async function Home() {
   });
 
   return (
-    <main className="w-full">
+    <div className="w-full">
       <Hero />
 
       <Thoughts books={thoughts} />
 
       <Collection books={books} />
-    </main>
+    </div>
   );
 }
