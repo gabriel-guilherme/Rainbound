@@ -62,7 +62,7 @@ export default function NewBookPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-4 pt-32">
+    <div className="mx-auto max-w-7xl px-4 py-4 pt-32">
       <BackButton />
 
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
@@ -202,6 +202,6 @@ export default function NewBookPage() {
           </section>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

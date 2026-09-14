@@ -70,7 +70,7 @@ export default async function BooksPage({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 pt-32">
+    <div className="mx-auto max-w-7xl px-4 py-10 pt-32">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-contrast">Meus Livros</h1>
       </div>
@@ -102,6 +102,6 @@ export default async function BooksPage({
           </li>
         ))}
       </ul>
-    </main>
+    </div>
   );
 }
