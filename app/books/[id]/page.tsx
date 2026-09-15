@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { deleteBook } from "./actions";
-import BackButton from "@/components/BackButton";
-import EditBookForm from "@/components/EditBookForm";
+import BackButton from "@/components/common/BackButton";
+import EditBookForm from "@/components/forms/EditBookForm";
 
 export default async function BookDetailPage({
   params,

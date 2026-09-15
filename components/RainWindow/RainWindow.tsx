@@ -13,7 +13,7 @@ type RainWindowProps = {
 };
 
 export default function RainWindow({ isPaused, setIsPaused }: RainWindowProps) {
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   return (
     <div className="relative mx-auto flex max-w-7xl items-center justify-center px-4 py-10">

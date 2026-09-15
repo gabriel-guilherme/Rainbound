@@ -2,8 +2,8 @@
 
 import { updateBook } from "@/app/books/[id]/actions";
 import { statusLabel } from "@/app/books/types";
-import InputCover from "@/components/InputCover";
-import ProgressBar from "./ProgressBar";
+import InputCover from "@/components/forms/InputCover";
+import ProgressBar from "@/components/ProgressBar";
 
 const stylePattern =
   "shadow shadow-black/75 opacity-30 hover:opacity-70 focus:opacity-70 bg-contrast round rounded-lg border border-gray 300 px-3 py-2 text-primary outline-none focus:border-gray-900";

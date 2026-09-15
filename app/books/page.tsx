@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-import { FilterBar } from "@/components/FilterBar";
+import { FilterBar } from "@/components/common/FilterBar";
 import BookPoster from "@/components/BookPoster";
 import { orderByOptions } from "./types";
 

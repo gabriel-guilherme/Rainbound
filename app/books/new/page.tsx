@@ -3,11 +3,11 @@
 import { useState } from "react";
 
 import { createBook } from "../actions";
-import { SubmitButton } from "@/components/SubmitButton";
+import { SubmitButton } from "@/components/common/SubmitButton";
 
 import { statusLabel } from "../types";
-import InputCover from "@/components/InputCover";
-import BackButton from "@/components/BackButton";
+import InputCover from "@/components/forms/InputCover";
+import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
   OpenLibraryBook,
 } from "@/components/OpenLibrarySearch";
