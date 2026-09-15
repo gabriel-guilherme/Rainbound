@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Book } from "@/generated/prisma/client";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-import Reading from "@/components/Widgets/Reading";
-import RecentlyAdded from "@/components/Widgets/RecentlyAdded";
 
 type WidgetSectionProps = {
   sections: { id: number; content: React.ReactNode[] }[];
