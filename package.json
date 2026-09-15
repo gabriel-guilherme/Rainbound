@@ -13,6 +13,8 @@
     "@prisma/client": "7.10.0",
     "cloudinary": "^2.11.0",
     "dotenv": "^17.4.2",
+    "epub.js": "^0.2.15",
+    "epubjs": "^0.3.93",
     "lucide-react": "^1.41.0",
     "lucide-react-motion": "^0.5.1",
     "next": "16.3.4",

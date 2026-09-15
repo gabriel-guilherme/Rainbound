@@ -1,14 +1,11 @@
-import { prisma } from "@/lib/prisma";
 import BookCard from "../BookCard";
+import { Book } from "@/generated/prisma/client";
 
-export default async function Reading() {
-  const [currentlyReading] = await Promise.all([
-    prisma.book.findMany({
-      where: { status: "READING" },
-      orderBy: { updatedAt: "desc" },
-      take: 5,
-    }),
-  ]);
+type ReadingProps = {
+  currentlyReading: Book[];
+};
+
+export default function Reading({ currentlyReading }: ReadingProps) {
   return (
     <section>
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-contrast">
@@ -19,13 +16,6 @@ export default async function Reading() {
       )}
       <ul className="flex flex-col gap-3">
         {currentlyReading.map((book) => {
-          const progress =
-            book.totalPages && book.totalPages > 0
-              ? Math.min(
-                  100,
-                  Math.round((book.currentPage / book.totalPages) * 100),
-                )
-              : null;
           return (
             <li key={book.id}>
               <BookCard

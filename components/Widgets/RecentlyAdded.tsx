@@ -1,14 +1,11 @@
-import { prisma } from "@/lib/prisma";
 import BookCard from "../BookCard";
+import { Book } from "@/generated/prisma/client";
 
-export default async function RecentlyAdded() {
-  const [recentlyAdded] = await Promise.all([
-    prisma.book.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-  ]);
+type RecentlyAddedProps = {
+  recentlyAdded: Book[];
+};
 
+export default function RecentlyAdded({ recentlyAdded }: RecentlyAddedProps) {
   return (
     <section>
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-contrast">
