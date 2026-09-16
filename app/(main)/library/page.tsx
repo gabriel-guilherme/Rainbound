@@ -90,17 +90,7 @@ export default async function BooksPage({
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
         {books.map((book) => (
           <li key={book.id}>
-            <BookPoster
-              book={{
-                id: book.id,
-                title: book.title,
-                author: book.author,
-                currentPage: book.currentPage,
-                totalPages: book.totalPages ?? 0,
-                status: book.status,
-                coverUrl: book.coverUrl || "",
-              }}
-            />
+            <BookPoster {...book} />
           </li>
         ))}
       </ul>

@@ -16,6 +16,7 @@ export async function updateBook(formData: FormData) {
   const statusRaw = formData.get("status");
   const ratingRaw = formData.get("rating") as string;
   const currentPageRaw = formData.get("currentPage") as string;
+  const totalPages = formData.get("totalPages") as string;
   const category = formData.get("category") as string;
   const notes = formData.get("notes") as string;
 
@@ -38,6 +39,7 @@ export async function updateBook(formData: FormData) {
     author,
     status,
     currentPage: currentPageRaw ? Number(currentPageRaw) : 0,
+    totalPages: Number(totalPages) || 0,
     notes: notes || null,
     rating: ratingRaw ? Number(ratingRaw) : null,
     category: category || null,

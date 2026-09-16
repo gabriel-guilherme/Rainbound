@@ -1,25 +1,26 @@
+"use client";
+
 import Image from "next/image";
 
 import { statusColor, statusLabel } from "@/app/(main)/library/types";
 import BookActionsMenu from "./BookActionsMenu";
-
-type BookCardProps = {
-  book: {
-    id: number;
-    title: string;
-    author: string;
-    currentPage: number;
-    totalPages: number;
-    status: string;
-    coverUrl: string;
-  };
-};
+import { Book } from "@/generated/prisma/client";
+import { useRouter } from "next/navigation";
 
 function bookProgress(currentPage: number, totalPages: number) {
   return ((currentPage / totalPages) * 100).toFixed(2);
 }
 
-export default function BookPoster({ book }: BookCardProps) {
+export default function BookPoster(book: Book) {
+  const router = useRouter();
+
+  function handleReadClick() {
+    if (!book.filePath) {
+      return;
+    }
+    router.push(`/read/${book.id}`);
+  }
+
   return (
     <div className={`mx-auto w-full  flex flex-col gap-1`}>
       <div className="flex justify-end">
@@ -36,7 +37,8 @@ export default function BookPoster({ book }: BookCardProps) {
           fill
           loading="eager"
           title={book.title}
-          className="rounded-md object-cover shadow-md shadow-black/50"
+          className={`rounded-md object-cover shadow-md shadow-black/50 ${book.filePath ? "cursor-pointer" : ""}`}
+          onClick={handleReadClick}
         />
 
         <span

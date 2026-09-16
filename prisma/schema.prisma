@@ -33,6 +33,7 @@ model Book {
   notes       String?
 
   filePath    String?
+  currentCfi  String?
 
   coverUrl    String?
   coverPublicId String?
