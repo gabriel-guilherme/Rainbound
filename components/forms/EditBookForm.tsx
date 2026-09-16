@@ -1,7 +1,7 @@
 "use client";
 
-import { updateBook } from "@/app/library/[id]/actions";
-import { statusLabel } from "@/app/library/types";
+import { updateBook } from "@/app/(main)/library/[id]/actions";
+import { statusLabel } from "@/app/(main)/library/types";
 import InputBookCover from "@/components/forms/InputBookCover";
 import ProgressBar from "@/components/ProgressBar";
 import InputBookFile from "./InputBookFile";

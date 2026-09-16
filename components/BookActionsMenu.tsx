@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Ellipsis, Pencil, Trash2 } from "lucide-react";
-import { deleteBook } from "@/app/actions";
+import { deleteBook } from "@/app/(main)/actions";
 
 type BookActionsMenuProps = {
   bookId: number;

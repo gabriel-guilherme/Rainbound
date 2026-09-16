@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "Rainbound",
@@ -18,13 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="flex min-h-screen flex-col bg-secondary">
-        <Navbar />
-
-        <main className="flex-1 min-h-screen">{children}</main>
-
-        <Footer />
-      </body>
+      <body className="min-h-screen">{children}</body>
     </html>
   );
 }

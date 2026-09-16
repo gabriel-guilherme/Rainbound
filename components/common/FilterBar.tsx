@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useTransition } from "react";
-import { statusLabel } from "@/app/library/types";
+import { statusLabel } from "@/app/(main)/library/types";
 import SearchInput from "./SearchInput";
 import { FilterButton } from "./FilterButton";
 
