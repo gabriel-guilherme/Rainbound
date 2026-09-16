@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { statusColor, statusLabel } from "@/app/books/types";
+import { statusColor, statusLabel } from "@/app/library/types";
 import BookActionsMenu from "./BookActionsMenu";
 
 type BookCardProps = {

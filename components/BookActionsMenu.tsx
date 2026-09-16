@@ -59,7 +59,7 @@ export default function BookActionsMenu({
       {isOpen && (
         <div className="absolute top-0 right-0 z-50 flex w-36 flex-col rounded-lg opacity-90 bg-contrast shadow-lg ring-1 ring-black/5 overflow-hidden">
           <Link
-            href={`/books/${bookId}`}
+            href={`/library/${bookId}`}
             onClick={(e) => e.stopPropagation()}
             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-interaction"
           >

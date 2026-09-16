@@ -33,8 +33,9 @@ export default function Navbar() {
 
   const isHomeRoute = pathname === "/";
   const isDashboardRoute = pathname === "/dashboard";
-  const isBookRoute = pathname === "/books" || pathname.startsWith("/books/");
-  const isNewBookRoute = pathname === "/books/new";
+  const isBookRoute =
+    pathname === "/library" || pathname.startsWith("/library/");
+  const isNewBookRoute = pathname === "/library/new";
 
   return (
     <motion.nav
@@ -74,7 +75,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/books"
+            href="/library"
             className={`text-sm font-medium text-contrast transition sm:text-xl ${
               isBookRoute ? "opacity-100" : "opacity-60 hover:opacity-100"
             }`}
@@ -85,7 +86,7 @@ export default function Navbar() {
 
         <div className="mr-1 flex justify-end sm:mr-4">
           <Link
-            href="/books/new"
+            href="/library/new"
             aria-label="Adicionar livro"
             className={`flex h-10 w-10 items-center justify-center rounded-lg bg-interaction text-xl text-contrast transition hover:bg-interaction-hover hover:bg-interaction-contrast hover:text-primary ${
               isNewBookRoute ? "bg-interaction-contrast text-primary" : ""

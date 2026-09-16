@@ -23,7 +23,7 @@ export default function Footer() {
 
         {/* CTA */}
         <Link
-          href="/books"
+          href="/library"
           className="mt-10 rounded-full border border-contrast/30 px-6 py-3 text-sm text-contrast transition-colors duration-300 hover:border-interaction hover:bg-interaction hover:text-contrast"
         >
           Go to your library →
@@ -35,12 +35,15 @@ export default function Footer() {
             HOME
           </Link>
 
-          <Link href="/books" className="transition-colors hover:text-contrast">
+          <Link
+            href="/library"
+            className="transition-colors hover:text-contrast"
+          >
             LIBRARY
           </Link>
 
           <Link
-            href="/books/new"
+            href="/library/new"
             className="transition-colors hover:text-contrast"
           >
             ADD BOOK

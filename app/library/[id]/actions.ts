@@ -2,7 +2,7 @@
 
 import { ReadingStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
-import { uploadBookCover } from "@/lib/upload";
+import { uploadBookCover, uploadBookFile } from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -13,12 +13,13 @@ export async function updateBook(formData: FormData) {
   const title = formData.get("title") as string;
   const author = formData.get("author") as string;
 
-  const totalPagesRaw = formData.get("totalPages") as string;
   const statusRaw = formData.get("status");
   const ratingRaw = formData.get("rating") as string;
   const currentPageRaw = formData.get("currentPage") as string;
   const category = formData.get("category") as string;
   const notes = formData.get("notes") as string;
+
+  const bookFile = formData.get("bookFile");
 
   const cover = formData.get("cover");
 
@@ -40,6 +41,7 @@ export async function updateBook(formData: FormData) {
     notes: notes || null,
     rating: ratingRaw ? Number(ratingRaw) : null,
     category: category || null,
+    //filePath: bookFile || null,
   };
 
   // Upload da nova capa
@@ -52,6 +54,19 @@ export async function updateBook(formData: FormData) {
     if (current.coverPublicId) {
       await cloudinary.uploader.destroy(current.coverPublicId);
     }
+  }
+
+  if (bookFile instanceof File && bookFile.size > 0) {
+    const uploadedFile = await uploadBookFile(bookFile, id);
+
+    await prisma.book.update({
+      where: {
+        id: id,
+      },
+      data: {
+        filePath: uploadedFile.filePath,
+      },
+    });
   }
 
   // Controle das datas de leitura
@@ -73,8 +88,8 @@ export async function updateBook(formData: FormData) {
   });
 
   revalidatePath("/");
-  revalidatePath("/books");
-  revalidatePath(`/books/${id}`);
+  revalidatePath("/library");
+  revalidatePath(`/library/${id}`);
 }
 
 export async function deleteBook(formData: FormData) {
@@ -93,6 +108,6 @@ export async function deleteBook(formData: FormData) {
   });
 
   revalidatePath("/");
-  revalidatePath("/books");
-  redirect("/books");
+  revalidatePath("/library");
+  redirect("/library");
 }

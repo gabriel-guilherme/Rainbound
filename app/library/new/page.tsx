@@ -6,11 +6,12 @@ import { createBook } from "../actions";
 import { SubmitButton } from "@/components/common/SubmitButton";
 
 import { statusLabel } from "../types";
-import InputCover from "@/components/forms/InputCover";
+import InputBookCover from "@/components/forms/InputBookCover";
 import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
   OpenLibraryBook,
 } from "@/components/OpenLibrarySearch";
+import InputBookFile from "@/components/forms/InputBookFile";
 
 const statusOptions = ["WANT_TO_READ", "READING", "READ", "ABANDONED"];
 
@@ -78,11 +79,12 @@ export default function NewBookPage() {
           action={createBook}
           className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-30"
         >
-          <section className="relative mx-auto aspect-[3/4] w-full max-w-64 md:mx-0 md:max-w-none">
-            <InputCover
+          <section className="flex flex-col gap-3 relative mx-auto aspect-[3/4] w-full max-w-64 md:mx-0 md:max-w-none">
+            <InputBookCover
               src={book.coverUrl ?? undefined}
               alt={`Capa de ${book.title}`}
             />
+            <InputBookFile />
           </section>
 
           <section className="flex w-full flex-col gap-6 text-sm font-medium text-contrast">

@@ -3,7 +3,7 @@
 import { Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { sortOptions } from "@/app/books/types";
+import { sortOptions } from "@/app/library/types";
 
 const stylePattern =
   "rounded-lg px-3 py-2 text-sm text-primary outline-none bg-contrast shadow shadow-black/75 opacity-85 focus:opacity-100 hover:opacity-100 focus:border-gray-900";

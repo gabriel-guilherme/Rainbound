@@ -31,8 +31,12 @@ model Book {
   rating      Int?
   category    String?
   notes       String?
+
+  filePath    String?
+
   coverUrl    String?
   coverPublicId String?
+
   startedAt   DateTime?
   finishedAt  DateTime?
   createdAt   DateTime      @default(now())

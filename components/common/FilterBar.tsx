@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useTransition } from "react";
-import { statusLabel } from "@/app/books/types";
+import { statusLabel } from "@/app/library/types";
 import SearchInput from "./SearchInput";
 import { FilterButton } from "./FilterButton";
 
@@ -29,7 +29,7 @@ export function FilterBar({ q, status }: { q?: string; status?: string }) {
 
     startTransition(() => {
       const queryString = params.toString();
-      router.replace(queryString ? `/books?${queryString}` : "/books", {
+      router.replace(queryString ? `/library?${queryString}` : "/library", {
         scroll: false,
       });
     });

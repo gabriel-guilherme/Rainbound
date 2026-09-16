@@ -11,8 +11,10 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "7.10.0",
+    "@supabase/supabase-js": "^2.116.0",
     "cloudinary": "^2.11.0",
     "dotenv": "^17.4.2",
+    "epub": "^2.1.1",
     "epub.js": "^0.2.15",
     "epubjs": "^0.3.93",
     "lucide-react": "^1.41.0",

@@ -1,9 +1,10 @@
 "use client";
 
-import { updateBook } from "@/app/books/[id]/actions";
-import { statusLabel } from "@/app/books/types";
-import InputCover from "@/components/forms/InputCover";
+import { updateBook } from "@/app/library/[id]/actions";
+import { statusLabel } from "@/app/library/types";
+import InputBookCover from "@/components/forms/InputBookCover";
 import ProgressBar from "@/components/ProgressBar";
+import InputBookFile from "./InputBookFile";
 
 const stylePattern =
   "shadow shadow-black/75 opacity-30 hover:opacity-70 focus:opacity-70 bg-contrast round rounded-lg border border-gray 300 px-3 py-2 text-primary outline-none focus:border-gray-900";
@@ -64,11 +65,12 @@ export default function EditBookForm({ book }: EditBookFormProps) {
           />
         </div>
 
-        <div className="relative mx-auto aspect-[3/4] w-full max-w-64 md:mx-0 md:max-w-none">
-          <InputCover
+        <div className="flex flex-col gap-3 relative mx-auto aspect-[3/4] w-full max-w-64 md:mx-0 md:max-w-none">
+          <InputBookCover
             src={book.coverUrl ? book.coverUrl : ""}
             alt={`Capa de ${book.title}`}
           />
+          <InputBookFile />
         </div>
       </section>
 

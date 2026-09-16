@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { ReadingStatus } from "@/generated/prisma/enums";
-import { uploadBookCover } from "@/lib/upload";
+import { uploadBookCover, uploadBookFile } from "@/lib/upload";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -28,7 +28,10 @@ export async function createBook(formData: FormData) {
 
   const coverUrlFromOpenLibrary = formData.get("coverUrl") as string;
 
-  // InputCover
+  //InputBookFile
+  const bookFile = formData.get("bookFile");
+
+  // InputBookCover
   const cover = formData.get("cover");
 
   if (!title || !author) {
@@ -46,7 +49,7 @@ export async function createBook(formData: FormData) {
     coverPublicId = uploadedCover.publicId;
   }
 
-  await prisma.book.create({
+  const book = await prisma.book.create({
     data: {
       title,
       author,
@@ -62,7 +65,20 @@ export async function createBook(formData: FormData) {
     },
   });
 
+  if (bookFile instanceof File && bookFile.size > 0) {
+    const uploadedFile = await uploadBookFile(bookFile, book.id);
+
+    await prisma.book.update({
+      where: {
+        id: book.id,
+      },
+      data: {
+        filePath: uploadedFile.filePath,
+      },
+    });
+  }
+
   revalidatePath("/");
-  revalidatePath("/books");
-  redirect("/books");
+  revalidatePath("/library");
+  redirect("/library");
 }

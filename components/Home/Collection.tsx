@@ -49,7 +49,7 @@ export default function Collection({ books }: CollectionProps) {
           </h1>
 
           <Link
-            href="/books"
+            href="/library"
             className="flex w-fit items-center gap-2 text-lg text-contrast sm:text-2xl"
           >
             View all

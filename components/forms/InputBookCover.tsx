@@ -10,7 +10,7 @@ type InputCoverProps = {
   name?: string;
 };
 
-export default function InputCover({
+export default function InputBookCover({
   src,
   alt = "Capa do livro",
   name = "cover",
