@@ -24,7 +24,7 @@ export default async function BooksPage({
     OR: q
       ? [
           { title: { contains: q, mode: "insensitive" } },
-          { author: { contains: q, mode: "insensitive" } },
+          { creator: { contains: q, mode: "insensitive" } },
         ]
       : undefined,
   };
@@ -43,9 +43,12 @@ export default async function BooksPage({
   const books = await prisma.book.findMany({
     where,
     orderBy,
+    include: {
+      progress: true,
+    },
   });
 
-  // Ordenacao por titulo
+  // Ordenação por título
   if (isTitleSort) {
     books.sort((a, b) => {
       const comparison = a.title.localeCompare(b.title, "pt-BR", {
@@ -56,12 +59,11 @@ export default async function BooksPage({
     });
   }
 
-  // Ordenacao por progresso
+  // Ordenação por progresso
   if (isProgressSort) {
     books.sort((a, b) => {
-      const progressA = a.totalPages ? a.currentPage / a.totalPages : 0;
-
-      const progressB = b.totalPages ? b.currentPage / b.totalPages : 0;
+      const progressA = a.progress?.percentage ?? 0;
+      const progressB = b.progress?.percentage ?? 0;
 
       return sort === "progress_asc"
         ? progressA - progressB
@@ -69,12 +71,10 @@ export default async function BooksPage({
     });
   }
 
-  console.log(books);
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 pt-32">
+    <div className="mx-auto min-h-screen max-w-7xl px-4 py-10 pt-32">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-contrast">Meus Livros</h1>
+        <h1 className="text-2xl font-bold text-contrast">Minha Biblioteca</h1>
       </div>
 
       <FilterBar q={q} status={status} />
@@ -82,8 +82,8 @@ export default async function BooksPage({
       {books.length === 0 && (
         <p className="text-gray-500">
           {q || status
-            ? "Nenhum livro encontrado com esse filtro."
-            : "Nenhum livro cadastrado ainda."}
+            ? "Nenhum item encontrado com esse filtro."
+            : "Nenhum item cadastrado ainda."}
         </p>
       )}
 

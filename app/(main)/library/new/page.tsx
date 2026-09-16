@@ -15,17 +15,29 @@ import InputBookFile from "@/components/forms/InputBookFile";
 
 const statusOptions = ["WANT_TO_READ", "READING", "READ", "ABANDONED"];
 
+const typeOptions = [
+  { value: "BOOK", label: "Livro" },
+  { value: "COMIC", label: "Quadrinho" },
+  { value: "MANGA", label: "Mangá" },
+];
+
+const formatOptions = [
+  { value: "EPUB", label: "EPUB" },
+  { value: "PDF", label: "PDF" },
+  { value: "CBZ", label: "CBZ" },
+  { value: "CBR", label: "CBR" },
+];
+
 const stylePattern =
   "shadow shadow-black/75 opacity-30 hover:opacity-70 focus:opacity-70 bg-contrast rounded-lg border border-gray-300 px-3 py-2 text-primary outline-none focus:border-gray-900";
 
 type BookForm = {
   title: string;
-  author: string;
-  totalPages: string;
+  creator: string;
+  type: string;
+  format: string;
   status: string;
   rating: string;
-  currentPage: string;
-  category: string;
   notes: string;
   coverUrl: string;
 };
@@ -33,12 +45,11 @@ type BookForm = {
 export default function NewBookPage() {
   const [book, setBook] = useState<BookForm>({
     title: "",
-    author: "",
-    totalPages: "",
+    creator: "",
+    type: "BOOK",
+    format: "",
     status: "",
     rating: "0",
-    currentPage: "0",
-    category: "",
     notes: "",
     coverUrl: "",
   });
@@ -47,8 +58,8 @@ export default function NewBookPage() {
     setBook((current) => ({
       ...current,
       title: selectedBook.title,
-      author: selectedBook.author_name?.[0] ?? "",
-      totalPages: selectedBook.number_of_pages_median?.toString() ?? "",
+      creator: selectedBook.author_name?.[0] ?? "",
+      type: "BOOK",
       coverUrl: selectedBook.cover_i
         ? `https://covers.openlibrary.org/b/id/${selectedBook.cover_i}-L.jpg`
         : "",
@@ -69,7 +80,7 @@ export default function NewBookPage() {
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
         <div className="flex items-center justify-between gap-6">
           <h1 className="mb-6 text-2xl font-bold text-contrast">
-            Adicionar livro
+            Adicionar item
           </h1>
 
           <OpenLibrarySearch onSelect={handleBookSelect} />
@@ -79,11 +90,12 @@ export default function NewBookPage() {
           action={createBook}
           className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-30"
         >
-          <section className="flex flex-col gap-3 relative mx-auto aspect-[3/4] w-full max-w-64 md:mx-0 md:max-w-none">
+          <section className="relative mx-auto flex aspect-[3/4] w-full max-w-64 flex-col gap-3 md:mx-0 md:max-w-none">
             <InputBookCover
-              src={book.coverUrl ?? undefined}
+              src={book.coverUrl || undefined}
               alt={`Capa de ${book.title}`}
             />
+
             <InputBookFile />
           </section>
 
@@ -101,35 +113,60 @@ export default function NewBookPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[80%_minmax(0,1fr)]">
-              <div className="flex flex-col">
-                <label>Autor</label>
+            <div className="flex flex-col">
+              <label>Criador</label>
 
-                <input
-                  type="text"
-                  name="author"
+              <input
+                type="text"
+                name="creator"
+                required
+                value={book.creator}
+                onChange={(e) => updateField("creator", e.target.value)}
+                className={stylePattern}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex flex-col">
+                <label>Tipo</label>
+
+                <select
+                  name="type"
                   required
-                  value={book.author}
-                  onChange={(e) => updateField("author", e.target.value)}
-                  className={stylePattern}
-                />
+                  value={book.type}
+                  onChange={(e) => updateField("type", e.target.value)}
+                  className={`${stylePattern} cursor-pointer text-center`}
+                >
+                  {typeOptions.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex flex-col">
-                <label>Qtd. Páginas</label>
+                <label>Formato</label>
 
-                <input
-                  type="number"
-                  name="totalPages"
+                <select
+                  name="format"
                   required
-                  value={book.totalPages}
-                  onChange={(e) => updateField("totalPages", e.target.value)}
-                  className={`${stylePattern} text-center`}
-                />
+                  value={book.format}
+                  onChange={(e) => updateField("format", e.target.value)}
+                  className={`${stylePattern} cursor-pointer text-center`}
+                >
+                  <option value="">Formato</option>
+
+                  {formatOptions.map((format) => (
+                    <option key={format.value} value={format.value}>
+                      {format.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[60%_minmax(0,1fr)_18%]">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[60%_minmax(0,1fr)]">
               <div className="flex flex-col">
                 <label>Status</label>
 
@@ -155,35 +192,13 @@ export default function NewBookPage() {
                 <input
                   type="number"
                   name="rating"
+                  min="0"
+                  max="5"
                   value={book.rating}
                   onChange={(e) => updateField("rating", e.target.value)}
                   className={`${stylePattern} text-center`}
                 />
               </div>
-
-              <div className="flex flex-col">
-                <label>Pág. Lidas</label>
-
-                <input
-                  type="number"
-                  name="currentPage"
-                  value={book.currentPage}
-                  onChange={(e) => updateField("currentPage", e.target.value)}
-                  className={`${stylePattern} text-center`}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <label>Categoria</label>
-
-              <input
-                type="text"
-                name="category"
-                value={book.category}
-                onChange={(e) => updateField("category", e.target.value)}
-                className={stylePattern}
-              />
             </div>
 
             <div className="flex flex-col">

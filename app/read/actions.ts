@@ -5,18 +5,30 @@ import { prisma } from "@/lib/prisma";
 export async function saveBookProgress(
   bookId: number,
   data: {
-    currentPage: number;
-    progress: number;
-    cfi: string;
+    currentPosition: number;
+    totalPositions: number;
+    percentage: number;
+    locator?: string | null;
   },
 ) {
-  await prisma.book.update({
+  await prisma.readingProgress.upsert({
     where: {
-      id: bookId,
+      bookId,
     },
-    data: {
-      currentPage: data.currentPage,
-      currentCfi: data.cfi,
+
+    create: {
+      bookId,
+      currentPosition: data.currentPosition,
+      totalPositions: data.totalPositions,
+      percentage: data.percentage,
+      locator: data.locator ?? null,
+    },
+
+    update: {
+      currentPosition: data.currentPosition,
+      totalPositions: data.totalPositions,
+      percentage: data.percentage,
+      locator: data.locator ?? null,
     },
   });
 }

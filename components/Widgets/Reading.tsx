@@ -1,8 +1,11 @@
 import BookCard from "../BookCard";
-import { Book } from "@/generated/prisma/client";
+
+import type { Book, ReadingProgress } from "@/generated/prisma/client";
 
 type ReadingProps = {
-  currentlyReading: Book[];
+  currentlyReading: (Book & {
+    progress: ReadingProgress | null;
+  })[];
 };
 
 export default function Reading({ currentlyReading }: ReadingProps) {
@@ -11,23 +14,30 @@ export default function Reading({ currentlyReading }: ReadingProps) {
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-contrast">
         Lendo agora
       </h2>
+
       {currentlyReading.length === 0 && (
         <p className="text-sm text-contrast">Nenhum livro em andamento.</p>
       )}
+
       <ul className="flex flex-col gap-3">
-        {currentlyReading.map((book) => {
-          return (
-            <li key={book.id}>
-              <BookCard
-                book={{
-                  ...book,
-                  totalPages: book.totalPages ?? 0,
-                  coverUrl: book.coverUrl ?? "",
-                }}
-              />
-            </li>
-          );
-        })}
+        {currentlyReading.map((book) => (
+          <li key={book.id}>
+            <BookCard
+              book={{
+                id: book.id,
+                title: book.title,
+                creator: book.creator,
+                type: book.type,
+                coverUrl: book.coverUrl,
+                progress: book.progress
+                  ? {
+                      percentage: book.progress.percentage,
+                    }
+                  : null,
+              }}
+            />
+          </li>
+        ))}
       </ul>
     </section>
   );

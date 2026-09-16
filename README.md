@@ -30,7 +30,7 @@ The project was built as a full-stack application, combining a responsive fronte
 
 - Responsive personal book library
 - Book cards with cover images
-- Search by title or author
+- Search by title or creator
 - Filter books by reading status
 - Add, edit, and delete books
 - Reading statuses:

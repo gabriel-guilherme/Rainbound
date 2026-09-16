@@ -1,28 +1,37 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import { statusColor, statusLabel } from "@/app/(main)/library/types";
 import BookActionsMenu from "./BookActionsMenu";
-import { Book } from "@/generated/prisma/client";
-import { useRouter } from "next/navigation";
+import type { Book, ReadingProgress } from "@/generated/prisma/client";
 
-function bookProgress(currentPage: number, totalPages: number) {
-  return ((currentPage / totalPages) * 100).toFixed(2);
-}
+type BookPosterProps = Book & {
+  progress: ReadingProgress | null;
+};
 
-export default function BookPoster(book: Book) {
+const typeLabel = {
+  BOOK: "Livro",
+  COMIC: "Quadrinho",
+  MANGA: "Mangá",
+};
+
+export default function BookPoster(book: BookPosterProps) {
   const router = useRouter();
+
+  const percentage = book.progress?.percentage ?? 0;
 
   function handleReadClick() {
     if (!book.filePath) {
       return;
     }
+
     router.push(`/read/${book.id}`);
   }
 
   return (
-    <div className={`mx-auto w-full  flex flex-col gap-1`}>
+    <div className="mx-auto flex w-full flex-col gap-1">
       <div className="flex justify-end">
         <BookActionsMenu bookId={book.id} bookTitle={book.title} />
       </div>
@@ -37,7 +46,9 @@ export default function BookPoster(book: Book) {
           fill
           loading="eager"
           title={book.title}
-          className={`rounded-md object-cover shadow-md shadow-black/50 ${book.filePath ? "cursor-pointer" : ""}`}
+          className={`rounded-md object-cover shadow-md shadow-black/50 ${
+            book.filePath ? "cursor-pointer" : ""
+          }`}
           onClick={handleReadClick}
         />
 
@@ -49,10 +60,9 @@ export default function BookPoster(book: Book) {
       </div>
 
       <div className="flex justify-between text-contrast">
-        <>
-          <p>Livro</p>
-          <p>{bookProgress(book.currentPage, book.totalPages)}%</p>
-        </>
+        <p>{typeLabel[book.type]}</p>
+
+        <p>{percentage.toFixed(2)}%</p>
       </div>
     </div>
   );

@@ -7,11 +7,17 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+enum ContentType {
+  BOOK
+  COMIC
+  MANGA
+}
+
+enum FileFormat {
+  EPUB
+  PDF
+  CBZ
+  CBR
 }
 
 enum ReadingStatus {
@@ -22,24 +28,49 @@ enum ReadingStatus {
 }
 
 model Book {
-  id          Int           @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   title       String
-  author      String
-  totalPages  Int           @default(1)
-  currentPage Int           @default(0)
-  status      ReadingStatus @default(WANT_TO_READ)
-  rating      Int?
-  category    String?
-  notes       String?
+  creator     String?
+  description String?
 
-  filePath    String?
-  currentCfi  String?
+  type   ContentType
+  format FileFormat
 
-  coverUrl    String?
+  rating Int?
+  notes  String?
+
+  filePath String?
+
+  coverUrl      String?
   coverPublicId String?
 
-  startedAt   DateTime?
-  finishedAt  DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  status     ReadingStatus @default(WANT_TO_READ)
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  progress ReadingProgress?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([format])
+  @@index([status])
+}
+
+model ReadingProgress {
+  id Int @id @default(autoincrement())
+
+  bookId Int @unique
+  book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  currentPosition Int @default(0)
+  totalPositions  Int?
+
+  percentage Float @default(0)
+
+  locator String?
+
+  updatedAt DateTime @updatedAt
 }

@@ -4,17 +4,14 @@ type BookCardProps = {
   book: {
     id: number;
     title: string;
-    author: string;
-    currentPage: number;
-    totalPages: number;
-    status: string;
-    coverUrl: string;
+    creator: string | null;
+    coverUrl: string | null;
   };
 };
 
 export default function BookPosterSimplified({ book }: BookCardProps) {
   return (
-    <div className={`mx-auto w-full  flex flex-col gap-1`}>
+    <div className="mx-auto flex w-full flex-col gap-1">
       <div className="relative aspect-[7/10] w-full flex-1">
         <Image
           src={

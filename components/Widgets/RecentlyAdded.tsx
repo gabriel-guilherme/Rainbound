@@ -1,8 +1,11 @@
 import BookCard from "../BookCard";
-import { Book } from "@/generated/prisma/client";
+
+import type { Book, ReadingProgress } from "@/generated/prisma/client";
 
 type RecentlyAddedProps = {
-  recentlyAdded: Book[];
+  recentlyAdded: (Book & {
+    progress: ReadingProgress | null;
+  })[];
 };
 
 export default function RecentlyAdded({ recentlyAdded }: RecentlyAddedProps) {
@@ -11,14 +14,22 @@ export default function RecentlyAdded({ recentlyAdded }: RecentlyAddedProps) {
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-contrast">
         Adicionados recentemente
       </h2>
+
       <ul className="flex flex-col gap-3">
         {recentlyAdded.map((book) => (
           <li key={book.id}>
             <BookCard
               book={{
-                ...book,
-                totalPages: book.totalPages,
-                coverUrl: book.coverUrl ?? "",
+                id: book.id,
+                title: book.title,
+                creator: book.creator,
+                type: book.type,
+                coverUrl: book.coverUrl,
+                progress: book.progress
+                  ? {
+                      percentage: book.progress.percentage,
+                    }
+                  : null,
               }}
             />
           </li>

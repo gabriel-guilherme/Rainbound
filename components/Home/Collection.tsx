@@ -10,10 +10,7 @@ import { useRef } from "react";
 type CollectionBook = {
   id: number;
   title: string;
-  author: string;
-  currentPage: number;
-  totalPages: number;
-  status: string;
+  creator: string | null;
   coverUrl: string | null;
 };
 
@@ -62,19 +59,9 @@ export default function Collection({ books }: CollectionProps) {
           {books.map((book) => (
             <div
               key={book.id}
-              className="w-[80%] shrink-0 snap-center lg:w-auto p-10"
+              className="w-[80%] shrink-0 snap-center p-10 lg:w-auto"
             >
-              <BookPosterSimplified
-                book={{
-                  id: book.id,
-                  title: book.title,
-                  author: book.author,
-                  currentPage: book.currentPage,
-                  totalPages: book.totalPages,
-                  status: book.status,
-                  coverUrl: book.coverUrl || "",
-                }}
-              />
+              <BookPosterSimplified book={book} />
             </div>
           ))}
         </div>

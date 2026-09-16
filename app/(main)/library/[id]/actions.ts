@@ -1,6 +1,10 @@
 "use server";
 
-import { ReadingStatus } from "@/generated/prisma/enums";
+import {
+  ContentType,
+  FileFormat,
+  ReadingStatus,
+} from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { uploadBookCover, uploadBookFile } from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
@@ -11,17 +15,16 @@ export async function updateBook(formData: FormData) {
   const id = Number(formData.get("id"));
 
   const title = formData.get("title") as string;
-  const author = formData.get("author") as string;
+  const creator = formData.get("creator") as string;
+
+  const typeRaw = formData.get("type");
+  const formatRaw = formData.get("format");
 
   const statusRaw = formData.get("status");
   const ratingRaw = formData.get("rating") as string;
-  const currentPageRaw = formData.get("currentPage") as string;
-  const totalPages = formData.get("totalPages") as string;
-  const category = formData.get("category") as string;
   const notes = formData.get("notes") as string;
 
   const bookFile = formData.get("bookFile");
-
   const cover = formData.get("cover");
 
   const status = Object.values(ReadingStatus).includes(
@@ -30,20 +33,28 @@ export async function updateBook(formData: FormData) {
     ? (statusRaw as ReadingStatus)
     : ReadingStatus.WANT_TO_READ;
 
+  const type = Object.values(ContentType).includes(typeRaw as ContentType)
+    ? (typeRaw as ContentType)
+    : null;
+
+  const format = Object.values(FileFormat).includes(formatRaw as FileFormat)
+    ? (formatRaw as FileFormat)
+    : null;
+
   const current = await prisma.book.findUniqueOrThrow({
     where: { id },
   });
 
   const data: Parameters<typeof prisma.book.update>[0]["data"] = {
     title,
-    author,
+    creator,
     status,
-    currentPage: currentPageRaw ? Number(currentPageRaw) : 0,
-    totalPages: Number(totalPages) || 0,
+
+    type: type ?? current.type,
+    format: format ?? current.format,
+
     notes: notes || null,
     rating: ratingRaw ? Number(ratingRaw) : null,
-    category: category || null,
-    //filePath: bookFile || null,
   };
 
   // Upload da nova capa
@@ -58,17 +69,11 @@ export async function updateBook(formData: FormData) {
     }
   }
 
+  // Upload de novo arquivo
   if (bookFile instanceof File && bookFile.size > 0) {
     const uploadedFile = await uploadBookFile(bookFile, id);
 
-    await prisma.book.update({
-      where: {
-        id: id,
-      },
-      data: {
-        filePath: uploadedFile.filePath,
-      },
-    });
+    data.filePath = uploadedFile.filePath;
   }
 
   // Controle das datas de leitura
@@ -111,5 +116,6 @@ export async function deleteBook(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/library");
+
   redirect("/library");
 }
