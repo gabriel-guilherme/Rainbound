@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { statusColor, statusLabel } from "@/app/(main)/library/types";
-import BookActionsMenu from "./BookActionsMenu";
+import BookActionsMenu from "@/components/common/BookActionsMenu";
 import type { Book, ReadingProgress } from "@/generated/prisma/client";
 
 type BookPosterProps = Book & {

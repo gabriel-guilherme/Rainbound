@@ -1,6 +1,6 @@
 import Image from "next/image";
-import BookActionsMenu from "./BookActionsMenu";
-import ProgressBar from "./ProgressBar";
+import BookActionsMenu from "../common/BookActionsMenu";
+import ProgressBar from "../common/ProgressBar";
 
 type BookCardProps = {
   book: {

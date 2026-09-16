@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react-motion";
-import BookPosterSimplified from "../BookPosterSimplified";
+import BookPosterSimplified from "../common/BookPosterSimplified";
 
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";

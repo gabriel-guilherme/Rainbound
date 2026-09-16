@@ -1,10 +1,10 @@
 "use client";
 
-import ChaptersSummary from "@/components/ChaptersSummary";
+import ChaptersSummary from "@/components/Reader/ChaptersSummary";
 import EpubReader from "@/components/Reader/EpubReader";
 import PdfReader from "@/components/Reader/PdfReader";
 import ComicReader from "@/components/Reader/ComicReader";
-import FullscreenButton from "@/components/FullScreenButton";
+import FullscreenButton from "@/components/Reader/FullScreenButton";
 
 import { CloudRainWind, Summary } from "lucide-react";
 import Link from "next/link";

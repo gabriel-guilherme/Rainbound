@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
-import BookStatus from "@/components/Widgets/BookStatus";
-import WidgetSection from "@/components/Widgets/WidgetSection";
-import Reading from "@/components/Widgets/Reading";
-import RecentlyAdded from "@/components/Widgets/RecentlyAdded";
+import BookStatus from "@/components/widgets/BookStatus";
+import WidgetSection from "@/components/widgets/WidgetSection";
+import Reading from "@/components/widgets/Reading";
+import RecentlyAdded from "@/components/widgets/RecentlyAdded";
 
 export default async function DashBoardPage() {
   const [recentlyAdded, currentlyReading] = await Promise.all([

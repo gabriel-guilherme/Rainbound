@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
 import { FilterBar } from "@/components/common/FilterBar";
-import BookPoster from "@/components/BookPoster";
+import BookPoster from "@/components/common/BookPoster";
 import { orderByOptions } from "./types";
 
 export default async function BooksPage({

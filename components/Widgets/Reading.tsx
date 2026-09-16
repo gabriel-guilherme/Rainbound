@@ -1,4 +1,4 @@
-import BookCard from "../BookCard";
+import BookCard from "../Reader/BookCard";
 
 import type { Book, ReadingProgress } from "@/generated/prisma/client";
 

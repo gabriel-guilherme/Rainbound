@@ -10,7 +10,7 @@ import InputBookCover from "@/components/forms/InputBookCover";
 import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
   OpenLibraryBook,
-} from "@/components/OpenLibrarySearch";
+} from "@/components/forms/OpenLibrarySearch";
 import InputBookFile from "@/components/forms/InputBookFile";
 
 const statusOptions = ["WANT_TO_READ", "READING", "READ", "ABANDONED"];
