@@ -29,7 +29,12 @@ export default function Collection({ books }: CollectionProps) {
     offset: ["start end", "end start"],
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0, 1, 1, 0]);
+  // Animação suave
+  const opacity = useTransform(
+    scrollYProgress,
+    [0, 0.3, 0.7, 1],
+    [0, 1, 1, 0],
+  );
 
   return (
     <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24">
@@ -57,12 +62,12 @@ export default function Collection({ books }: CollectionProps) {
           </Link>
         </div>
 
-        {/* Livros */}
-        <div className="flex min-h-0 w-full gap-5 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0">
+        {/* Livros - Melhor espaçamento e responsividade */}
+        <div className="flex min-h-0 w-full gap-6 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pb-0">
           {books.map((book) => (
             <div
               key={book.id}
-              className="w-[80%] shrink-0 snap-center lg:w-auto p-10"
+              className="w-[85%] shrink-0 snap-center transition-all duration-300 hover:scale-105 lg:w-auto lg:hover:scale-105"
             >
               <BookPosterSimplified
                 book={{

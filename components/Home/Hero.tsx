@@ -34,27 +34,28 @@ export default function Hero() {
     };
   }, []);
 
+  // Animações mais suaves
   const messageOpacity = useTransform(
     scrollYProgress,
-    [0, 0.4, 0.8, 1],
-    [1, 0, 1, 1],
+    [0, 0.35, 0.7, 1],
+    [1, 0.5, 1, 1],
   );
 
   const desktopMessageOpacity = useTransform(
     heroExitProgress,
-    [0, 0.4, 0.6, 1],
-    [1, 1, 0, 0],
+    [0, 0.35, 0.6, 1],
+    [1, 0.8, 0, 0],
   );
 
   const windowOpacity = useTransform(
     scrollYProgress,
-    [0.2, 0.4, 0.55],
-    [0, 1, 1],
+    [0.15, 0.35, 0.5, 0.65],
+    [0, 1, 1, 0],
   );
 
   const desktopWindowOpacity = useTransform(
     heroExitProgress,
-    [0, 0.4, 0.6, 1],
+    [0, 0.35, 0.6, 1],
     [1, 1, 0, 0],
   );
 
@@ -67,7 +68,7 @@ export default function Hero() {
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16">
           {/* Conteúdo */}
           <motion.div
-            className="col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1"
+            className="col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1 transition-opacity duration-700"
             style={{
               opacity: isDesktop ? desktopMessageOpacity : messageOpacity,
             }}
@@ -82,8 +83,7 @@ export default function Hero() {
                 y: 0,
               }}
               transition={{
-                duration: 0.8,
-                ease: "easeOut",
+                duration: 1.2,
               }}
               className="w-full max-w-xl"
             >
