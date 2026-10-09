@@ -82,7 +82,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
   );
 
   const stylePattern =
-    "flex w-[clamp(14rem,18vw,24rem)] flex-col gap-[clamp(0.6rem,0.7vw,0.9rem)] rounded-xl bg-primary px-[clamp(1rem,1.5vw,1.75rem)] py-[clamp(1rem,1.2vw,1.25rem)] text-contrast border border-contrast/60";
+    "flex w-[clamp(18rem,22vw,32rem)] flex-col gap-[clamp(0.7rem,0.8vw,1rem)] rounded-xl bg-primary px-[clamp(1.25rem,2vw,2.25rem)] py-[clamp(1.25rem,1.5vw,2rem)] text-contrast border border-contrast/60";
 
   return (
     <section
@@ -98,7 +98,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
           y: thought1Y,
         }}
       >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
+        <p className="line-clamp-3 text-[clamp(1.1rem,1.8vw,1.75rem)] leading-relaxed">
           &quot;
           {books[0]?.note
             ? books[0]?.note
@@ -106,7 +106,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
           &quot;
         </p>
 
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
+        <p className="truncate text-[clamp(0.85rem,1.1vw,1.25rem)] opacity-50">
           {books[0]?.title ? books[0]?.title : "THE NAME OF THE WIND"}
         </p>
       </motion.div>
@@ -120,13 +120,13 @@ export default function Thoughts({ books }: ThoughtsProps) {
           y: thought2Y,
         }}
       >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
+        <p className="line-clamp-3 text-[clamp(1.1rem,1.8vw,1.75rem)] leading-relaxed">
           &quot;
           {books[1]?.note ? books[1]?.note : "Remember this chapter"}
           &quot;
         </p>
 
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
+        <p className="truncate text-[clamp(0.85rem,1.1vw,1.25rem)] opacity-50">
           {books[1]?.title ? books[1]?.title : "THE NAME OF THE WIND"}
         </p>
       </motion.div>
@@ -140,7 +140,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
           y: thought3Y,
         }}
       >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
+        <p className="line-clamp-3 text-[clamp(1.1rem,1.8vw,1.75rem)] leading-relaxed">
           &quot;
           {books[2]?.note
             ? books[2]?.note
@@ -148,7 +148,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
           &quot;
         </p>
 
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
+        <p className="truncate text-[clamp(0.85rem,1.1vw,1.25rem)] opacity-50">
           {books[2]?.title ? books[2]?.title : "THE NAME OF THE WIND"}
         </p>
       </motion.div>
@@ -162,13 +162,13 @@ export default function Thoughts({ books }: ThoughtsProps) {
           y: thought4Y,
         }}
       >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
+        <p className="line-clamp-3 text-[clamp(1.1rem,1.8vw,1.75rem)] leading-relaxed">
           &quot;
           {books[3]?.note ? books[3]?.note : "I really liked this character."}
           &quot;
         </p>
 
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
+        <p className="truncate text-[clamp(0.85rem,1.1vw,1.25rem)] opacity-50">
           {books[3]?.title ? books[3]?.title : "THE NAME OF THE WIND"}
         </p>
       </motion.div>
