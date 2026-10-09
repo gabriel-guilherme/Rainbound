@@ -37,7 +37,7 @@ export default function Collection({ books }: CollectionProps) {
   );
 
   return (
-    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24">
+    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24 2xl:px-48">
       <h3 className="shrink-0 text-lg text-contrast opacity-50">
         YOUR COLLECTION
       </h3>
