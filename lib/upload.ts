@@ -31,36 +31,53 @@ export async function uploadBookCover(file: File) {
   });
 }
 
+function getBookFileInfo(file: File) {
+  const extension = file.name.split(".").pop()?.toLowerCase();
+
+  switch (extension) {
+    case "epub":
+      return {
+        extension: "epub",
+        contentType: "application/epub+zip",
+      };
+
+    case "pdf":
+      return {
+        extension: "pdf",
+        contentType: "application/pdf",
+      };
+
+    case "cbz":
+      return {
+        extension: "cbz",
+        contentType: "application/vnd.comicbook+zip",
+      };
+
+    default:
+      throw new Error("Formato não suportado. Use EPUB, PDF ou CBZ.");
+  }
+}
+
 export async function uploadBookFile(file: File, bookId: number) {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const filePath = `${bookId}/book.epub`;
+  const { extension, contentType } = getBookFileInfo(file);
+
+  const filePath = `${bookId}/book.${extension}`;
 
   const { error } = await supabase.storage
     .from("ebooks")
     .upload(filePath, buffer, {
-      contentType: "application/epub+zip",
+      contentType,
       upsert: true,
     });
 
   if (error) {
-    throw new Error(`Falha no upload do EPUB: ${error.message}`);
+    throw new Error(`Falha no upload do livro: ${error.message}`);
   }
 
   return {
     filePath,
   };
-}
-
-export async function getBookFileUrl(filePath: string) {
-  const { data, error } = await supabase.storage
-    .from("ebooks")
-    .createSignedUrl(filePath, 60 * 60);
-
-  if (error || !data) {
-    throw new Error(`Falha ao gerar URL do EPUB: ${error?.message}`);
-  }
-
-  return data.signedUrl;
 }

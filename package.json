@@ -1,5 +1,5 @@
 {
-  "name": "books-manager",
+  "name": "rainbound",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -21,6 +21,7 @@
     "dotenv": "^17.4.2",
     "epub": "^2.1.1",
     "epub.js": "^0.2.15",
+    "fflate": "^0.8.3",
     "foliate-js": "^1.0.1",
     "lucide-react": "^1.41.0",
     "lucide-react-motion": "^0.5.1",
@@ -28,7 +29,8 @@
     "pg": "^8.23.0",
     "postcss": "^8.5.28",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "react-pdf": "^10.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

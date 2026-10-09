@@ -32,3 +32,31 @@
   --font-display: "Lora", serif;
   --font-sans: "Manrope", sans-serif;
 }
+
+/* Keep the reader inside the viewport that the mobile browser currently exposes. */
+.reader-shell {
+   height: 100vh;
+   height: 100dvh;
+   min-height: 0;
+   overscroll-behavior: none;
+}
+
+.reader-header {
+   padding-top: env(safe-area-inset-top);
+   height: calc(4rem + env(safe-area-inset-top));
+}
+
+.reader-footer {
+   padding-bottom: env(safe-area-inset-bottom);
+   height: calc(2.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+   .reader-header {
+      height: 5rem;
+   }
+
+   .reader-footer {
+      height: 3rem;
+   }
+}

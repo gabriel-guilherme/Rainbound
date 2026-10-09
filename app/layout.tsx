@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
+import type { Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "Rainbound",
@@ -9,6 +10,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -16,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-dvh bg-darkest">{children}</body>
     </html>
   );
 }

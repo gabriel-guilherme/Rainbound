@@ -2,7 +2,7 @@ import Reader from "@/components/Reader/Reader";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-import { getBookFileUrl } from "@/lib/upload";
+import { getBookFileUrl } from "@/lib/utils";
 
 export default async function Read({
   params,
@@ -27,12 +27,12 @@ export default async function Read({
   const url = await getBookFileUrl(book.filePath);
 
   return (
-    <div className="relative flex h-screen w-full flex-col bg-darkest text-contrast">
+    <div className="min-h-dvh w-full bg-darkest text-contrast">
       <Reader
         bookId={book.id}
         bookUrl={url}
         format={book.format}
-        initialCfi={book.progress?.locator}
+        locator={book.progress?.locator}
       />
     </div>
   );

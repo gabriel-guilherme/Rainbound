@@ -104,22 +104,6 @@ export default function EditBookForm({ book }: EditBookFormProps) {
                 ))}
               </select>
             </div>
-
-            <div className="flex flex-col">
-              <label>Formato</label>
-
-              <select
-                name="format"
-                defaultValue={book.format}
-                className={`${stylePattern} cursor-pointer text-center`}
-              >
-                {formatOptions.map((format) => (
-                  <option key={format.value} value={format.value}>
-                    {format.label}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_20%]">

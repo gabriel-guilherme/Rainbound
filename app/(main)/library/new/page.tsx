@@ -144,26 +144,6 @@ export default function NewBookPage() {
                   ))}
                 </select>
               </div>
-
-              <div className="flex flex-col">
-                <label>Formato</label>
-
-                <select
-                  name="format"
-                  required
-                  value={book.format}
-                  onChange={(e) => updateField("format", e.target.value)}
-                  className={`${stylePattern} cursor-pointer text-center`}
-                >
-                  <option value="">Formato</option>
-
-                  {formatOptions.map((format) => (
-                    <option key={format.value} value={format.value}>
-                      {format.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[60%_minmax(0,1fr)]">

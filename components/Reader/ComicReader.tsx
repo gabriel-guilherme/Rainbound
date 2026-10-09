@@ -1,3 +1,3 @@
-export default function ComicReader() {
+export default function PdfReader() {
   return <></>;
 }

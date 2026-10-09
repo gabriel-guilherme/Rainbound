@@ -1,25 +1,22 @@
 "use client";
 
-import ChaptersSummary from "@/components/Reader/ChaptersSummary";
-import EpubReader from "@/components/Reader/EpubReader";
-import PdfReader from "@/components/Reader/PdfReader";
-import ComicReader from "@/components/Reader/ComicReader";
 import FullscreenButton from "@/components/Reader/FullScreenButton";
+import ReaderNavigation from "@/components/Reader/ReaderNavigation";
 
 import { CloudRainWind, Summary } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-type ReaderType = "epub" | "pdf" | "comic";
+const PdfReader = dynamic(() => import("@/components/Reader/PdfReader"), {
+  ssr: false,
+});
+
+type ReaderType = "pdf" | "disabled";
 
 type FileFormat = "EPUB" | "PDF" | "CBZ" | "CBR";
 
-type Chapter = {
-  title: string;
-  href: string;
-};
-
-type PageInfo = {
+export type PageInfo = {
   currentPage: number;
   totalPages: number;
   progress: number;
@@ -27,93 +24,94 @@ type PageInfo = {
   chapterTitle: string;
 };
 
-function getReaderType(format: FileFormat): ReaderType {
-  switch (format) {
-    case "EPUB":
-      return "epub";
+function getInitialPage(locator?: string | null): number {
+  const [type, value] = locator?.trim().split(":") ?? [];
+  const page = Number(value);
 
-    case "PDF":
-      return "pdf";
-
-    case "CBZ":
-    case "CBR":
-      return "comic";
-
-    default:
-      throw new Error(`Formato de arquivo não suportado: ${format}`);
-  }
+  return type === "pdf-page" && Number.isInteger(page) && page > 0 ? page : 1;
 }
 
+const readerConfig: Record<FileFormat, ReaderType> = {
+  PDF: "pdf",
+  EPUB: "disabled",
+  CBZ: "disabled",
+  CBR: "disabled",
+};
+
 export default function Reader({
-  bookId,
   bookUrl,
   format,
-  initialCfi,
+  locator,
 }: {
   bookId: number;
   bookUrl: string;
   format: FileFormat;
-  initialCfi?: string | null;
+  locator?: string | null;
 }) {
-  const [showContents, setShowContents] = useState(false);
+  const readerType = readerConfig[format];
+  const initialPage = getInitialPage(locator);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  useEffect(() => {
+    const updateIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-  const [chapterHref, setChapterHref] = useState<string | null>(null);
+    updateIsMobile();
+
+    window.addEventListener("resize", updateIsMobile);
+
+    return () => {
+      window.removeEventListener("resize", updateIsMobile);
+    };
+  }, []);
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
-    currentPage: 1,
+    currentPage: initialPage,
     totalPages: 0,
     progress: 0,
     isTwoPages: true,
     chapterTitle: "Carregando...",
   });
+  const canNavigate = readerType === "pdf" && pageInfo.totalPages > 0;
 
-  const readerType = getReaderType(format);
+  const goToPreviousPage = () => {
+    setPageInfo((previous) => ({
+      ...previous,
+      currentPage: Math.max(previous.currentPage - 1, 1),
+    }));
+  };
 
-  function handleChapterSelect(href: string) {
-    setChapterHref(href);
-    setShowContents(false);
-  }
+  const goToNextPage = () => {
+    setPageInfo((previous) => ({
+      ...previous,
+      currentPage: Math.min(
+        previous.currentPage + 1,
+        previous.totalPages || previous.currentPage,
+      ),
+    }));
+  };
 
   function renderReader() {
-    switch (readerType) {
-      case "epub":
-        return (
-          <EpubReader
-            bookId={bookId}
-            bookUrl={bookUrl}
-            initialCfi={initialCfi}
-            chapterHref={chapterHref}
-            onPageChange={setPageInfo}
-            onContentsChange={setChapters}
-          />
-        );
-
-      /*case "pdf":
-        return (
-          <PdfReader
-            bookId={bookId}
-            bookUrl={bookUrl}
-            onPageChange={setPageInfo}
-          />
-        );
-
-      case "comic":
-        return (
-          <ComicReader
-            bookId={bookId}
-            bookUrl={bookUrl}
-            onPageChange={setPageInfo}
-          />
-        );*/
+    if (readerType === "pdf") {
+      return (
+        <PdfReader
+          file={bookUrl}
+          pageNumber={pageInfo.currentPage}
+          onPageChange={setPageInfo}
+        />
+      );
     }
+
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p>Este formato está temporariamente indisponível.</p>
+      </div>
+    );
   }
 
-  const supportsContents = readerType === "epub";
-
   return (
-    <>
+    <div className="relative flex h-screen w-full flex-col">
       {/* Header */}
       <header className="grid h-20 shrink-0 grid-cols-3 items-center px-5">
         <Link href="/">
@@ -127,32 +125,25 @@ export default function Reader({
         <div className="flex items-center gap-3 justify-self-end">
           <p>Aa</p>
 
-          {supportsContents && (
-            <button
-              type="button"
-              onClick={() => setShowContents((prev) => !prev)}
-              className="cursor-pointer"
-              aria-label="Abrir sumário"
-            >
-              <Summary />
-            </button>
-          )}
+          <Summary />
 
           <FullscreenButton />
         </div>
       </header>
 
-      {/* Sumário */}
-      {showContents && supportsContents && (
-        <ChaptersSummary
-          setShowContents={setShowContents}
-          chapters={chapters}
-          handleChapterSelect={handleChapterSelect}
-        />
-      )}
-
       {/* Leitor */}
-      <main className="relative min-h-0 flex-1">{renderReader()}</main>
+      <main className="relative min-h-0 flex-1">
+        <ReaderNavigation
+          onPrevious={goToPreviousPage}
+          onNext={goToNextPage}
+          previousDisabled={!canNavigate || pageInfo.currentPage <= 1}
+          nextDisabled={
+            !canNavigate || pageInfo.currentPage >= pageInfo.totalPages
+          }
+        >
+          {renderReader()}
+        </ReaderNavigation>
+      </main>
 
       {/* Footer */}
       <footer className="flex h-12 shrink-0 items-center justify-center">
@@ -169,6 +160,6 @@ export default function Reader({
         {pageInfo.progress}
         {"%)"}
       </footer>
-    </>
+    </div>
   );
 }

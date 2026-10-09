@@ -1,15 +1,12 @@
 "use server";
 
-import {
-  ContentType,
-  FileFormat,
-  ReadingStatus,
-} from "@/generated/prisma/enums";
+import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { uploadBookCover, uploadBookFile } from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getFileFormat } from "@/lib/utils";
 
 export async function updateBook(formData: FormData) {
   const id = Number(formData.get("id"));
@@ -18,9 +15,8 @@ export async function updateBook(formData: FormData) {
   const creator = formData.get("creator") as string;
 
   const typeRaw = formData.get("type");
-  const formatRaw = formData.get("format");
-
   const statusRaw = formData.get("status");
+
   const ratingRaw = formData.get("rating") as string;
   const notes = formData.get("notes") as string;
 
@@ -37,27 +33,36 @@ export async function updateBook(formData: FormData) {
     ? (typeRaw as ContentType)
     : null;
 
-  const format = Object.values(FileFormat).includes(formatRaw as FileFormat)
-    ? (formatRaw as FileFormat)
-    : null;
-
   const current = await prisma.book.findUniqueOrThrow({
-    where: { id },
+    where: {
+      id,
+    },
   });
 
   const data: Parameters<typeof prisma.book.update>[0]["data"] = {
     title,
     creator,
+
     status,
 
     type: type ?? current.type,
-    format: format ?? current.format,
+
+    /*
+     * Por padrão mantém o formato atual.
+     */
+    format: current.format,
 
     notes: notes || null,
+
     rating: ratingRaw ? Number(ratingRaw) : null,
   };
 
-  // Upload da nova capa
+  /*
+   * ==========================================
+   * NOVA CAPA
+   * ==========================================
+   */
+
   if (cover instanceof File && cover.size > 0) {
     const uploadedCover = await uploadBookCover(cover);
 
@@ -69,14 +74,30 @@ export async function updateBook(formData: FormData) {
     }
   }
 
-  // Upload de novo arquivo
+  /*
+   * ==========================================
+   * NOVO ARQUIVO
+   * ==========================================
+   */
+
   if (bookFile instanceof File && bookFile.size > 0) {
+    /*
+     * O formato muda automaticamente
+     * de acordo com o novo arquivo.
+     */
+    data.format = getFileFormat(bookFile);
+
     const uploadedFile = await uploadBookFile(bookFile, id);
 
     data.filePath = uploadedFile.filePath;
   }
 
-  // Controle das datas de leitura
+  /*
+   * ==========================================
+   * DATAS DE LEITURA
+   * ==========================================
+   */
+
   if (
     status === ReadingStatus.READING &&
     current.status !== ReadingStatus.READING &&
@@ -90,7 +111,9 @@ export async function updateBook(formData: FormData) {
   }
 
   await prisma.book.update({
-    where: { id },
+    where: {
+      id,
+    },
     data,
   });
 

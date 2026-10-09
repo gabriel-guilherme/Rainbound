@@ -71,6 +71,7 @@ export default async function BooksPage({
     });
   }
 
+  console.log(books);
   return (
     <div className="mx-auto min-h-screen max-w-7xl px-4 py-10 pt-32">
       <div className="mb-8 flex items-center justify-between">

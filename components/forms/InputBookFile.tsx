@@ -3,6 +3,8 @@
 import { FileText, Upload } from "lucide-react";
 import { useState } from "react";
 
+const ALLOWED_EXTENSIONS = [".epub", ".pdf", ".cbz"];
+
 export default function InputBookFile() {
   const [fileName, setFileName] = useState("");
 
@@ -14,19 +16,17 @@ export default function InputBookFile() {
       return;
     }
 
-    const isEpub =
-      file.type === "application/epub+zip" ||
-      file.name.toLowerCase().endsWith(".epub");
+    const extension = "." + file.name.split(".").pop()?.toLowerCase();
 
-    if (!isEpub) {
-      alert("Selecione um arquivo EPUB.");
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      alert("Selecione um arquivo EPUB, PDF ou CBZ.");
       event.target.value = "";
       setFileName("");
       return;
     }
 
     if (file.size > 50 * 1024 * 1024) {
-      alert("O EPUB deve ter no máximo 50MB.");
+      alert("O arquivo deve ter no máximo 50MB.");
       event.target.value = "";
       setFileName("");
       return;
@@ -42,13 +42,13 @@ export default function InputBookFile() {
       <div className="flex min-w-0 items-center gap-2">
         <FileText size={18} />
 
-        <span className="truncate">{fileName || "Selecionar EPUB"}</span>
+        <span className="truncate">{fileName || "Selecionar arquivo"}</span>
       </div>
 
       <input
         type="file"
         name="bookFile"
-        accept=".epub,application/epub+zip"
+        accept=".epub,.pdf,.cbz,application/epub+zip,application/pdf,application/vnd.comicbook+zip"
         onChange={handleChange}
         className="sr-only"
       />

@@ -1,59 +1,32 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
+import { useEffect, useRef, useState } from "react";
 import ePub, { Location, Rendition } from "@likecoin/epub-ts";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useReaderProgress } from "./useReaderProgress";
 
-import { saveBookProgress } from "@/app/read/actions";
+import type { Chapter, PageInfo, ReaderProgress } from "./readerTypes";
 
-export type Chapter = {
-  title: string;
-  href: string;
-};
-
-type PageInfo = {
-  currentPage: number;
-  totalPages: number;
-  progress: number;
-  isTwoPages: boolean;
-  chapterTitle: string;
-};
+import {
+  calculateProgress,
+  findChapterTitle,
+  getEpubPosition,
+  isValidEpubLocator,
+} from "./readerUtils";
 
 type EpubReaderProps = {
   bookId: number;
   bookUrl: string;
-  initialCfi?: string | null;
+  locator?: string | null;
   chapterHref: string | null;
   onPageChange: (info: PageInfo) => void;
   onContentsChange: (chapters: Chapter[]) => void;
 };
 
-function normalizeHref(href: string) {
-  return decodeURIComponent(href)
-    .split("#")[0]
-    .replace(/^(\.\.\/)+/, "");
-}
-
-function findChapterTitle(book: ReturnType<typeof ePub>, href?: string) {
-  if (!href) {
-    return "Leitura";
-  }
-
-  const normalizedHref = normalizeHref(href);
-
-  const item = book.navigation.toc.find(
-    (item) => normalizeHref(item.href) === normalizedHref,
-  );
-
-  return item?.label ?? "Leitura";
-}
-
 export default function EpubReader({
   bookId,
   bookUrl,
-  initialCfi,
+  locator,
   chapterHref,
   onPageChange,
   onContentsChange,
@@ -61,15 +34,22 @@ export default function EpubReader({
   const viewerRef = useRef<HTMLDivElement>(null);
   const renditionRef = useRef<Rendition | null>(null);
 
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [readerProgress, setReaderProgress] = useState<ReaderProgress | null>(
+    null,
+  );
+
+  const [progressEnabled, setProgressEnabled] = useState(false);
 
   /**
-   * Indica que o EPUB ainda está sendo inicializado.
-   *
-   * O primeiro "relocated" não deve salvar posição,
-   * pois estamos restaurando a posição salva.
+   * Salva o progresso automaticamente após as mudanças
+   * de posição.
    */
-  const isInitialDisplayRef = useRef(true);
+  useReaderProgress({
+    bookId,
+    progress: readerProgress,
+    enabled: progressEnabled,
+    delay: 1000,
+  });
 
   useEffect(() => {
     if (!viewerRef.current) {
@@ -108,10 +88,6 @@ export default function EpubReader({
          * ---------------------------------------------------------
          * 2. Gera as locations
          * ---------------------------------------------------------
-         *
-         * Essas locations permitem converter:
-         *
-         * CFI <-> posição numérica
          */
 
         await book.locations.generate(1024);
@@ -188,24 +164,29 @@ export default function EpubReader({
          */
 
         rendition.on("relocated", (location: Location) => {
+          if (!book) {
+            return;
+          }
+
           const cfi = location.start.cfi;
 
-          if (!cfi || !book) {
+          if (!cfi) {
             return;
           }
 
           /*
-           * Converte o CFI para uma posição numérica.
+           * Converte CFI para posição numérica.
            */
 
-          const currentPosition = Number(book.locations.locationFromCfi(cfi));
+          const currentPosition = getEpubPosition(book, cfi);
+
+          if (currentPosition === null) {
+            return;
+          }
 
           const totalPositions = book.locations.length();
 
-          const percentage =
-            totalPositions > 0
-              ? Math.round((currentPosition / totalPositions) * 100)
-              : 0;
+          const percentage = calculateProgress(currentPosition, totalPositions);
 
           /*
            * Verifica se estamos mostrando uma ou duas páginas.
@@ -223,12 +204,9 @@ export default function EpubReader({
           const chapterTitle = findChapterTitle(book, section?.href);
 
           /*
-           * -----------------------------------------------------
+           * -------------------------------------------------------
            * Atualiza a interface
-           * -----------------------------------------------------
-           *
-           * currentPage / totalPages continuam existindo
-           * apenas como representação visual do EPUB.
+           * -------------------------------------------------------
            */
 
           onPageChange({
@@ -240,42 +218,20 @@ export default function EpubReader({
           });
 
           /*
-           * -----------------------------------------------------
-           * Não salva o primeiro relocated
-           * -----------------------------------------------------
+           * -------------------------------------------------------
+           * Atualiza o progresso persistido.
+           *
+           * O hook useReaderProgress fica responsável pelo
+           * debounce e pelo saveBookProgress.
+           * -------------------------------------------------------
            */
 
-          if (isInitialDisplayRef.current) {
-            console.log("INITIAL RELOCATED CFI:", cfi);
-
-            return;
-          }
-
-          /*
-           * -----------------------------------------------------
-           * Debounce do salvamento
-           * -----------------------------------------------------
-           */
-
-          if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-          }
-
-          saveTimeoutRef.current = setTimeout(() => {
-            console.log("SAVING EPUB PROGRESS:", {
-              currentPosition,
-              totalPositions,
-              percentage,
-              cfi,
-            });
-
-            void saveBookProgress(bookId, {
-              currentPosition,
-              totalPositions,
-              percentage,
-              locator: cfi,
-            });
-          }, 1000);
+          setReaderProgress({
+            currentPosition,
+            totalPositions,
+            percentage,
+            locator: cfi,
+          });
         });
 
         /*
@@ -284,27 +240,29 @@ export default function EpubReader({
          * ---------------------------------------------------------
          */
 
-        console.log("INITIAL CFI:", initialCfi);
+        if (locator && isValidEpubLocator(locator)) {
+          const position = getEpubPosition(book, locator);
 
-        if (initialCfi) {
-          console.log("RESTORING SAVED POSITION...");
+          if (position === null) {
+            console.warn("EPUB locator inválido para este arquivo:", locator);
 
-          await rendition.display(initialCfi);
+            await rendition.display();
+          } else {
+            try {
+              await rendition.display(locator);
+            } catch (error) {
+              console.warn(
+                "Não foi possível restaurar o locator do EPUB:",
+                error,
+              );
 
-          const currentLocation = await rendition.currentLocation();
-
-          console.log("CURRENT LOCATION AFTER DISPLAY:", currentLocation);
-
-          console.log(
-            "CURRENT CFI AFTER DISPLAY:",
-            currentLocation?.start?.cfi,
-          );
+              await rendition.display();
+            }
+          }
         } else {
-          /*
-           * Primeiro acesso ao livro.
-           */
-
-          console.log("NO INITIAL CFI - OPENING BOOK FROM START");
+          if (locator) {
+            console.warn("Locator incompatível com EPUB:", locator);
+          }
 
           await rendition.display();
         }
@@ -315,14 +273,19 @@ export default function EpubReader({
         }
 
         /*
-         * Agora o livro terminou de ser inicializado.
+         * ---------------------------------------------------------
+         * 8. Inicialização concluída
+         * ---------------------------------------------------------
          *
-         * Os próximos relocated podem salvar progresso.
+         * O primeiro relocated foi utilizado apenas para
+         * reconstruir o estado da interface.
+         *
+         * A partir daqui, mudanças reais de página podem ser
+         * persistidas.
+         * ---------------------------------------------------------
          */
 
-        isInitialDisplayRef.current = false;
-
-        console.log("EPUB RENDERIZADO");
+        setProgressEnabled(true);
       } catch (error) {
         if (!cancelled) {
           console.error("Erro ao carregar EPUB:", error);
@@ -341,10 +304,8 @@ export default function EpubReader({
     return () => {
       cancelled = true;
 
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
+      setProgressEnabled(false);
+      setReaderProgress(null);
 
       renditionRef.current?.destroy();
       renditionRef.current = null;
@@ -352,7 +313,7 @@ export default function EpubReader({
       book?.destroy();
       book = null;
     };
-  }, [bookId, bookUrl, initialCfi, onPageChange, onContentsChange]);
+  }, [bookId, bookUrl, locator, onPageChange, onContentsChange]);
 
   /*
    * ---------------------------------------------------------------
@@ -375,11 +336,11 @@ export default function EpubReader({
    */
 
   function previousPage() {
-    renditionRef.current?.prev();
+    void renditionRef.current?.prev();
   }
 
   function nextPage() {
-    renditionRef.current?.next();
+    void renditionRef.current?.next();
   }
 
   /*
@@ -389,26 +350,13 @@ export default function EpubReader({
    */
 
   return (
-    <div className="relative h-full w-full">
-      <div ref={viewerRef} className="h-full w-full" />
-
-      <button
-        type="button"
-        onClick={previousPage}
-        className="absolute top-1/2 left-0 -translate-y-1/2 cursor-pointer"
-        aria-label="Página anterior"
-      >
-        <ChevronLeft size={64} />
-      </button>
-
-      <button
-        type="button"
-        onClick={nextPage}
-        className="absolute top-1/2 right-0 -translate-y-1/2 cursor-pointer"
-        aria-label="Próxima página"
-      >
-        <ChevronRight size={64} />
-      </button>
+    <div className="relative flex h-full w-full min-w-0 items-center">
+      <ReaderNavigation onPrevious={previousPage} onNext={nextPage}>
+        <div
+          ref={viewerRef}
+          className="h-full min-w-0 flex-1 overflow-hidden"
+        />
+      </ReaderNavigation>
     </div>
   );
 }

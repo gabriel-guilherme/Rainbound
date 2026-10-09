@@ -1,6 +1,6 @@
 import Image from "next/image";
-import BookActionsMenu from "../common/BookActionsMenu";
-import ProgressBar from "../common/ProgressBar";
+import BookActionsMenu from "./BookActionsMenu";
+import ProgressBar from "./ProgressBar";
 
 type BookCardProps = {
   book: {
@@ -22,7 +22,6 @@ const typeLabel = {
 };
 
 export default function BookCard({ book }: BookCardProps) {
-  console.log(book);
   const percentage = book.progress?.percentage ?? 0;
 
   return (
