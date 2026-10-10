@@ -54,28 +54,6 @@ Leitor específico para EPUBs usando `@likecoin/epub-ts`.
 #### 5. `ChaptersSummary.tsx`
 Componente para exibição do sumário de capítulos (EPUB).
 
-### Planejamento Futuro
-
-#### Implementação de Navegação por Capítulos (EPUB)
-
-Para implementar a navegação por capítulos em EPUB:
-
-1. **Atualizar o dropdown** para aceitar ambos tipos de localização
-2. **Adicionar lógica de conversão** de capítulo para CFI
-3. **Integrar com ChaptersSummary** para exibição do sumário
-4. **Salvar progresso por capítulo** no banco de dados
-
-#### Estrutura Sugerida:
-
-```typescript
-type LocatorType = "pdf-page" | "epub-cfi" | "chapter";
-
-interface ReaderLocation {
-  type: LocatorType;
-  value: string | number;
-}
-```
-
 ### Utilitários
 
 - `readerUtils.ts` - Funções auxiliares para processamento de localizadores
