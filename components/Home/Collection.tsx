@@ -26,10 +26,10 @@ export default function Collection({ books }: CollectionProps) {
     offset: ["start end", "end start"],
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0, 1, 1, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
 
   return (
-    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24">
+    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24 2xl:px-48">
       <h3 className="shrink-0 text-lg text-contrast opacity-50">
         YOUR COLLECTION
       </h3>
@@ -59,7 +59,7 @@ export default function Collection({ books }: CollectionProps) {
           {books.map((book) => (
             <div
               key={book.id}
-              className="w-[80%] shrink-0 snap-center p-10 lg:w-auto"
+              className="w-[80%] shrink-0 snap-center p-10 transition-transform duration-300 hover:scale-105 lg:w-auto"
             >
               <BookPosterSimplified book={book} />
             </div>

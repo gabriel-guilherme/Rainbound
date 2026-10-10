@@ -2,11 +2,14 @@
 
 import FullscreenButton from "@/components/Reader/FullScreenButton";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
+import { useReaderProgress } from "@/components/Reader/useReaderProgress";
 
-import { CloudRainWind, Summary } from "lucide-react";
+import { ArrowLeft, CloudRainWind, Summary } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getPdfPage } from "./readerUtils";
+import type { ReaderProgress } from "./readerTypes";
 
 const PdfReader = dynamic(() => import("@/components/Reader/PdfReader"), {
   ssr: false,
@@ -24,13 +27,6 @@ export type PageInfo = {
   chapterTitle: string;
 };
 
-function getInitialPage(locator?: string | null): number {
-  const [type, value] = locator?.trim().split(":") ?? [];
-  const page = Number(value);
-
-  return type === "pdf-page" && Number.isInteger(page) && page > 0 ? page : 1;
-}
-
 const readerConfig: Record<FileFormat, ReaderType> = {
   PDF: "pdf",
   EPUB: "disabled",
@@ -39,6 +35,7 @@ const readerConfig: Record<FileFormat, ReaderType> = {
 };
 
 export default function Reader({
+  bookId,
   bookUrl,
   format,
   locator,
@@ -49,8 +46,17 @@ export default function Reader({
   locator?: string | null;
 }) {
   const readerType = readerConfig[format];
-  const initialPage = getInitialPage(locator);
+  const initialPage = getPdfPage(locator);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [readerProgress, setReaderProgress] = useState<ReaderProgress | null>(
+    null,
+  );
+
+  useReaderProgress({
+    bookId,
+    progress: readerProgress,
+    delay: 800,
+  });
 
   useEffect(() => {
     const updateIsMobile = () => {
@@ -99,6 +105,7 @@ export default function Reader({
           file={bookUrl}
           pageNumber={pageInfo.currentPage}
           onPageChange={setPageInfo}
+          onProgressChange={setReaderProgress}
         />
       );
     }
@@ -114,9 +121,14 @@ export default function Reader({
     <div className="relative flex h-screen w-full flex-col">
       {/* Header */}
       <header className="grid h-20 shrink-0 grid-cols-3 items-center px-5">
-        <Link href="/">
-          <CloudRainWind className="justify-self-start" />
-        </Link>
+        <div className="flex items-center gap-3 justify-self-start">
+          <Link href="/library">
+            <ArrowLeft />
+          </Link>
+          <Link href="/">
+            <CloudRainWind className="justify-self-start" />
+          </Link>
+        </div>
 
         <h1 className="max-w-xs truncate justify-self-center">
           {pageInfo.chapterTitle}

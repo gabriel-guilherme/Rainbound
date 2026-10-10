@@ -8,6 +8,7 @@ import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
 import type { PageInfo } from "./Reader";
+import type { ReaderProgress } from "./readerTypes";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -18,12 +19,14 @@ interface PdfReaderProps {
   file: DocumentProps["file"];
   pageNumber: number;
   onPageChange?: (pageInfo: PageInfo) => void;
+  onProgressChange?: (progress: ReaderProgress) => void;
 }
 
 export default function PdfReader({
   file,
   pageNumber,
   onPageChange,
+  onProgressChange,
 }: PdfReaderProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [scale, setScale] = useState<number>(1);
@@ -70,14 +73,23 @@ export default function PdfReader({
       return;
     }
 
+    const percentage = Math.round((pageNumber / numPages) * 100);
+
     onPageChange?.({
       currentPage: pageNumber,
       totalPages: numPages,
-      progress: Math.round((pageNumber / numPages) * 100),
+      progress: percentage,
       isTwoPages: false,
       chapterTitle: "PDF",
     });
-  }, [numPages, onPageChange, pageNumber]);
+
+    onProgressChange?.({
+      currentPosition: pageNumber - 1,
+      totalPositions: numPages,
+      percentage,
+      locator: `pdf-page:${pageNumber}`,
+    });
+  }, [numPages, onPageChange, onProgressChange, pageNumber]);
 
   if (loadError) {
     return (

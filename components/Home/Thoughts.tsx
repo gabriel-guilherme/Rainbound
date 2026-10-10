@@ -13,85 +13,61 @@ type ThoughtsProps = {
 };
 
 export default function Thoughts({ books }: ThoughtsProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-
-  const thought1Ref = useRef<HTMLDivElement>(null);
-  const thought2Ref = useRef<HTMLDivElement>(null);
-  const thought3Ref = useRef<HTMLDivElement>(null);
-  const thought4Ref = useRef<HTMLDivElement>(null);
+  const thoughtsContainerRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: thoughtsContainerRef,
     offset: ["start end", "end start"],
-  });
-
-  const { scrollYProgress: thought1Progress } = useScroll({
-    target: thought1Ref,
-    offset: ["start 90%", "start 65%"],
-  });
-
-  const { scrollYProgress: thought2Progress } = useScroll({
-    target: thought2Ref,
-    offset: ["start 90%", "start 65%"],
-  });
-
-  const { scrollYProgress: thought3Progress } = useScroll({
-    target: thought3Ref,
-    offset: ["start 90%", "start 65%"],
-  });
-
-  const { scrollYProgress: thought4Progress } = useScroll({
-    target: thought4Ref,
-    offset: ["start 90%", "start 65%"],
   });
 
   const sectionOpacity = useTransform(
     scrollYProgress,
-    [0, 0.4, 0.6, 1],
+    [0, 0.3, 0.7, 1],
     [0, 1, 1, 0],
   );
 
-  const thought1Y = useTransform(thought1Progress, [0, 1], [60, 0]);
-  const thought2Y = useTransform(thought2Progress, [0, 0.6], [60, 0]);
-  const thought3Y = useTransform(thought3Progress, [0, 1], [60, 0]);
-  const thought4Y = useTransform(thought4Progress, [0, 0.6], [60, 0]);
-
-  const thought1Opacity = useTransform(
-    thought1Progress,
-    [0, 0.5, 1],
+  const thought1Progress = useTransform(
+    scrollYProgress,
+    [0, 0.06875, 0.1375],
+    [0, 1, 1],
+  );
+  const thought2Progress = useTransform(
+    scrollYProgress,
+    [0.1375, 0.20625, 0.275],
+    [0, 1, 1],
+  );
+  const thought3Progress = useTransform(
+    scrollYProgress,
+    [0.275, 0.34375, 0.4125],
+    [0, 1, 1],
+  );
+  const thought4Progress = useTransform(
+    scrollYProgress,
+    [0.4125, 0.48125, 0.55],
     [0, 1, 1],
   );
 
-  const thought2Opacity = useTransform(
-    thought2Progress,
-    [0, 0.5, 1],
-    [0, 1, 1],
-  );
+  const thought1Y = useTransform(thought1Progress, [0, 1], [100, 0]);
+  const thought2Y = useTransform(thought2Progress, [0, 1], [100, 0]);
+  const thought3Y = useTransform(thought3Progress, [0, 1], [100, 0]);
+  const thought4Y = useTransform(thought4Progress, [0, 1], [100, 0]);
 
-  const thought3Opacity = useTransform(
-    thought3Progress,
-    [0, 0.5, 1],
-    [0, 1, 1],
-  );
-
-  const thought4Opacity = useTransform(
-    thought4Progress,
-    [0, 0.5, 1],
-    [0, 1, 1],
-  );
+  const thought1Opacity = useTransform(thought1Progress, [0, 0.5, 1], [0, 0.7, 1]);
+  const thought2Opacity = useTransform(thought2Progress, [0, 0.5, 1], [0, 0.7, 1]);
+  const thought3Opacity = useTransform(thought3Progress, [0, 0.5, 1], [0, 0.7, 1]);
+  const thought4Opacity = useTransform(thought4Progress, [0, 0.5, 1], [0, 0.7, 1]);
 
   const stylePattern =
-    "flex w-[clamp(14rem,18vw,24rem)] flex-col gap-[clamp(0.6rem,0.7vw,0.9rem)] rounded-xl bg-primary px-[clamp(1rem,1.5vw,1.75rem)] py-[clamp(1rem,1.2vw,1.25rem)] text-contrast border border-contrast/60";
+    "flex w-[clamp(18rem,22vw,32rem)] flex-col gap-[clamp(0.7rem,0.8vw,1rem)] rounded-xl bg-primary px-[clamp(1.25rem,2vw,2.25rem)] py-[clamp(1.25rem,1.5vw,2rem)] text-contrast border border-contrast/60";
 
   return (
     <section
-      ref={sectionRef}
+      ref={thoughtsContainerRef}
       className="font-display relative flex h-screen w-full items-center justify-center overflow-hidden bg-secundary border-b border-contrast px-4 sm:px-8 lg:px-16 xl:px-24"
     >
       {/* Balão 1 */}
       <motion.div
-        ref={thought1Ref}
-        className={`absolute left-[8%] top-[5%] -rotate-5 sm:left-[5%] sm:top-[20%] md:left-[8%] md:top-[30%] lg:left-[2%] lg:top-[38%] xl:left-[8%] 2xl:left-[15%] ${stylePattern}`}
+        className={`absolute left-[8%] top-[3%] -rotate-2 sm:left-[6%] sm:top-[10%] md:left-[8%] md:top-[13%] lg:left-[10%] lg:top-[11%] xl:left-[12%] xl:top-[10%] 2xl:left-[10%] 2xl:top-[7%] ${stylePattern}`}
         style={{
           opacity: thought1Opacity,
           y: thought1Y,
@@ -112,8 +88,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
 
       {/* Balão 2 */}
       <motion.div
-        ref={thought2Ref}
-        className={`absolute bottom-[3%] right-[5%] rotate-5 sm:bottom-[20%] sm:left-[10%] md:bottom-[20%] md:left-[20%] lg:bottom-[15%] lg:left-[15%] 2xl:left-[30%] ${stylePattern}`}
+        className={`absolute right-[8%] top-[15%] rotate-1 sm:right-[6%] sm:top-[18%] md:right-[8%] md:top-[21%] lg:right-[10%] lg:top-[19%] xl:right-[12%] xl:top-[17%] 2xl:right-[10%] 2xl:top-[15%] ${stylePattern}`}
         style={{
           opacity: thought2Opacity,
           y: thought2Y,
@@ -132,8 +107,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
 
       {/* Balão 3 */}
       <motion.div
-        ref={thought3Ref}
-        className={`absolute bottom-[20%] left-[15%] -rotate-10 sm:left-[60%] sm:rotate-3 md:bottom-[20%] md:left-[60%] lg:bottom-[15%] lg:right-[20%] 2xl:right-[30%] ${stylePattern}`}
+        className={`absolute bottom-[15%] left-[8%] -rotate-1 sm:bottom-[18%] sm:left-[6%] md:bottom-[21%] md:left-[8%] lg:bottom-[19%] lg:left-[10%] xl:bottom-[17%] xl:left-[12%] 2xl:bottom-[15%] 2xl:left-[10%] ${stylePattern}`}
         style={{
           opacity: thought3Opacity,
           y: thought3Y,
@@ -154,8 +128,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
 
       {/* Balão 4 */}
       <motion.div
-        ref={thought4Ref}
-        className={`absolute right-[5%] top-[25%] rotate-8 sm:right-[5%] sm:top-[15%] md:right-[10%] md:top-[25%] lg:right-[3%] xl:right-[10%] 2xl:right-[15%] ${stylePattern}`}
+        className={`absolute right-[8%] bottom-[5%] rotate-1 sm:right-[6%] sm:bottom-[18%] md:right-[8%] md:bottom-[21%] lg:right-[10%] lg:bottom-[19%] xl:right-[12%] xl:bottom-[17%] 2xl:right-[10%] 2xl:bottom-[9%] ${stylePattern}`}
         style={{
           opacity: thought4Opacity,
           y: thought4Y,
@@ -175,7 +148,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
       {/* Conteúdo central */}
       <motion.div
         style={{ opacity: sectionOpacity }}
-        className="relative z-10 flex w-full max-w-[clamp(40rem,70vw,75rem)] flex-col items-center justify-center gap-[clamp(1.25rem,1.5vw,2rem)] text-center"
+        className="relative z-10 flex w-full max-w-[clamp(28rem,50vw,50rem)] flex-col items-center justify-center gap-[clamp(3.5rem,6vw,6rem)] px-10 text-center"
       >
         <h3 className="text-[clamp(0.9rem,1.2vw,1.25rem)] text-contrast opacity-70">
           FROM YOUR BOOKS
