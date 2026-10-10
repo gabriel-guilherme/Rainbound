@@ -50,6 +50,7 @@ export default function Reader({
   const initialPage = getPdfPage(locator);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [readerProgress, setReaderProgress] = useState<ReaderProgress | null>(null);
+  const [isSelectionModeOpen, setIsSelectionModeOpen] = useState<boolean>(false);
 
   useReaderProgress({
     bookId,
