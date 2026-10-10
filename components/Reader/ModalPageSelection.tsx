@@ -7,26 +7,17 @@ type ModalPageSelectionProps = {
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (position: number) => void;
-  locator?: string | null;
+  initialPosition?: number;
 };
 
 export default function ModalPageSelection({
   isOpen,
   onClose,
   onNavigate,
-  locator,
+  initialPosition = 1,
 }: ModalPageSelectionProps) {
-  const [selectedPosition, setSelectedPosition] = useState<number>(1);
-  const [inputValue, setInputValue] = useState<string>("");
-
-  // Extrai a página inicial do locator (ex: "pdf-page:5" -> 5)
-  const initialPosition = Number(locator?.split(":")[1] ?? 1);
-
-  // Atualiza o estado quando o modal abre
-  if (isOpen && initialPosition > 1) {
-    setSelectedPosition(initialPosition);
-    setInputValue(initialPosition.toString());
-  }
+  const [selectedPosition, setSelectedPosition] = useState<number>(initialPosition);
+  const [inputValue, setInputValue] = useState<string>(initialPosition.toString());
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

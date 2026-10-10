@@ -191,7 +191,7 @@ export default function Reader({
         isOpen={isSelectionModeOpen}
         onClose={() => setIsSelectionModeOpen(false)}
         onNavigate={goToPosition}
-        locator={locator}
+        initialPosition={pageInfo.currentPage}
       />
     </div>
   );
