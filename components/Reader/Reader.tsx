@@ -2,10 +2,10 @@
 
 import FullscreenButton from "@/components/Reader/FullScreenButton";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
-import ModalPageSelection from "@/components/Reader/ModalPageSelection";
+import DropdownPageSelection from "@/components/Reader/DropdownPageSelection";
 import { useReaderProgress } from "@/components/Reader/useReaderProgress";
 
-import { ArrowLeft, CloudRainWind, Summary } from "lucide-react";
+import { ArrowLeft, CloudRainWind, ChevronDown } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -49,10 +49,7 @@ export default function Reader({
   const readerType = readerConfig[format];
   const initialPage = getPdfPage(locator);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [readerProgress, setReaderProgress] = useState<ReaderProgress | null>(
-    null,
-  );
-  const [isSelectionModeOpen, setIsSelectionModeOpen] = useState<boolean>(false);
+  const [readerProgress, setReaderProgress] = useState<ReaderProgress | null>(null);
 
   useReaderProgress({
     bookId,
@@ -147,9 +144,12 @@ export default function Reader({
         <div className="flex items-center gap-3 justify-self-end">
           <p>Aa</p>
 
-          <Summary
-            onClick={() => setIsSelectionModeOpen(true)}
-            className="cursor-pointer hover:scale-110"
+          <DropdownPageSelection
+            isOpen={isSelectionModeOpen}
+            onClose={() => setIsSelectionModeOpen(false)}
+            onNavigate={goToPosition}
+            initialPosition={pageInfo.currentPage}
+            totalPages={pageInfo.totalPages}
           />
 
           <FullscreenButton />
@@ -185,14 +185,6 @@ export default function Reader({
         {pageInfo.progress}
         {"%)"}
       </footer>
-
-      {/* Modal de seleção de página/capítulo */}
-      <ModalPageSelection
-        isOpen={isSelectionModeOpen}
-        onClose={() => setIsSelectionModeOpen(false)}
-        onNavigate={goToPosition}
-        initialPosition={pageInfo.currentPage}
-      />
     </div>
   );
 }

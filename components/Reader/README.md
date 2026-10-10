@@ -6,15 +6,24 @@ O leitor do Rainbound suporta múltiplos formatos de arquivo: **PDF**, **EPUB**,
 
 ## Seleção Genérica de Páginas/Capítulos
 
-### Ícone Summary
+### Dropdown de Seleção
 
-O ícone **Summary** no header do leitor permite selecionar páginas (PDF) ou capítulos (EPUB) de forma genérica.
+O ícone **Summary** no header do leitor abre um dropdown que expande para baixo, mostrando uma lista de páginas/capítulos disponíveis.
 
 #### Funcionamento:
 
-1. **Clique no ícone Summary** - Abre um modal de seleção
-2. **Digite a posição desejada** - Pode ser número de página (PDF) ou capítulo (EPUB)
-3. **Confirme** - O leitor navega para a posição selecionada
+1. **Clique no ícone Summary** - O dropdown expande para baixo
+2. **Navegue na lista** - Páginas rápidas a cada 5 posições
+3. **Digite um número** - Ou use o input para navegar direto
+4. **Confirme** - O leitor navega para a posição selecionada
+
+### Características:
+
+- ✅ **Sem blur no fundo** - A lista expande naturalmente sobre o conteúdo
+- ✅ **Lista expandível** - Dropdown que abre para baixo
+- ✅ **Páginas rápidas** - Navegação rápida por grupos de 5 páginas
+- ✅ **Input direto** - Digite qualquer número para navegar
+- ✅ **Integrado ao header** - Faz parte do fluxo natural da interface
 
 ### Estrutura de Dados
 
@@ -26,14 +35,14 @@ O sistema utiliza o campo `locator` para armazenar informações de localizaçã
 
 ### Componentes Principais
 
-#### 1. `ModalPageSelection.tsx`
-Modal genérico para seleção de posição. Funciona para ambos os formatos.
+#### 1. `DropdownPageSelection.tsx`
+Dropdown genérico para seleção de posição. Funciona para ambos os formatos.
 
 #### 2. `Reader.tsx`
 Componente principal que:
 - Detecta o formato do arquivo
 - Gerencia o estado de leitura
-- Abre o modal ao clicar no Summary
+- Abre o dropdown ao clicar no Summary
 - Salva progresso automaticamente
 
 #### 3. `PdfReader.tsx`
@@ -51,7 +60,7 @@ Componente para exibição do sumário de capítulos (EPUB).
 
 Para implementar a navegação por capítulos em EPUB:
 
-1. **Atualizar o modal** para aceitar ambos tipos de localização
+1. **Atualizar o dropdown** para aceitar ambos tipos de localização
 2. **Adicionar lógica de conversão** de capítulo para CFI
 3. **Integrar com ChaptersSummary** para exibição do sumário
 4. **Salvar progresso por capítulo** no banco de dados
@@ -79,7 +88,7 @@ interface ReaderLocation {
 Reader (main)
 ├── PdfReader (PDF)
 ├── EpubReader (EPUB)
-├── ModalPageSelection (genérico)
+├── DropdownPageSelection (genérico)
 └── ChaptersSummary (futuro - EPUB)
 ```
 
