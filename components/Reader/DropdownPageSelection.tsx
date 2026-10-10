@@ -64,7 +64,7 @@ export default function DropdownPageSelection({
       {/* Botão do dropdown */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 rounded-lg px-3 py-2 text-contrast hover:bg-contrast/10"
+        className="flex items-center gap-2 rounded-lg px-3 py-2 text-contrast hover:bg-contrast/10 whitespace-nowrap"
       >
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         <span className="text-sm">Página {selectedPosition}</span>
@@ -72,7 +72,7 @@ export default function DropdownPageSelection({
 
       {/* Lista expandível */}
       {isExpanded && (
-        <div className="absolute left-0 top-full z-40 w-64 rounded-xl border border-contrast/20 bg-primary shadow-lg">
+        <div className="absolute left-1/2 top-full z-40 w-fit max-w-[256px] -translate-x-1/2 rounded-xl border border-contrast/20 bg-primary shadow-lg">
           {/* Input para digitar */}
           <div className="border-b border-contrast/10 p-3">
             <input
