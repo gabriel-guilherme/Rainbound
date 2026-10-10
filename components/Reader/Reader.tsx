@@ -2,6 +2,7 @@
 
 import FullscreenButton from "@/components/Reader/FullScreenButton";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
+import ModalPageSelection from "@/components/Reader/ModalPageSelection";
 import { useReaderProgress } from "@/components/Reader/useReaderProgress";
 
 import { ArrowLeft, CloudRainWind, Summary } from "lucide-react";
@@ -51,6 +52,7 @@ export default function Reader({
   const [readerProgress, setReaderProgress] = useState<ReaderProgress | null>(
     null,
   );
+  const [isSelectionModeOpen, setIsSelectionModeOpen] = useState<boolean>(false);
 
   useReaderProgress({
     bookId,
@@ -117,6 +119,14 @@ export default function Reader({
     );
   }
 
+  // Função genérica de navegação que funciona para PDF (páginas) e EPUB (capítulos)
+  const goToPosition = (position: number) => {
+    setPageInfo((previous) => ({
+      ...previous,
+      currentPage: position,
+    }));
+  };
+
   return (
     <div className="relative flex h-screen w-full flex-col">
       {/* Header */}
@@ -137,7 +147,10 @@ export default function Reader({
         <div className="flex items-center gap-3 justify-self-end">
           <p>Aa</p>
 
-          <Summary />
+          <Summary
+            onClick={() => setIsSelectionModeOpen(true)}
+            className="cursor-pointer hover:scale-110"
+          />
 
           <FullscreenButton />
         </div>
@@ -172,6 +185,14 @@ export default function Reader({
         {pageInfo.progress}
         {"%)"}
       </footer>
+
+      {/* Modal de seleção de página/capítulo */}
+      <ModalPageSelection
+        isOpen={isSelectionModeOpen}
+        onClose={() => setIsSelectionModeOpen(false)}
+        onNavigate={goToPosition}
+        locator={locator}
+      />
     </div>
   );
 }
