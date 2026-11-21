@@ -241,6 +241,7 @@ lib/
 ├── supabase.ts          Supabase client (book file storage)
 ├── cloudinary.ts        Cloudinary configuration
 ├── upload.ts            Cover and book file uploads
+├── spine.ts             Bookshelf spine look (color, width, height)
 └── utils.ts             Signed URLs and file format helpers
 
 prisma/
