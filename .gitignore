@@ -44,3 +44,5 @@ next-env.d.ts
 
 /src/generated/prisma
 generated/prisma
+# arquivos de teste locais (EPUB/PDF de exemplo), fora do repositório
+/samples
