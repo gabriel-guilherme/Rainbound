@@ -11,9 +11,13 @@ type RecentlyAddedProps = {
 export default function RecentlyAdded({ recentlyAdded }: RecentlyAddedProps) {
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-contrast">
+      <h2 className="mb-3 font-display text-xl text-contrast">
         Adicionados recentemente
       </h2>
+
+      {recentlyAdded.length === 0 && (
+        <p className="text-sm text-contrast/60">Nenhum livro adicionado ainda.</p>
+      )}
 
       <ul className="flex flex-col gap-3">
         {recentlyAdded.map((book) => (

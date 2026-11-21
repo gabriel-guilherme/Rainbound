@@ -53,6 +53,7 @@ export default function Navbar() {
         <div className="flex items-center justify-self-start gap-3 sm:gap-6 sm:justify-self-auto">
           <Link
             href="/dashboard"
+            aria-current={isDashboardRoute ? "page" : undefined}
             className={`text-sm font-medium text-contrast transition sm:text-xl ${
               isDashboardRoute ? "opacity-100" : "opacity-60 hover:opacity-100"
             }`}
@@ -63,10 +64,12 @@ export default function Navbar() {
           <Link
             href="/"
             data-motion-icon-group
-            className={`order-first flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap text-2xl font-bold text-contrast transition sm:order-none ${
+            aria-label="Rainbound — página inicial"
+            aria-current={isHomeRoute ? "page" : undefined}
+            className={`font-display order-first flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap text-2xl font-semibold transition sm:order-none ${
               isHomeRoute
-                ? "text-interaction opacity-100"
-                : "opacity-60 hover:text-interaction"
+                ? "text-interaction"
+                : "text-contrast opacity-60 hover:text-interaction hover:opacity-100"
             }`}
           >
             <CloudRainWind aria-hidden="true" trigger="parent-hover" />
@@ -76,8 +79,11 @@ export default function Navbar() {
 
           <Link
             href="/library"
+            aria-current={isBookRoute && !isNewBookRoute ? "page" : undefined}
             className={`text-sm font-medium text-contrast transition sm:text-xl ${
-              isBookRoute ? "opacity-100" : "opacity-60 hover:opacity-100"
+              isBookRoute && !isNewBookRoute
+                ? "opacity-100"
+                : "opacity-60 hover:opacity-100"
             }`}
           >
             Biblioteca
@@ -88,8 +94,12 @@ export default function Navbar() {
           <Link
             href="/library/new"
             aria-label="Adicionar livro"
-            className={`flex h-10 w-10 items-center justify-center rounded-lg bg-interaction text-xl text-contrast transition hover:bg-interaction-hover hover:bg-interaction-contrast hover:text-primary ${
-              isNewBookRoute ? "bg-interaction-contrast text-primary" : ""
+            title="Adicionar livro"
+            aria-current={isNewBookRoute ? "page" : undefined}
+            className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl transition ${
+              isNewBookRoute
+                ? "bg-interaction-contrast text-contrast"
+                : "bg-interaction text-primary hover:bg-interaction-contrast hover:text-contrast"
             }`}
           >
             <Plus />

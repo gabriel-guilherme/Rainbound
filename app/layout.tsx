@@ -1,6 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Lora, Manrope } from "next/font/google";
 import "@/app/globals.css";
-import type { Viewport } from "next";
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Rainbound",
@@ -14,6 +26,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#27191c",
 };
 
 export default function RootLayout({
@@ -22,8 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className="min-h-dvh bg-darkest">{children}</body>
+    <html lang="pt-BR" className={`${lora.variable} ${manrope.variable}`}>
+      <body className="min-h-dvh bg-darkest font-sans text-contrast">
+        {children}
+      </body>
     </html>
   );
 }

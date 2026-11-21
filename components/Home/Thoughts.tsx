@@ -63,7 +63,7 @@ export default function Thoughts({ books }: ThoughtsProps) {
   return (
     <section
       ref={thoughtsContainerRef}
-      className="font-display relative flex h-screen w-full items-center justify-center overflow-hidden bg-secundary border-b border-contrast px-4 sm:px-8 lg:px-16 xl:px-24"
+      className="font-display relative flex h-screen w-full items-center justify-center overflow-hidden border-b border-contrast/20 bg-secondary px-4 sm:px-8 lg:px-16 xl:px-24"
     >
       {/* Balão 1 */}
       <motion.div
@@ -74,15 +74,11 @@ export default function Thoughts({ books }: ThoughtsProps) {
         }}
       >
         <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          &quot;
-          {books[0]?.note
-            ? books[0]?.note
-            : "Maybe this was foreshadowing all along..."}
-          &quot;
+          “{books[0]?.note || "Talvez isso fosse um prenúncio o tempo todo..."}”
         </p>
 
         <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[0]?.title ? books[0]?.title : "THE NAME OF THE WIND"}
+          {books[0]?.title || "Moby Dick"}
         </p>
       </motion.div>
 
@@ -95,13 +91,11 @@ export default function Thoughts({ books }: ThoughtsProps) {
         }}
       >
         <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          &quot;
-          {books[1]?.note ? books[1]?.note : "Remember this chapter"}
-          &quot;
+          “{books[1]?.note || "Lembrar deste capítulo."}”
         </p>
 
         <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[1]?.title ? books[1]?.title : "THE NAME OF THE WIND"}
+          {books[1]?.title || "Orgulho e Preconceito"}
         </p>
       </motion.div>
 
@@ -114,15 +108,11 @@ export default function Thoughts({ books }: ThoughtsProps) {
         }}
       >
         <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          &quot;
-          {books[2]?.note
-            ? books[2]?.note
-            : "Some stories stay with you long after the last page."}
-          &quot;
+          “{books[2]?.note || "Algumas histórias ficam com a gente muito depois da última página."}”
         </p>
 
         <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[2]?.title ? books[2]?.title : "THE NAME OF THE WIND"}
+          {books[2]?.title || "O Nome do Vento"}
         </p>
       </motion.div>
 
@@ -135,13 +125,11 @@ export default function Thoughts({ books }: ThoughtsProps) {
         }}
       >
         <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          &quot;
-          {books[3]?.note ? books[3]?.note : "I really liked this character."}
-          &quot;
+          “{books[3]?.note || "Gostei muito desse personagem."}”
         </p>
 
         <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[3]?.title ? books[3]?.title : "THE NAME OF THE WIND"}
+          {books[3]?.title || "Dom Casmurro"}
         </p>
       </motion.div>
 
@@ -150,17 +138,17 @@ export default function Thoughts({ books }: ThoughtsProps) {
         style={{ opacity: sectionOpacity }}
         className="relative z-10 flex w-full max-w-[clamp(28rem,50vw,50rem)] flex-col items-center justify-center gap-[clamp(3.5rem,6vw,6rem)] px-10 text-center"
       >
-        <h3 className="text-[clamp(0.9rem,1.2vw,1.25rem)] text-contrast opacity-70">
-          FROM YOUR BOOKS
-        </h3>
+        <p className="text-[clamp(0.9rem,1.2vw,1.25rem)] text-contrast opacity-70">
+          Das suas leituras
+        </p>
 
-        <h1 className="text-[clamp(2.5rem,5vw,5rem)] text-contrast">
-          Little thoughts
-        </h1>
+        <h2 className="text-balance text-[clamp(2.5rem,5vw,5rem)] text-contrast">
+          Pequenos pensamentos
+        </h2>
 
-        <p className="max-w-[clamp(22rem,45vw,48rem)] text-[clamp(0.9rem,1vw,1.125rem)] text-contrast opacity-50">
-          Fragments of thoughts, ideas and moments you&apos;ve left behind while
-          reading
+        <p className="max-w-[clamp(22rem,45vw,48rem)] text-pretty text-[clamp(0.9rem,1vw,1.125rem)] text-contrast opacity-50">
+          Trechos de ideias e momentos que você deixou pelo caminho enquanto
+          lia.
         </p>
       </motion.div>
     </section>

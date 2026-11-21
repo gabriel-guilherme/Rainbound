@@ -1,10 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import RainWindow from "../RainWindow/RainWindow";
 import { motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
-export default function Hero() {
+type HeroProps = {
+  continueReading: { id: number; title: string } | null;
+};
+
+export default function Hero({ continueReading }: HeroProps) {
   const [isRainPaused, setIsRainPaused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -19,6 +24,15 @@ export default function Hero() {
     target: heroRef,
     offset: ["end end", "end start"],
   });
+
+  /*
+   * Quem pede menos movimento no sistema começa com a chuva pausada.
+   */
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsRainPaused(true);
+    }
+  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -61,7 +75,7 @@ export default function Hero() {
   return (
     <section
       ref={heroRef}
-      className="relative h-[200vh] w-full bg-darkest font-display border-b border-contrast"
+      className="relative h-[200vh] w-full border-b border-contrast/20 bg-darkest font-display"
     >
       <div className="sticky top-0 flex h-screen w-full items-center overflow-hidden">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16">
@@ -87,23 +101,40 @@ export default function Hero() {
               }}
               className="w-full max-w-xl"
             >
-              <h3 className="text-center text-lg text-interaction">
+              <p className="text-center text-lg text-interaction">
                 Rainbound
-              </h3>
-
-              <h1 className="mt-4 text-4xl text-contrast sm:text-5xl lg:text-6xl xl:text-7xl">
-                Your little <br /> reading space
-              </h1>
-
-              <p className="mx-auto mt-6 max-w-xl text-sm text-contrast opacity-50 sm:text-base lg:mx-0 lg:max-w-lg">
-                A quiet place for your books, your thoughts, and the stories you
-                <br />
-                haven&apos;t finished yet
               </p>
 
-              <button className="cursor-pointer mt-8 rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-contrast transition-colors hover:bg-interaction">
-                Continue reading
-              </button>
+              <h1 className="mt-4 text-balance text-4xl text-contrast sm:text-5xl lg:text-6xl xl:text-7xl">
+                Seu cantinho <br /> de leitura
+              </h1>
+
+              <p className="mx-auto mt-6 max-w-md text-pretty text-sm text-contrast/60 sm:text-base">
+                Um lugar tranquilo para seus livros, suas anotações e as
+                histórias que você ainda não terminou.
+              </p>
+
+              {continueReading ? (
+                <div className="mt-8 flex flex-col items-center gap-2">
+                  <Link
+                    href={`/read/${continueReading.id}`}
+                    className="rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-contrast transition-colors hover:bg-interaction hover:text-primary"
+                  >
+                    Continuar lendo
+                  </Link>
+
+                  <span className="max-w-xs truncate text-sm text-contrast/40">
+                    {continueReading.title}
+                  </span>
+                </div>
+              ) : (
+                <Link
+                  href="/library"
+                  className="mt-8 inline-block rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-contrast transition-colors hover:bg-interaction hover:text-primary"
+                >
+                  Abrir biblioteca
+                </Link>
+              )}
             </motion.div>
           </motion.div>
 

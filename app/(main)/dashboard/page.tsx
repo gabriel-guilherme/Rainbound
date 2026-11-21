@@ -57,7 +57,7 @@ export default async function DashBoardPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-7xl px-4 py-10 pt-32">
-      <h1 className="mb-10 text-2xl font-bold text-contrast">Dashboard</h1>
+      <h1 className="mb-10 font-display text-3xl text-contrast">Início</h1>
 
       <WidgetSection sections={headerSections} navStyle="top-right" />
 

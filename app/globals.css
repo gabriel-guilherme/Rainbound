@@ -8,29 +8,62 @@
   --color-interaction-contrast: #114d4d;
   --color-interaction: #6e9987;
   --color-contrast: #e0e4ce;
+  --color-danger: #d4a09a;
+}
 
-  /* =========================
-     Fontes — Serif
-     ========================= */
+/*
+ * Fontes carregadas via next/font em app/layout.tsx
+ * (variáveis --font-lora e --font-manrope).
+ */
+@theme inline {
+  --font-display: var(--font-lora), Georgia, serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+}
 
-  --font-cormorant: "Cormorant Garamond", serif;
-  --font-instrument: "Instrument Serif", serif;
-  --font-lora: "Lora", serif;
-  --font-dm-serif: "DM Serif Display", serif;
-  --font-playfair: "Playfair Display", serif;
+@utility scrollbar-none {
+  scrollbar-width: none;
 
-  /* =========================
-     Fontes — Sans
-     ========================= */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
 
-  --font-inter: "Inter", sans-serif;
-  --font-manrope: "Manrope", sans-serif;
-  --font-dm-sans: "DM Sans", sans-serif;
-  --font-jakarta: "Plus Jakarta Sans", sans-serif;
-  --font-geist: "Geist", sans-serif;
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
 
-  --font-display: "Lora", serif;
-  --font-sans: "Manrope", sans-serif;
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-interaction-contrast);
+    color: var(--color-contrast);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-interaction);
+    outline-offset: 2px;
+  }
+
+  /* Opções de <select> legíveis no tema escuro */
+  option {
+    background-color: var(--color-secondary);
+    color: var(--color-contrast);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* Keep the reader inside the viewport that the mobile browser currently exposes. */

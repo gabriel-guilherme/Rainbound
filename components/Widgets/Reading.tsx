@@ -11,12 +11,12 @@ type ReadingProps = {
 export default function Reading({ currentlyReading }: ReadingProps) {
   return (
     <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-contrast">
+      <h2 className="mb-3 font-display text-xl text-contrast">
         Lendo agora
       </h2>
 
       {currentlyReading.length === 0 && (
-        <p className="text-sm text-contrast">Nenhum livro em andamento.</p>
+        <p className="text-sm text-contrast/60">Nenhum livro em andamento.</p>
       )}
 
       <ul className="flex flex-col gap-3">
