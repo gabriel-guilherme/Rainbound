@@ -12,12 +12,49 @@
 }
 
 /*
- * Fontes carregadas via next/font em app/layout.tsx
- * (variáveis --font-lora e --font-manrope).
+ * Fontes carregadas via next/font em app/layout.tsx.
+ * display: condensada das lombadas e títulos; sans: interface;
+ * reading: texto corrido (notas e leitor).
  */
 @theme inline {
-  --font-display: var(--font-lora), Georgia, serif;
-  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-display: var(--font-big-shoulders), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-instrument-sans), system-ui, sans-serif;
+  --font-reading: var(--font-eb-garamond), Georgia, serif;
+}
+
+/* Títulos no estilo estante: condensada, caixa alta, entrelinha curta. */
+@utility title-shelf {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+}
+
+/* Tábua da prateleira: borda grossa embaixo + sombra dura. */
+@utility shelf-plank {
+  border-bottom: 12px solid var(--color-primary);
+  box-shadow: 0 6px 0 -1px rgb(0 0 0 / 0.5);
+}
+
+/* Base dos botões: cantos retos, condensada em caixa alta. Cor fica no uso. */
+@utility btn-shelf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    color 150ms,
+    box-shadow 150ms;
 }
 
 @utility scrollbar-none {
@@ -62,6 +99,197 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*
+ * Lombadas (components/common/BookSpine.tsx). Tamanho, cores e progresso
+ * chegam por variáveis CSS calculadas em lib/spine.ts.
+ */
+@layer components {
+  .spine {
+    position: relative;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: var(--spine-w);
+    height: var(--spine-h);
+    padding: 12px 0 10px;
+    background: var(--spine-bg);
+    color: var(--spine-fg);
+    box-shadow:
+      inset 3px 0 0 rgb(255 255 255 / 0.07),
+      inset -5px 0 7px rgb(0 0 0 / 0.35);
+    transition: transform 250ms ease;
+    cursor: pointer;
+  }
+
+  /*
+   * Levanta ao passar o mouse só em aparelhos com mouse: no toque o
+   * :hover fica preso depois de tocar e o livro continuaria flutuando.
+   */
+  @media (hover: hover) {
+    .spine:hover {
+      transform: translateY(-14px);
+    }
+  }
+
+  .spine:focus-visible {
+    transform: translateY(-14px);
+  }
+
+  .spine[data-selected="true"] {
+    transform: translateY(-22px);
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 0;
+  }
+
+  /*
+   * Abandonado: tomba para a esquerda apoiado no canto de baixo à direita;
+   * a margem abre espaço para não invadir a lombada vizinha.
+   */
+  .spine[data-tilt="true"] {
+    /*
+     * Girando no canto de baixo à direita, o canto de baixo à esquerda
+     * desce largura × sen(7°) e entraria na tábua; sobe essa medida.
+     */
+    --tilt-rise: calc(var(--spine-w) * -0.122);
+    transform: translateY(var(--tilt-rise)) rotate(-7deg);
+    transform-origin: bottom right;
+    margin-left: calc(var(--spine-h) * 0.13);
+  }
+
+  @media (hover: hover) {
+    .spine[data-tilt="true"]:hover {
+      transform: translateY(calc(var(--tilt-rise) - 12px)) rotate(-7deg);
+    }
+  }
+
+  .spine[data-tilt="true"]:focus-visible,
+  .spine[data-tilt="true"][data-selected="true"] {
+    transform: translateY(calc(var(--tilt-rise) - 12px)) rotate(-7deg);
+  }
+
+  /*
+   * Acabou de sair da seleção: volta para a prateleira mesmo com o mouse
+   * ainda em cima ou com foco, até o ponteiro sair (ver Bookcase.tsx).
+   */
+  .spine[data-released="true"],
+  .spine[data-released="true"]:hover,
+  .spine[data-released="true"]:focus-visible {
+    transform: none;
+  }
+
+  .spine[data-released="true"][data-tilt="true"],
+  .spine[data-released="true"][data-tilt="true"]:hover,
+  .spine[data-released="true"][data-tilt="true"]:focus-visible {
+    transform: translateY(var(--tilt-rise)) rotate(-7deg);
+  }
+
+  .spine-static,
+  .spine-static:hover {
+    cursor: default;
+    transform: none;
+  }
+
+  .spine-bands {
+    position: absolute;
+    inset: 6px 0 auto;
+    height: 4px;
+    border-block: 1px solid currentColor;
+    opacity: 0.3;
+  }
+
+  .spine-title,
+  .spine-author {
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .spine-title {
+    /* Reserva o pé da lombada para o sobrenome (ver .spine-author). */
+    max-height: calc(var(--spine-h) - 84px);
+    font-family: var(--font-display);
+    font-size: var(--spine-fs);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-overflow: ellipsis;
+  }
+
+  .spine-author {
+    max-height: 48px;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    opacity: 0.72;
+  }
+
+  .spine-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    height: var(--spine-p);
+    background: var(--spine-accent);
+  }
+
+  /* Fita de marcador saindo por cima (livros em leitura). */
+  .spine-mark {
+    position: absolute;
+    top: -16px;
+    left: 58%;
+    width: 9px;
+    height: 26px;
+    background: var(--spine-accent);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  }
+
+  /*
+   * Estante com várias prateleiras: cada linha do flex-wrap cai sobre
+   * uma tábua desenhada no fundo. O período do gradiente é a altura de
+   * uma linha (slot + tábua) mais o row-gap.
+   */
+  .bookcase {
+    --slot: 236px;
+    --plank: 12px;
+    /* Espaço para a lombada selecionada subir sem tocar a tábua de cima. */
+    --row-gap: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    align-content: flex-start;
+    column-gap: 3px;
+    row-gap: var(--row-gap);
+    padding: 18px 16px 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(var(--slot) + 18px),
+      var(--color-primary) calc(var(--slot) + 18px)
+        calc(var(--slot) + 18px + var(--plank)),
+      rgb(0 0 0 / 0.55) calc(var(--slot) + 18px + var(--plank))
+        calc(var(--slot) + 22px + var(--plank)),
+      transparent calc(var(--slot) + 22px + var(--plank))
+        calc(var(--slot) + var(--plank) + var(--row-gap))
+    );
+  }
+
+  .bookcase-slot {
+    display: flex;
+    align-items: flex-end;
+    height: var(--slot);
+    margin-bottom: var(--plank);
+  }
+
+  /* No celular a estante encolhe para caber mais livros por prateleira. */
+  @media (max-width: 639px) {
+    .bookcase {
+      zoom: 0.8;
     }
   }
 }

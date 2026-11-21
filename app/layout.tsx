@@ -1,16 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Lora, Manrope } from "next/font/google";
+import { Big_Shoulders, EB_Garamond, Instrument_Sans } from "next/font/google";
 import "@/app/globals.css";
 
-const lora = Lora({
+/* Condensada das lombadas e títulos (eixo óptico acompanha o tamanho). */
+const bigShoulders = Big_Shoulders({
   subsets: ["latin"],
-  variable: "--font-lora",
+  variable: "--font-big-shoulders",
+  axes: ["opsz"],
+  display: "swap",
+  /* O Next não tem métricas de fallback dessa família; sem isto, avisa no build. */
+  adjustFontFallback: false,
+});
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument-sans",
   display: "swap",
 });
 
-const manrope = Manrope({
+/* Texto corrido: notas e mensagens do leitor. */
+const ebGaramond = EB_Garamond({
   subsets: ["latin"],
-  variable: "--font-manrope",
+  variable: "--font-eb-garamond",
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -35,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${lora.variable} ${manrope.variable}`}>
+    <html lang="pt-BR" className={`${bigShoulders.variable} ${instrumentSans.variable} ${ebGaramond.variable}`}>
       <body className="min-h-dvh bg-darkest font-sans text-contrast">
         {children}
       </body>

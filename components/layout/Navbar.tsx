@@ -45,7 +45,7 @@ export default function Navbar() {
         duration: 0.3,
         ease: "easeInOut",
       }}
-      className="fixed left-0 top-0 z-50 h-24 w-full bg-primary shadow-md shadow-black/25"
+      className="fixed left-0 top-0 z-50 h-20 w-full border-b border-contrast/10 bg-primary sm:h-24"
     >
       <div className="font-sans mx-auto grid h-full grid-cols-[1fr_auto] items-center px-2 sm:grid-cols-[1fr_auto_1fr] sm:px-4">
         <div className="hidden sm:block" />
@@ -54,8 +54,10 @@ export default function Navbar() {
           <Link
             href="/dashboard"
             aria-current={isDashboardRoute ? "page" : undefined}
-            className={`text-sm font-medium text-contrast transition sm:text-xl ${
-              isDashboardRoute ? "opacity-100" : "opacity-60 hover:opacity-100"
+            className={`px-1 py-1 text-sm font-medium uppercase tracking-widest text-contrast transition sm:text-base ${
+              isDashboardRoute
+                ? "shadow-[inset_0_-2px_0_var(--color-danger)]"
+                : "opacity-60 hover:opacity-100"
             }`}
           >
             Início
@@ -66,7 +68,7 @@ export default function Navbar() {
             data-motion-icon-group
             aria-label="Rainbound — página inicial"
             aria-current={isHomeRoute ? "page" : undefined}
-            className={`font-display order-first flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap text-2xl font-semibold transition sm:order-none ${
+            className={`title-shelf order-first flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap text-3xl transition sm:order-none ${
               isHomeRoute
                 ? "text-interaction"
                 : "text-contrast opacity-60 hover:text-interaction hover:opacity-100"
@@ -80,9 +82,9 @@ export default function Navbar() {
           <Link
             href="/library"
             aria-current={isBookRoute && !isNewBookRoute ? "page" : undefined}
-            className={`text-sm font-medium text-contrast transition sm:text-xl ${
+            className={`px-1 py-1 text-sm font-medium uppercase tracking-widest text-contrast transition sm:text-base ${
               isBookRoute && !isNewBookRoute
-                ? "opacity-100"
+                ? "shadow-[inset_0_-2px_0_var(--color-danger)]"
                 : "opacity-60 hover:opacity-100"
             }`}
           >
@@ -96,10 +98,10 @@ export default function Navbar() {
             aria-label="Adicionar livro"
             title="Adicionar livro"
             aria-current={isNewBookRoute ? "page" : undefined}
-            className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl transition ${
+            className={`flex h-10 w-10 items-center justify-center text-xl transition ${
               isNewBookRoute
-                ? "bg-interaction-contrast text-contrast"
-                : "bg-interaction text-primary hover:bg-interaction-contrast hover:text-contrast"
+                ? "bg-contrast text-primary"
+                : "bg-danger text-primary hover:bg-contrast"
             }`}
           >
             <Plus />

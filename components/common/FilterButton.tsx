@@ -45,6 +45,9 @@ export function FilterButton() {
       params.delete("sort");
     }
 
+    /* Nova ordem, nova lista: volta para a primeira página. */
+    params.delete("page");
+
     router.replace(`/library?${params.toString()}`, {
       scroll: false,
     });
@@ -57,7 +60,7 @@ export function FilterButton() {
       <button
         type="button"
         onClick={handleToggle}
-        className={`${stylePattern} flex aspect-square cursor-pointer items-center justify-center rounded-lg p-0`}
+        className={`${stylePattern} flex aspect-square cursor-pointer items-center justify-center p-0`}
         aria-label="Ordenar"
         title="Ordenar"
         aria-expanded={isOpen}
@@ -69,7 +72,7 @@ export function FilterButton() {
       {isOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-2 flex w-44 flex-col overflow-hidden rounded-lg bg-contrast shadow-lg shadow-black/40 ring-1 ring-black/5"
+          className="absolute right-0 top-full z-50 mt-2 flex w-44 flex-col overflow-hidden bg-contrast shadow-[6px_6px_0_rgb(0_0_0/0.45)]"
         >
           {sortOptions.map((option) => (
             <button

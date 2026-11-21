@@ -47,7 +47,7 @@ export default function InputBookCover({
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
-      <label className="group relative block h-full w-full cursor-pointer overflow-hidden rounded-md focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-interaction">
+      <label className="group relative block h-full w-full cursor-pointer overflow-hidden focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-interaction">
         <input
           type="file"
           name={name}
@@ -73,7 +73,7 @@ export default function InputBookCover({
             </span>
           </>
         ) : (
-          <span className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed border-contrast/20 bg-contrast/[0.04] text-contrast/45 transition-colors group-hover:border-interaction/60 group-hover:text-interaction">
+          <span className="flex h-full w-full flex-col items-center justify-center gap-3 border-2 border-dashed border-contrast/20 bg-secondary text-contrast/55 transition-colors group-hover:border-danger/70 group-hover:text-danger">
             <ImagePlus size={32} strokeWidth={1.5} aria-hidden="true" />
             <span className="text-sm">Adicionar capa</span>
             <span className="text-xs opacity-70">JPG, PNG ou WEBP, até 10 MB</span>

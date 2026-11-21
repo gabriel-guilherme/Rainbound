@@ -116,7 +116,7 @@ export default function OpenLibrarySearch({
             <div
               role="listbox"
               aria-label="Resultados da Open Library"
-              className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden rounded-lg bg-contrast shadow-lg shadow-black/40"
+              className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden bg-contrast shadow-[6px_6px_0_rgb(0_0_0/0.45)]"
             >
               {isLoading ? (
                 <p className="px-3 py-2 text-sm text-primary/70">
@@ -151,7 +151,7 @@ export default function OpenLibrarySearch({
           type="button"
           aria-label="Buscar livro na Open Library"
           onClick={openSearch}
-          className={`${stylePattern} flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-3`}
+          className={`${stylePattern} flex h-10 cursor-pointer items-center justify-center gap-2 px-3`}
         >
           <Search size={18} aria-hidden="true" />
           <span className="hidden sm:inline">Buscar na Open Library</span>

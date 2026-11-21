@@ -53,7 +53,7 @@ export default function BookActionsMenu({
         aria-label={`Opções do livro ${bookTitle}`}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        className="w-8 h-8 flex items-center justify-center rounded-md p-1 text-contrast transition hover:bg-interaction hover:text-primary cursor-pointer"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center p-1 text-contrast transition hover:bg-danger hover:text-primary"
       >
         <Ellipsis size={24} strokeWidth={2} />
       </button>
@@ -61,7 +61,7 @@ export default function BookActionsMenu({
       {isOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-1 flex w-36 flex-col overflow-hidden rounded-lg bg-contrast shadow-lg shadow-black/40 ring-1 ring-black/5"
+          className="absolute right-0 top-full z-50 mt-1 flex w-36 flex-col overflow-hidden bg-contrast shadow-[6px_6px_0_rgb(0_0_0/0.45)]"
         >
           <Link
             href={`/library/${bookId}`}

@@ -5,21 +5,21 @@ export default function Footer() {
     <footer className="font-sans relative overflow-hidden bg-primary px-6 py-20 text-contrast sm:px-10 lg:px-16 xl:px-24">
       <div className="mx-auto flex min-h-[70vh] w-full max-w-7xl flex-col items-center justify-center text-center">
         {/* Marca */}
-        <div className="font-display flex flex-col items-center gap-5">
+        <div className="flex flex-col items-center gap-5">
           <Link
             href="/"
-            className="text-sm text-contrast/40 transition-colors hover:text-interaction"
+            className="title-shelf text-lg text-contrast/40 transition-colors hover:text-danger"
           >
             Rainbound
           </Link>
 
-          <h2 className="text-balance text-[clamp(2.5rem,6vw,6rem)] leading-none tracking-tight">
+          <h2 className="title-shelf text-balance text-[clamp(3rem,8vw,7.5rem)]">
             Um lugar para
             <br />
-            cada história.
+            <span className="text-danger italic">cada história.</span>
           </h2>
 
-          <p className="max-w-md text-[clamp(0.9rem,1.2vw,1.1rem)] text-contrast/50">
+          <p className="max-w-md font-reading text-[clamp(1.05rem,1.4vw,1.25rem)] italic text-contrast/60">
             Seus livros, suas anotações e o caminho de cada leitura.
           </p>
         </div>
@@ -27,7 +27,7 @@ export default function Footer() {
         {/* CTA */}
         <Link
           href="/library"
-          className="mt-10 rounded-full border border-contrast/30 px-6 py-3 text-sm text-contrast transition-colors duration-300 hover:border-interaction hover:bg-interaction hover:text-primary"
+          className="btn-shelf mt-10 bg-danger text-primary hover:bg-contrast"
         >
           Abrir biblioteca
         </Link>

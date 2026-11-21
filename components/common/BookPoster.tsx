@@ -26,7 +26,7 @@ export default function BookPoster(book: BookPosterProps) {
       alt={`Capa do livro ${book.title}`}
       fill
       loading="eager"
-      className="rounded-md object-cover shadow-md shadow-black/50 transition-transform duration-300 group-hover/cover:-translate-y-1"
+      className="object-cover shadow-[0_14px_22px_-12px_rgb(0_0_0/0.8)] transition-transform duration-300 group-hover/cover:-translate-y-1.5"
     />
   );
 
@@ -42,7 +42,7 @@ export default function BookPoster(book: BookPosterProps) {
             href={`/read/${book.id}`}
             aria-label={`Ler ${book.title}`}
             title={`Ler ${book.title}`}
-            className="absolute inset-0 rounded-md"
+            className="absolute inset-0"
           >
             {cover}
           </Link>
@@ -50,7 +50,7 @@ export default function BookPoster(book: BookPosterProps) {
           cover
         )}
 
-        <span className="pointer-events-none absolute right-2 top-2 z-10 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-darkest/75 px-2.5 py-1 text-xs font-medium text-contrast shadow-md backdrop-blur-sm">
+        <span className="pointer-events-none absolute right-2 top-2 z-10 inline-flex items-center gap-1.5 whitespace-nowrap bg-darkest/85 px-2 py-1 text-xs font-medium text-contrast">
           <span
             aria-hidden="true"
             className={`size-2 rounded-full ${statusColor[book.status]}`}
@@ -60,7 +60,7 @@ export default function BookPoster(book: BookPosterProps) {
       </div>
 
       <div className="mt-1 flex min-w-0 flex-col gap-1 text-contrast">
-        <p className="truncate font-display text-base" title={book.title}>
+        <p className="title-shelf truncate text-lg" title={book.title}>
           {book.title}
         </p>
 

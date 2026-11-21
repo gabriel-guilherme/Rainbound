@@ -11,7 +11,7 @@ export default function BackButton() {
       type="button"
       onClick={() => router.back()}
       aria-label="Voltar para a página anterior"
-      className="mb-6 inline-flex cursor-pointer items-center gap-2 rounded-lg py-1 pr-2 text-sm text-contrast/60 transition-colors hover:text-interaction"
+      className="mb-6 inline-flex cursor-pointer items-center gap-2 py-1 pr-2 text-sm uppercase tracking-widest text-contrast/60 transition-colors hover:text-danger"
     >
       <ArrowLeft size={22} aria-hidden="true" />
       Voltar

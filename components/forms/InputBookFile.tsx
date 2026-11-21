@@ -55,7 +55,7 @@ export default function InputBookFile({
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-contrast/15 bg-contrast/[0.07] px-4 py-3 text-sm text-contrast transition-colors hover:border-interaction/60 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-interaction">
+      <label className="flex cursor-pointer items-center gap-3 border border-dashed border-contrast/25 bg-darkest px-4 py-3 text-sm text-contrast transition-colors hover:border-danger/70 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-interaction">
         {fileName ? (
           <FileText size={18} aria-hidden="true" className="shrink-0 text-interaction" />
         ) : (

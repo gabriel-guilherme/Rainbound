@@ -114,7 +114,7 @@ export default function EditBookForm({ book }: EditBookFormProps) {
             defaultValue={book.title}
             aria-label="Título"
             required
-            className="-mx-2 rounded-md border border-transparent bg-transparent px-2 font-display text-3xl text-contrast outline-none transition-colors hover:border-contrast/15 focus:border-interaction"
+            className="title-shelf -mx-2 border border-transparent bg-transparent px-2 text-5xl text-contrast outline-none transition-colors hover:border-contrast/15 focus:border-interaction"
           />
 
           <input
@@ -124,7 +124,7 @@ export default function EditBookForm({ book }: EditBookFormProps) {
             aria-label="Autor"
             placeholder="Autor"
             required
-            className="-mx-2 rounded-md border border-transparent bg-transparent px-2 text-base text-contrast/70 outline-none transition-colors placeholder:text-contrast/35 hover:border-contrast/15 focus:border-interaction"
+            className="-mx-2 border border-transparent bg-transparent px-2 text-base text-contrast/70 outline-none transition-colors placeholder:text-contrast/35 hover:border-contrast/15 focus:border-interaction"
           />
         </div>
 
@@ -216,7 +216,7 @@ export default function EditBookForm({ book }: EditBookFormProps) {
               defaultValue={book.notes ?? ""}
               rows={7}
               placeholder="Impressões, trechos marcantes, lembretes..."
-              className={`${stylePattern} resize-y align-top`}
+              className={`${stylePattern} resize-y align-top font-reading text-lg italic`}
             />
           </div>
 

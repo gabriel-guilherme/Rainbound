@@ -11,7 +11,7 @@ export default function NotFound() {
         className="text-interaction"
       />
 
-      <h1 className="mt-6 font-display text-3xl text-contrast">
+      <h1 className="title-shelf mt-6 text-5xl text-contrast">
         Página não encontrada
       </h1>
 
@@ -21,9 +21,9 @@ export default function NotFound() {
 
       <Link
         href="/library"
-        className="mt-8 rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-sm text-contrast transition-colors hover:bg-interaction hover:text-primary"
+        className="btn-shelf mt-8 bg-danger text-primary hover:bg-contrast"
       >
-        Voltar para a biblioteca
+        Voltar para a estante
       </Link>
     </div>
   );

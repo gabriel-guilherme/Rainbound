@@ -41,7 +41,7 @@ export default function SearchInput({
           type="button"
           aria-label="Abrir busca"
           onClick={openSearch}
-          className={`${stylePattern} flex aspect-square items-center justify-center rounded-lg p-0 cursor-pointer ${iconOnly ? "" : "sm:hidden"}`}
+          className={`${stylePattern} flex aspect-square items-center justify-center p-0 cursor-pointer ${iconOnly ? "" : "sm:hidden"}`}
         >
           <Search size={18} />
         </button>
