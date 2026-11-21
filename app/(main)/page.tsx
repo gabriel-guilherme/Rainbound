@@ -18,13 +18,25 @@ export default async function Home() {
     LIMIT 4
   `;
 
-  const books = await prisma.book.findMany({
-    take: 3,
-  });
+  const [books, continueReading] = await Promise.all([
+    prisma.book.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    }),
+
+    prisma.book.findFirst({
+      where: {
+        status: "READING",
+        filePath: { not: null },
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, title: true },
+    }),
+  ]);
 
   return (
     <div className="w-full">
-      <Hero />
+      <Hero continueReading={continueReading} />
 
       <Thoughts books={thoughts} />
 
