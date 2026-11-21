@@ -1,89 +1,94 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react-motion";
-import BookPosterSimplified from "../common/BookPosterSimplified";
 
-import { motion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
-
-type CollectionBook = {
-  id: number;
-  title: string;
-  creator: string | null;
-  coverUrl: string | null;
-};
+import { DEFAULT_COVER } from "@/app/(main)/library/types";
+import BookSpine from "@/components/common/BookSpine";
+import ScrollReveal from "@/components/common/ScrollReveal";
+import { getSpineLookForBook, type SpineBook } from "@/lib/spine";
 
 type CollectionProps = {
-  books: CollectionBook[];
+  books: SpineBook[];
 };
 
+/* Posições na prateleira que mostram a capa de frente, como numa livraria. */
+const FACED_OUT = new Set([0, 4]);
+
 export default function Collection({ books }: CollectionProps) {
-  const windowRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: windowRef,
-    offset: ["start end", "end start"],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
-
   return (
-    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24 2xl:px-48">
-      <p className="shrink-0 text-lg text-contrast opacity-50">
-        Sua coleção
-      </p>
+    <section className="flex w-full flex-col overflow-hidden bg-darkest px-4 py-20 sm:px-8 lg:px-16 lg:py-28 xl:px-24 2xl:px-48">
+      <div className="flex min-h-0 w-full flex-col gap-4">
+        <ScrollReveal className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-danger">
+              Sua coleção
+            </p>
 
-      <motion.div
-        ref={windowRef}
-        style={{ opacity }}
-        className="flex min-h-0 w-full flex-col gap-5 pt-5"
-      >
-        {/* Header */}
-        <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="font-display text-3xl text-contrast sm:text-4xl">
-            Adicionados recentemente
-          </h2>
+            <h2 className="title-shelf mt-2 text-5xl text-contrast sm:text-6xl">
+              Adicionados recentemente
+            </h2>
+          </div>
 
           <Link
             href="/library"
             data-motion-icon-group
-            className="flex w-fit items-center gap-2 text-lg text-contrast transition-colors hover:text-interaction sm:text-2xl"
+            className="flex w-fit items-center gap-2 text-sm uppercase tracking-widest text-contrast transition-colors hover:text-danger sm:text-base"
           >
-            Ver todos
+            Ver a estante inteira
             <ArrowRight aria-hidden="true" trigger="parent-hover" />
           </Link>
-        </div>
+        </ScrollReveal>
 
-        {books.length === 0 && (
-          <div className="flex flex-col items-start gap-4 py-10">
-            <p className="font-display text-xl text-contrast/60">
+        {books.length === 0 ? (
+          <ScrollReveal order={1} className="flex flex-col items-start gap-4 py-10">
+            <p className="font-reading text-xl italic text-contrast/60">
               Sua estante ainda está vazia.
             </p>
 
             <Link
               href="/library/new"
-              className="rounded-3xl border border-interaction bg-interaction-contrast px-5 py-3 text-contrast transition-colors hover:bg-interaction hover:text-primary"
+              className="btn-shelf bg-danger text-primary hover:bg-contrast"
             >
-              Adicionar o primeiro livro
+              Colocar o primeiro livro
             </Link>
-          </div>
+          </ScrollReveal>
+        ) : (
+          <ScrollReveal order={2} distance={60} className="overflow-x-auto pt-10 scrollbar-none">
+            <ul className="shelf-plank flex min-w-max items-end gap-[3px] px-4">
+              {books.map((book, index) =>
+                FACED_OUT.has(index) ? (
+                  <li key={book.id} className="mx-2.5 w-32 shrink-0 sm:w-36">
+                    <Link
+                      href={`/library/${book.id}`}
+                      aria-label={book.title}
+                      title={book.title}
+                      className="relative block aspect-[7/10] w-full shadow-[inset_4px_0_0_rgb(0_0_0/0.25),0_14px_22px_-12px_rgb(0_0_0/0.8)] transition-transform duration-300 hover:-translate-y-2"
+                    >
+                      <Image
+                        src={book.coverUrl ?? DEFAULT_COVER}
+                        alt={`Capa do livro ${book.title}`}
+                        fill
+                        sizes="144px"
+                        className="object-cover"
+                      />
+                    </Link>
+                  </li>
+                ) : (
+                  <li key={book.id}>
+                    <BookSpine
+                      book={book}
+                      look={getSpineLookForBook(book)}
+                      href={`/library/${book.id}`}
+                    />
+                  </li>
+                ),
+              )}
+            </ul>
+          </ScrollReveal>
         )}
-
-        {/* Livros */}
-        <div className="flex min-h-0 w-full gap-5 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:pb-0">
-          {books.map((book) => (
-            <div
-              key={book.id}
-              className="w-[80%] shrink-0 snap-center p-10 transition-transform duration-300 hover:scale-105 lg:w-auto"
-            >
-              <Link href={`/library/${book.id}`} className="block rounded-md">
-                <BookPosterSimplified book={book} />
-              </Link>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

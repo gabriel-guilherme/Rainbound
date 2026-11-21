@@ -1,7 +1,4 @@
-"use client";
-
-import { motion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
+import ScrollReveal from "@/components/common/ScrollReveal";
 
 type BookNotes = {
   title: string;
@@ -12,145 +9,72 @@ type ThoughtsProps = {
   books: BookNotes[];
 };
 
+/* Exemplos mostrados enquanto ainda não há notas suficientes. */
+const FALLBACK_NOTES: BookNotes[] = [
+  { title: "Moby Dick", note: "Talvez isso fosse um prenúncio o tempo todo..." },
+  { title: "Orgulho e Preconceito", note: "Lembrar deste capítulo." },
+  {
+    title: "O Nome do Vento",
+    note: "Algumas histórias ficam com a gente muito depois da última página.",
+  },
+  { title: "Dom Casmurro", note: "Gostei muito desse personagem." },
+];
+
+/*
+ * Posição de cada tira na grade de 12 colunas (desktop) e a leve rotação,
+ * como papéis soltos guardados entre as páginas.
+ */
+const SLIP_LAYOUT = [
+  { place: "lg:col-start-7 lg:col-end-13", tilt: "-rotate-[1.5deg]" },
+  { place: "lg:col-start-2 lg:col-end-7 lg:mt-6", tilt: "rotate-1" },
+  { place: "lg:col-start-8 lg:col-end-13 lg:mt-2", tilt: "-rotate-[0.6deg]" },
+  { place: "lg:col-start-4 lg:col-end-10 lg:mt-5", tilt: "rotate-[0.8deg]" },
+];
+
 export default function Thoughts({ books }: ThoughtsProps) {
-  const thoughtsContainerRef = useRef<HTMLElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: thoughtsContainerRef,
-    offset: ["start end", "end start"],
-  });
-
-  const sectionOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0, 1, 1, 0],
+  const notes = SLIP_LAYOUT.map(
+    (_, index) => books[index] ?? FALLBACK_NOTES[index],
   );
-
-  const thought1Progress = useTransform(
-    scrollYProgress,
-    [0, 0.06875, 0.1375],
-    [0, 1, 1],
-  );
-  const thought2Progress = useTransform(
-    scrollYProgress,
-    [0.1375, 0.20625, 0.275],
-    [0, 1, 1],
-  );
-  const thought3Progress = useTransform(
-    scrollYProgress,
-    [0.275, 0.34375, 0.4125],
-    [0, 1, 1],
-  );
-  const thought4Progress = useTransform(
-    scrollYProgress,
-    [0.4125, 0.48125, 0.55],
-    [0, 1, 1],
-  );
-
-  const thought1Y = useTransform(thought1Progress, [0, 1], [100, 0]);
-  const thought2Y = useTransform(thought2Progress, [0, 1], [100, 0]);
-  const thought3Y = useTransform(thought3Progress, [0, 1], [100, 0]);
-  const thought4Y = useTransform(thought4Progress, [0, 1], [100, 0]);
-
-  const thought1Opacity = useTransform(thought1Progress, [0, 0.5, 1], [0, 0.7, 1]);
-  const thought2Opacity = useTransform(thought2Progress, [0, 0.5, 1], [0, 0.7, 1]);
-  const thought3Opacity = useTransform(thought3Progress, [0, 0.5, 1], [0, 0.7, 1]);
-  const thought4Opacity = useTransform(thought4Progress, [0, 0.5, 1], [0, 0.7, 1]);
-
-  const stylePattern =
-    "flex w-[clamp(18rem,22vw,32rem)] flex-col gap-[clamp(0.7rem,0.8vw,1rem)] rounded-xl bg-primary px-[clamp(1.25rem,2vw,2.25rem)] py-[clamp(1.25rem,1.5vw,2rem)] text-contrast border border-contrast/60";
 
   return (
-    <section
-      ref={thoughtsContainerRef}
-      className="font-display relative flex h-screen w-full items-center justify-center overflow-hidden border-b border-contrast/20 bg-secondary px-4 sm:px-8 lg:px-16 xl:px-24"
-    >
-      {/* Balão 1 */}
-      <motion.div
-        className={`absolute left-[8%] top-[3%] -rotate-2 sm:left-[6%] sm:top-[10%] md:left-[8%] md:top-[13%] lg:left-[10%] lg:top-[11%] xl:left-[12%] xl:top-[10%] 2xl:left-[10%] 2xl:top-[7%] ${stylePattern}`}
-        style={{
-          opacity: thought1Opacity,
-          y: thought1Y,
-        }}
-      >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          “{books[0]?.note || "Talvez isso fosse um prenúncio o tempo todo..."}”
-        </p>
+    <section className="w-full bg-darkest px-4 py-20 sm:px-8 lg:px-16 lg:py-28">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-8 border-b-[12px] border-primary bg-secondary px-6 py-10 sm:px-10 sm:py-14 lg:grid-cols-12 lg:gap-6">
+        <ScrollReveal className="flex flex-col gap-3 lg:col-start-1 lg:col-end-6">
+          <p className="text-sm uppercase tracking-[0.3em] text-danger">
+            Das suas leituras
+          </p>
 
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[0]?.title || "Moby Dick"}
-        </p>
-      </motion.div>
+          <h2 className="title-shelf text-balance text-[clamp(3rem,5.5vw,4.75rem)] text-contrast">
+            Pequenos pensamentos
+          </h2>
 
-      {/* Balão 2 */}
-      <motion.div
-        className={`absolute right-[8%] top-[15%] rotate-1 sm:right-[6%] sm:top-[18%] md:right-[8%] md:top-[21%] lg:right-[10%] lg:top-[19%] xl:right-[12%] xl:top-[17%] 2xl:right-[10%] 2xl:top-[15%] ${stylePattern}`}
-        style={{
-          opacity: thought2Opacity,
-          y: thought2Y,
-        }}
-      >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          “{books[1]?.note || "Lembrar deste capítulo."}”
-        </p>
+          <p className="max-w-sm text-pretty text-contrast/60">
+            Trechos de ideias e momentos que você deixou pelo caminho,
+            guardados entre as páginas.
+          </p>
+        </ScrollReveal>
 
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[1]?.title || "Orgulho e Preconceito"}
-        </p>
-      </motion.div>
+        {notes.map((book, index) => (
+          <ScrollReveal
+            key={`${book.title}-${index}`}
+            order={index + 1}
+            distance={60}
+            className={SLIP_LAYOUT[index].place}
+          >
+            <figure
+              className={`flex flex-col gap-2 border-t-[6px] border-danger bg-contrast px-5 pb-4 pt-4 text-primary shadow-[0_16px_24px_-14px_rgb(0_0_0/0.8)] ${SLIP_LAYOUT[index].tilt}`}
+            >
+              <blockquote className="line-clamp-4 font-reading text-[clamp(1.125rem,1.6vw,1.375rem)] italic leading-snug">
+                “{book.note}”
+              </blockquote>
 
-      {/* Balão 3 */}
-      <motion.div
-        className={`absolute bottom-[15%] left-[8%] -rotate-1 sm:bottom-[18%] sm:left-[6%] md:bottom-[21%] md:left-[8%] lg:bottom-[19%] lg:left-[10%] xl:bottom-[17%] xl:left-[12%] 2xl:bottom-[15%] 2xl:left-[10%] ${stylePattern}`}
-        style={{
-          opacity: thought3Opacity,
-          y: thought3Y,
-        }}
-      >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          “{books[2]?.note || "Algumas histórias ficam com a gente muito depois da última página."}”
-        </p>
-
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[2]?.title || "O Nome do Vento"}
-        </p>
-      </motion.div>
-
-      {/* Balão 4 */}
-      <motion.div
-        className={`absolute right-[8%] bottom-[5%] rotate-1 sm:right-[6%] sm:bottom-[18%] md:right-[8%] md:bottom-[21%] lg:right-[10%] lg:bottom-[19%] xl:right-[12%] xl:bottom-[17%] 2xl:right-[10%] 2xl:bottom-[9%] ${stylePattern}`}
-        style={{
-          opacity: thought4Opacity,
-          y: thought4Y,
-        }}
-      >
-        <p className="line-clamp-3 text-[clamp(1rem,1.5vw,1.5rem)]">
-          “{books[3]?.note || "Gostei muito desse personagem."}”
-        </p>
-
-        <p className="truncate text-[clamp(0.7rem,0.9vw,1rem)] opacity-50">
-          {books[3]?.title || "Dom Casmurro"}
-        </p>
-      </motion.div>
-
-      {/* Conteúdo central */}
-      <motion.div
-        style={{ opacity: sectionOpacity }}
-        className="relative z-10 flex w-full max-w-[clamp(28rem,50vw,50rem)] flex-col items-center justify-center gap-[clamp(3.5rem,6vw,6rem)] px-10 text-center"
-      >
-        <p className="text-[clamp(0.9rem,1.2vw,1.25rem)] text-contrast opacity-70">
-          Das suas leituras
-        </p>
-
-        <h2 className="text-balance text-[clamp(2.5rem,5vw,5rem)] text-contrast">
-          Pequenos pensamentos
-        </h2>
-
-        <p className="max-w-[clamp(22rem,45vw,48rem)] text-pretty text-[clamp(0.9rem,1vw,1.125rem)] text-contrast opacity-50">
-          Trechos de ideias e momentos que você deixou pelo caminho enquanto
-          lia.
-        </p>
-      </motion.div>
+              <figcaption className="truncate font-display text-sm font-bold uppercase tracking-wide text-primary/65">
+                {book.title}
+              </figcaption>
+            </figure>
+          </ScrollReveal>
+        ))}
+      </div>
     </section>
   );
 }

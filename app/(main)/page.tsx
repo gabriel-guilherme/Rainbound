@@ -2,6 +2,7 @@ import Collection from "@/components/Home/Collection";
 import Hero from "@/components/Home/Hero";
 import Thoughts from "@/components/Home/Thoughts";
 import { prisma } from "@/lib/prisma";
+import { toSpineBook } from "@/lib/spine";
 
 export default async function Home() {
   const thoughts = await prisma.$queryRaw<
@@ -21,7 +22,8 @@ export default async function Home() {
   const [books, continueReading] = await Promise.all([
     prisma.book.findMany({
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 9,
+      include: { progress: true },
     }),
 
     prisma.book.findFirst({
@@ -30,7 +32,19 @@ export default async function Home() {
         filePath: { not: null },
       },
       orderBy: { updatedAt: "desc" },
-      select: { id: true, title: true },
+      select: {
+        id: true,
+        title: true,
+        format: true,
+        coverUrl: true,
+        progress: {
+          select: {
+            percentage: true,
+            currentPosition: true,
+            totalPositions: true,
+          },
+        },
+      },
     }),
   ]);
 
@@ -40,7 +54,7 @@ export default async function Home() {
 
       <Thoughts books={thoughts} />
 
-      <Collection books={books} />
+      <Collection books={books.map(toSpineBook)} />
     </div>
   );
 }
