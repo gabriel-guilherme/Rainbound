@@ -2,18 +2,22 @@ import Reader from "@/components/Reader/Reader";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-import { getBookFileUrl } from "@/lib/utils";
+import { getBookFileUrl, parseBookId } from "@/lib/utils";
 
 export default async function Read({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const id = parseBookId((await params).id);
+
+  if (id === null) {
+    notFound();
+  }
 
   const book = await prisma.book.findUnique({
     where: {
-      id: Number(id),
+      id,
     },
     include: {
       progress: true,
