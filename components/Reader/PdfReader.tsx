@@ -121,7 +121,7 @@ export default function PdfReader({
         role="alert"
         className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center"
       >
-        <p className="font-display text-xl">Não foi possível abrir o PDF.</p>
+        <p className="title-shelf text-3xl">Não foi possível abrir o PDF.</p>
 
         <p className="max-w-md text-sm text-contrast/50">
           {loadError.message}
@@ -133,7 +133,7 @@ export default function PdfReader({
             setLoadError(null);
             setRetryKey((previous) => previous + 1);
           }}
-          className="mt-2 cursor-pointer rounded-3xl border border-interaction bg-interaction-contrast px-5 py-2 text-sm text-contrast transition-colors hover:bg-interaction hover:text-primary"
+          className="btn-shelf mt-2 bg-danger text-primary hover:bg-contrast"
         >
           Tentar de novo
         </button>
@@ -150,7 +150,7 @@ export default function PdfReader({
           onClick={zoomOut}
           disabled={scale <= 0.5}
           aria-label="Diminuir zoom"
-          className="flex size-8 cursor-pointer items-center justify-center rounded-full text-lg text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex size-8 cursor-pointer items-center justify-center text-lg text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30"
         >
           −
         </button>
@@ -164,7 +164,7 @@ export default function PdfReader({
           onClick={zoomIn}
           disabled={scale >= 3}
           aria-label="Aumentar zoom"
-          className="flex size-8 cursor-pointer items-center justify-center rounded-full text-lg text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex size-8 cursor-pointer items-center justify-center text-lg text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30"
         >
           +
         </button>

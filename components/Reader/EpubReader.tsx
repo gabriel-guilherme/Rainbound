@@ -180,8 +180,9 @@ export default function EpubReader({
             "font-family": "Georgia, serif",
             "margin-bottom": "1em",
           },
+          /* Mesma cor de destaque do site (--color-danger). */
           a: {
-            color: "#6e9987",
+            color: "#d4a09a",
           },
         });
 
@@ -304,7 +305,7 @@ export default function EpubReader({
           role="alert"
           className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center"
         >
-          <p className="font-display text-xl">Não foi possível abrir o EPUB.</p>
+          <p className="title-shelf text-3xl">Não foi possível abrir o EPUB.</p>
 
           <p className="max-w-md text-sm text-contrast/50">
             O arquivo pode estar corrompido ou fora do padrão EPUB.

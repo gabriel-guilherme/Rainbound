@@ -135,7 +135,7 @@ export default function Reader({
     if (!isPaged) {
       return (
         <div className="max-h-80 overflow-y-auto pr-1">
-          <p className="px-2 pb-2 text-xs text-contrast/50">Sumário</p>
+          <p className="px-2 pb-2 text-[11px] uppercase tracking-widest text-contrast/50">Sumário</p>
 
           <div className="flex flex-col gap-0.5">
             {chapters.map((chapter, index) => {
@@ -148,9 +148,9 @@ export default function Reader({
                   onClick={() => goToChapter(chapter.href)}
                   aria-current={isCurrent ? "true" : undefined}
                   className={[
-                    "w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    "w-full cursor-pointer px-3 py-2 text-left text-sm transition-colors",
                     isCurrent
-                      ? "bg-interaction-contrast text-contrast"
+                      ? "bg-contrast text-primary"
                       : "text-contrast/75 hover:bg-contrast/10 hover:text-contrast",
                   ].join(" ")}
                 >
@@ -178,7 +178,7 @@ export default function Reader({
           }}
           className="flex items-center gap-2 px-1 pt-1"
         >
-          <label htmlFor="reader-go-to-page" className="text-xs text-contrast/50">
+          <label htmlFor="reader-go-to-page" className="text-[11px] uppercase tracking-widest text-contrast/50">
             Ir para
           </label>
 
@@ -191,7 +191,7 @@ export default function Reader({
             value={pageInput}
             onChange={(event) => setPageInput(event.target.value)}
             placeholder={String(currentPage)}
-            className="w-20 rounded-md border border-contrast/15 bg-contrast/[0.07] px-2 py-1 text-sm text-contrast outline-none focus:border-interaction"
+            className="w-20 border border-contrast/15 bg-darkest px-2 py-1 text-sm text-contrast outline-none focus:border-interaction"
           />
 
           <span className="text-xs text-contrast/40">de {totalPages}</span>
@@ -207,15 +207,15 @@ export default function Reader({
                   onClick={() => goToPage(page)}
                   aria-current={page === currentPage ? "page" : undefined}
                   className={[
-                    "flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                    "flex w-full cursor-pointer items-center justify-between px-3 py-2 text-left text-sm transition-colors",
                     page === currentPage
-                      ? "bg-interaction-contrast text-contrast"
+                      ? "bg-contrast text-primary"
                       : "text-contrast/75 hover:bg-contrast/10 hover:text-contrast",
                   ].join(" ")}
                 >
                   <span>Página {page}</span>
                   {page === currentPage && (
-                    <span className="text-xs text-interaction">atual</span>
+                    <span className="text-[11px] uppercase tracking-widest text-primary/60">atual</span>
                   )}
                 </button>
               ),
@@ -241,25 +241,30 @@ export default function Reader({
 
     return (
       <>
-        <div className="flex items-center justify-center gap-2 text-xs text-contrast/60 sm:text-sm">
+        <div className="flex items-baseline justify-center gap-2 tabular-nums">
           {isPaged ? (
             <>
-              <span>
-                Página {currentPage} de {totalPages}
+              <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
+                Página {currentPage}{" "}
+                <span className="text-contrast/40">de</span> {totalPages}
               </span>
-              <span className="text-contrast/35">{pageInfo.progress}%</span>
+              <span className="text-xs text-contrast/40">
+                {pageInfo.progress}%
+              </span>
             </>
           ) : (
-            <span>{pageInfo.progress}% lido</span>
+            <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
+              {pageInfo.progress}% <span className="text-contrast/40">lido</span>
+            </span>
           )}
         </div>
 
         <div
           aria-hidden="true"
-          className="mx-auto h-0.5 w-full max-w-md overflow-hidden rounded-full bg-contrast/10"
+          className="mx-auto h-0.5 w-full max-w-md overflow-hidden bg-contrast/10"
         >
           <div
-            className="h-full rounded-full bg-interaction transition-[width] duration-300"
+            className="h-full bg-danger transition-[width] duration-300"
             style={{ width: `${pageInfo.progress}%` }}
           />
         </div>
@@ -270,12 +275,12 @@ export default function Reader({
   return (
     <div className="reader-shell relative flex w-full flex-col bg-darkest font-sans text-contrast">
       <header className="reader-header relative flex shrink-0 items-center justify-between border-b border-contrast/10 px-3 sm:px-5">
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <Link
             href="/library"
             aria-label="Voltar para a biblioteca"
             title="Voltar para a biblioteca"
-            className="rounded-full p-2 text-contrast/80 transition-colors hover:bg-contrast/10 hover:text-contrast"
+            className="p-2 text-contrast/80 transition-colors hover:bg-contrast/10 hover:text-contrast"
           >
             <ArrowLeft size={20} />
           </Link>
@@ -283,17 +288,22 @@ export default function Reader({
             href="/"
             aria-label="Voltar para a página inicial"
             title="Página inicial"
-            className="hidden rounded-full p-2 text-interaction transition-colors hover:bg-contrast/10 sm:block"
+            className="hidden p-2 text-contrast/60 transition-colors hover:bg-contrast/10 hover:text-danger sm:block"
           >
             <CloudRainWind size={20} />
           </Link>
         </div>
 
-        <h1 className="pointer-events-none absolute left-1/2 top-1/2 max-w-[45%] -translate-x-1/2 -translate-y-1/2 truncate text-center font-display text-base text-contrast/80 sm:text-lg">
+        {/*
+          * Celular: o título ocupa o espaço entre os botões (não cabe
+          * centralizado na tela sem cobrir os ícones). A partir de sm,
+          * fica centralizado de verdade.
+          */}
+        <h1 className="title-shelf min-w-0 flex-1 truncate px-2 text-center text-lg text-contrast/85 sm:pointer-events-none sm:absolute sm:left-1/2 sm:top-1/2 sm:max-w-[45%] sm:flex-none sm:-translate-x-1/2 sm:-translate-y-1/2 sm:px-0 sm:text-2xl">
           {headerTitle}
         </h1>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center sm:gap-2">
           <HeaderActionWindow
             isOpen={isNavigatorOpen}
             onOpenChange={setIsNavigatorOpen}
@@ -301,7 +311,7 @@ export default function Reader({
             disabled={!hasNavigator}
             icon={<ListOrdered size={18} strokeWidth={2} />}
             buttonClassName="cursor-pointer"
-            panelClassName={isPaged ? "w-64" : "w-80"}
+            panelClassName={isPaged ? "sm:w-64" : "sm:w-80"}
           >
             {renderNavigator()}
           </HeaderActionWindow>
@@ -312,17 +322,17 @@ export default function Reader({
             label="Configurações"
             icon={<Settings size={18} strokeWidth={2} />}
             buttonClassName="cursor-pointer"
-            panelClassName="w-56"
+            panelClassName="sm:w-56"
           >
             <div className="space-y-2 p-1">
-              <p className="px-2 pb-1 text-xs text-contrast/50">
+              <p className="px-2 pb-1 text-[11px] uppercase tracking-widest text-contrast/50">
                 Configurações
               </p>
               <button
                 type="button"
                 disabled
                 title="Em breve"
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-contrast/40"
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-contrast/40"
               >
                 Ajustar zoom
                 <span className="text-xs">em breve</span>
@@ -331,7 +341,7 @@ export default function Reader({
                 type="button"
                 disabled
                 title="Em breve"
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-contrast/40"
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-contrast/40"
               >
                 Tema
                 <span className="text-xs">em breve</span>
@@ -365,7 +375,7 @@ export default function Reader({
           </ReaderNavigation>
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-            <p className="font-display text-xl">
+            <p className="title-shelf text-3xl">
               Arquivos {format} não podem ser lidos aqui.
             </p>
 
@@ -376,7 +386,7 @@ export default function Reader({
 
             <Link
               href={`/library/${bookId}`}
-              className="mt-3 text-sm text-interaction underline-offset-4 hover:underline"
+              className="mt-3 text-sm text-danger underline-offset-4 hover:underline"
             >
               Abrir página do livro
             </Link>

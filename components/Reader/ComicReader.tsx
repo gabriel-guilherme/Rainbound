@@ -163,7 +163,7 @@ export default function ComicReader({
         role="alert"
         className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center"
       >
-        <p className="font-display text-xl">Não foi possível abrir o CBZ.</p>
+        <p className="title-shelf text-3xl">Não foi possível abrir o CBZ.</p>
 
         <p className="max-w-md text-sm text-contrast/50">
           O arquivo pode estar corrompido ou não conter imagens.

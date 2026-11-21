@@ -56,7 +56,7 @@ export default function HeaderActionWindow({
         title={label}
         aria-expanded={isOpen}
         className={[
-          "flex h-10 w-10 items-center justify-center rounded-full transition-colors",
+          "flex h-10 w-10 items-center justify-center transition-colors",
           "text-contrast/80 hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-40",
           buttonClassName,
         ]
@@ -66,11 +66,18 @@ export default function HeaderActionWindow({
         {icon}
       </button>
 
+      {/*
+        * Celular: painel fixo em largura total logo abaixo do cabeçalho
+        * (ancorado no botão, ele vazava pela esquerda da tela). A partir
+        * de sm, abre preso ao botão. Larguras de desktop vêm com prefixo
+        * sm: em panelClassName (ex.: "sm:w-80").
+        */}
       {isOpen && (
         <div
           className={[
-            "absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-contrast/10",
-            "bg-primary/95 p-2 shadow-2xl shadow-black/60 backdrop-blur-sm",
+            "fixed inset-x-2 top-[calc(4rem+env(safe-area-inset-top)+0.5rem)] z-50 border border-contrast/10",
+            "sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2",
+            "bg-primary p-2 shadow-[6px_6px_0_rgb(0_0_0/0.45)]",
             panelClassName,
           ]
             .filter(Boolean)
