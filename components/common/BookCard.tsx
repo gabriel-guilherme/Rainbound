@@ -1,13 +1,16 @@
 import Image from "next/image";
+import Link from "next/link";
 import BookActionsMenu from "./BookActionsMenu";
 import ProgressBar from "./ProgressBar";
+import { DEFAULT_COVER, typeLabel } from "@/app/(main)/library/types";
+import type { ContentType } from "@/generated/prisma/enums";
 
 type BookCardProps = {
   book: {
     id: number;
     title: string;
     creator: string | null;
-    type: "BOOK" | "COMIC" | "MANGA";
+    type: ContentType;
     coverUrl: string | null;
     progress: {
       percentage: number;
@@ -15,26 +18,20 @@ type BookCardProps = {
   };
 };
 
-const typeLabel = {
-  BOOK: "Livro",
-  COMIC: "Quadrinho",
-  MANGA: "Mangá",
-};
-
 export default function BookCard({ book }: BookCardProps) {
   const percentage = book.progress?.percentage ?? 0;
 
   return (
-    <div className="group block rounded-xl bg-primary p-4 shadow-[-5px_7px_10px_rgba(0,0,0,0.25)] transition hover:shadow-sm">
+    <div className="group block rounded-xl bg-primary p-4 shadow-[-5px_7px_10px_rgba(0,0,0,0.25)] transition-colors hover:bg-primary/80">
       <div className="grid grid-cols-[70px_1fr_30px] items-center gap-4">
         <div className="relative h-25 w-[70px]">
           <Image
             src={
               book.coverUrl
                 ? book.coverUrl
-                : "/Capa_do_livro_Coração_de_Aço.jpg"
+                : DEFAULT_COVER
             }
-            sizes="full"
+            sizes="70px"
             alt={`Capa do livro ${book.title}`}
             fill
             loading="eager"
@@ -44,21 +41,26 @@ export default function BookCard({ book }: BookCardProps) {
 
         <div className="grid grid-rows-[1fr_1fr_30px] gap-1">
           <h3
-            className="min-w-0 truncate text-lg font-bold text-contrast"
+            className="min-w-0 truncate font-display text-lg font-semibold text-contrast"
             title={book.title}
           >
-            {book.title}
+            <Link
+              href={`/library/${book.id}`}
+              className="rounded-sm hover:text-interaction"
+            >
+              {book.title}
+            </Link>
           </h3>
 
           <p
-            className="text-base text-contrast"
+            className="min-w-0 truncate text-sm text-contrast/70"
             title={book.creator ?? undefined}
           >
             {book.creator ?? "Desconhecido"}
           </p>
 
-          <div className="flex w-full gap-10">
-            <p className="flex items-end text-sm text-contrast opacity-75">
+          <div className="flex w-full items-end gap-6">
+            <p className="text-sm text-contrast/60">
               {typeLabel[book.type]}
             </p>
 

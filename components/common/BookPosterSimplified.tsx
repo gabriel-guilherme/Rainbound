@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { DEFAULT_COVER } from "@/app/(main)/library/types";
+
 type BookCardProps = {
   book: {
     id: number;
@@ -15,7 +17,7 @@ export default function BookPosterSimplified({ book }: BookCardProps) {
       <div className="relative aspect-[7/10] w-full flex-1">
         <Image
           src={
-            book.coverUrl ? book.coverUrl : "/Capa_do_livro_Coração_de_Aço.jpg"
+            book.coverUrl ? book.coverUrl : DEFAULT_COVER
           }
           sizes="full"
           alt={`Capa do livro ${book.title}`}
@@ -25,8 +27,14 @@ export default function BookPosterSimplified({ book }: BookCardProps) {
         />
       </div>
 
-      <div className="flex justify-between text-contrast">
-        <p title={book.title}>{book.title}</p>
+      <div className="mt-2 flex min-w-0 flex-col text-contrast">
+        <p className="truncate font-display text-lg" title={book.title}>
+          {book.title}
+        </p>
+
+        {book.creator && (
+          <p className="truncate text-sm text-contrast/50">{book.creator}</p>
+        )}
       </div>
     </div>
   );
