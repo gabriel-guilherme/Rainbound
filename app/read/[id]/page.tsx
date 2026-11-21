@@ -31,6 +31,7 @@ export default async function Read({
       <Reader
         bookId={book.id}
         bookUrl={url}
+        title={book.title}
         format={book.format}
         locator={book.progress?.locator}
       />

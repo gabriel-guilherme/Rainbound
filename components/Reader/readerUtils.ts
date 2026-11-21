@@ -1,4 +1,4 @@
-import ePub from "@likecoin/epub-ts";
+import type ePub from "@likecoin/epub-ts";
 
 export function calculateProgress(
   currentPosition: number,
@@ -11,13 +11,19 @@ export function calculateProgress(
   return Math.round((currentPosition / totalPositions) * 100);
 }
 
-/// PDF
-export function getPdfPage(locator: string | null | undefined) {
+/// PDF / CBZ
+/*
+ * Locators de motores paginados: "<prefixo>:<página>" (1-based).
+ */
+function getPageFromLocator(
+  locator: string | null | undefined,
+  prefix: string,
+) {
   if (!locator) {
     return 1;
   }
 
-  const match = /^pdf-page:(\d+)$/.exec(locator.trim());
+  const match = new RegExp(`^${prefix}:(\\d+)$`).exec(locator.trim());
 
   if (!match) {
     return 1;
@@ -30,6 +36,14 @@ export function getPdfPage(locator: string | null | undefined) {
   }
 
   return page;
+}
+
+export function getPdfPage(locator: string | null | undefined) {
+  return getPageFromLocator(locator, "pdf-page");
+}
+
+export function getComicPage(locator: string | null | undefined) {
+  return getPageFromLocator(locator, "cbz-page");
 }
 ///
 

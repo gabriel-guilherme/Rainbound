@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { Expand, Minimize } from "lucide-react";
 
-export default function FullscreenButton() {
+interface FullscreenButtonProps {
+  onClick?: () => void;
+}
+
+export default function FullscreenButton({
+  onClick,
+}: FullscreenButtonProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
@@ -32,9 +38,14 @@ export default function FullscreenButton() {
 
   return (
     <button
-      onClick={handleFullscreen}
+      type="button"
+      onClick={() => {
+        handleFullscreen();
+        onClick?.();
+      }}
       aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
-      className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10 cursor-pointer"
+      title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+      className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-contrast/80 transition-colors hover:bg-contrast/10 hover:text-contrast"
     >
       {isFullscreen ? (
         <Minimize size={20} strokeWidth={1.8} />

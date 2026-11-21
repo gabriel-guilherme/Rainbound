@@ -24,10 +24,10 @@ export default function ReaderNavigation({
         type="button"
         onClick={onPrevious}
         disabled={previousDisabled}
-        className="flex w-7 shrink-0 cursor-pointer items-center justify-center p-0 transition-opacity disabled:pointer-events-none disabled:opacity-0 sm:w-auto sm:p-2"
+        className="flex w-7 shrink-0 cursor-pointer items-center justify-center self-stretch p-0 text-contrast/40 transition-colors hover:text-contrast disabled:pointer-events-none disabled:opacity-0 sm:w-auto sm:p-2"
         aria-label="Página anterior"
       >
-        <ChevronLeft className="size-6 sm:size-12 md:size-16" />
+        <ChevronLeft strokeWidth={1.5} className="size-6 sm:size-10 md:size-12" />
       </button>
 
       <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden">
@@ -38,10 +38,10 @@ export default function ReaderNavigation({
         type="button"
         onClick={onNext}
         disabled={nextDisabled}
-        className="flex w-7 shrink-0 cursor-pointer items-center justify-center p-0 transition-opacity disabled:pointer-events-none disabled:opacity-0 sm:w-auto sm:p-2"
+        className="flex w-7 shrink-0 cursor-pointer items-center justify-center self-stretch p-0 text-contrast/40 transition-colors hover:text-contrast disabled:pointer-events-none disabled:opacity-0 sm:w-auto sm:p-2"
         aria-label="Próxima página"
       >
-        <ChevronRight className="size-6 sm:size-12 md:size-16" />
+        <ChevronRight strokeWidth={1.5} className="size-6 sm:size-10 md:size-12" />
       </button>
     </div>
   );

@@ -1,73 +1,48 @@
-# Sistema de Leitor - Rainbound
+# Leitor — Rainbound
 
-## Visão Geral
+## Formatos
 
-O leitor do Rainbound suporta múltiplos formatos de arquivo: **PDF**, **EPUB**, **CBZ** e **CBR**. Atualmente, apenas o PDF está totalmente funcional.
-
-## Seleção Genérica de Páginas/Capítulos
-
-### Dropdown de Seleção
-
-O ícone **Summary** no header do leitor abre um dropdown que expande para baixo, mostrando uma lista de páginas/capítulos disponíveis.
-
-#### Funcionamento:
-
-1. **Clique no ícone Summary** - O dropdown expande para baixo
-2. **Navegue na lista** - Páginas rápidas a cada 5 posições
-3. **Digite um número** - Ou use o input para navegar direto
-4. **Confirme** - O leitor navega para a posição selecionada
-
-### Características:
-
-- ✅ **Sem blur no fundo** - A lista expande naturalmente sobre o conteúdo
-- ✅ **Lista expandível** - Dropdown que abre para baixo
-- ✅ **Páginas rápidas** - Navegação rápida por grupos de 5 páginas
-- ✅ **Input direto** - Digite qualquer número para navegar
-- ✅ **Integrado ao header** - Faz parte do fluxo natural da interface
-
-### Estrutura de Dados
-
-O sistema utiliza o campo `locator` para armazenar informações de localização:
-
-- **PDF**: `"pdf-page:X"` onde X é o número da página
-- **EPUB**: CFI (Content Folder Identifier) do EPUB
-- **Futuro**: `"chapter:X"` para navegação por capítulos
-
-### Componentes Principais
-
-#### 1. `DropdownPageSelection.tsx`
-Dropdown genérico para seleção de posição. Funciona para ambos os formatos.
-
-#### 2. `Reader.tsx`
-Componente principal que:
-- Detecta o formato do arquivo
-- Gerencia o estado de leitura
-- Abre o dropdown ao clicar no Summary
-- Salva progresso automaticamente
-
-#### 3. `PdfReader.tsx`
-Leitor específico para PDFs usando `react-pdf`.
-
-#### 4. `EpubReader.tsx`
-Leitor específico para EPUBs usando `@likecoin/epub-ts`.
-
-#### 5. `ChaptersSummary.tsx`
-Componente para exibição do sumário de capítulos (EPUB).
-
-### Utilitários
-
-- `readerUtils.ts` - Funções auxiliares para processamento de localizadores
-- `useReaderProgress.tsx` - Hook para salvamento automático de progresso
-- `readerTypes.ts` - Tipos compartilhados entre componentes
+| Formato | Motor | Locator salvo |
+| --- | --- | --- |
+| PDF | `react-pdf` (`PdfReader.tsx`) | `pdf-page:<página>` |
+| EPUB | `@likecoin/epub-ts` (`EpubReader.tsx`) | CFI do EPUB (`epubcfi(...)`) |
+| CBZ | leitor próprio com `fflate` (`ComicReader.tsx`) | `cbz-page:<página>` |
+| CBR | não suportado — converter para CBZ | — |
 
 ## Arquitetura
 
 ```
-Reader (main)
-├── PdfReader (PDF)
-├── EpubReader (EPUB)
-├── DropdownPageSelection (genérico)
-└── ChaptersSummary (futuro - EPUB)
+Reader.tsx            cabeçalho, setas, teclado, rodapé, salvamento de progresso
+├── PdfReader         ┐
+├── EpubReader        ├─ motores: implementam ReaderEngineProps
+└── ComicReader       ┘
 ```
 
-O sistema é projetado para ser **extensível** e **manutenível**, com uma interface unificada que abstrai as diferenças entre os formatos.
+Cada motor recebe `ReaderEngineProps` (`readerTypes.ts`) e:
+
+1. chama `onReady(controller)` quando o arquivo carrega, entregando um
+   `ReaderController` (`previous`, `next` e `goToPage` ou `goToChapter`);
+2. chama `onPageChange(pageInfo)` a cada mudança de posição (atualiza a UI);
+3. chama `onProgressChange(progress)` quando a posição muda de verdade
+   (o `Reader` salva com debounce via `useReaderProgress`);
+4. (EPUB) chama `onContentsChange(chapters)` com o sumário.
+
+Os motores guardam esses callbacks em um ref, para que o `Reader` possa
+re-renderizar sem recarregar o livro.
+
+## Cabeçalho
+
+- **Selecionar página** (PDF/CBZ): campo "Ir para" + lista de páginas.
+- **Sumário** (EPUB): lista de capítulos do TOC.
+- **Configurações**: zoom e tema ainda não implementados.
+- **Tela cheia**.
+
+As setas ← → do teclado viram a página. No EPUB, o motor também escuta as
+setas dentro do iframe do livro.
+
+## Detalhes
+
+- EPUB: as *locations* (base do progresso em %) são geradas uma vez e
+  guardadas no `localStorage` por arquivo.
+- CBZ: imagens ordenadas por nome em ordem natural (2 antes de 10);
+  arquivos de `__MACOSX/` e ocultos são ignorados.
