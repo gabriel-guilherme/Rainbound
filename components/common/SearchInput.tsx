@@ -2,9 +2,8 @@
 
 import { Search } from "lucide-react";
 import { useRef, useState } from "react";
+import { toolbarFieldClass as stylePattern } from "@/components/forms/fieldStyles";
 
-const stylePattern =
-  "rounded-lg px-3 py-2 text-sm text-primary outline-none bg-contrast shadow shadow-black/75 opacity-85 focus:opacity-100 hover:opacity-100 focus:border-gray-900";
 
 export default function SearchInput({
   q,
@@ -28,8 +27,9 @@ export default function SearchInput({
     <>
       <input
         ref={searchInputRef}
-        type="text"
+        type="search"
         name="q"
+        aria-label="Buscar por título ou autor"
         defaultValue={q ?? ""}
         placeholder="Buscar por título ou autor..."
         onChange={(e) => e.target.form?.requestSubmit()}

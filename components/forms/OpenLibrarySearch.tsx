@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toolbarFieldClass as stylePattern } from "./fieldStyles";
 
 export type OpenLibraryBook = {
   key: string;
@@ -17,8 +18,6 @@ type OpenLibrarySearchProps = {
   onSelect: (book: OpenLibraryBook) => void;
 };
 
-const stylePattern =
-  "rounded-lg px-3 py-2 text-sm text-primary outline-none bg-contrast shadow shadow-black/75 opacity-85 focus:opacity-100 hover:opacity-100 focus:border-gray-900";
 
 export default function OpenLibrarySearch({
   onSelect,
@@ -117,7 +116,7 @@ export default function OpenLibrarySearch({
             <div
               role="listbox"
               aria-label="Resultados da Open Library"
-              className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden rounded-lg bg-contrast shadow-lg"
+              className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden rounded-lg bg-contrast shadow-lg shadow-black/40"
             >
               {isLoading ? (
                 <p className="px-3 py-2 text-sm text-primary/70">
@@ -130,7 +129,7 @@ export default function OpenLibrarySearch({
                     type="button"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => selectBook(book)}
-                    className="block w-full cursor-pointer border-b border-primary/10 px-3 py-2 text-left text-sm text-primary transition hover:bg-interaction"
+                    className="block w-full cursor-pointer border-b border-primary/10 px-3 py-2 text-left text-sm text-primary transition last:border-b-0 hover:bg-interaction/40"
                   >
                     <span className="block font-semibold">{book.title}</span>
 
@@ -152,9 +151,10 @@ export default function OpenLibrarySearch({
           type="button"
           aria-label="Buscar livro na Open Library"
           onClick={openSearch}
-          className={`${stylePattern} flex size-10 cursor-pointer items-center justify-center rounded-lg p-0`}
+          className={`${stylePattern} flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-3`}
         >
-          <Search size={18} />
+          <Search size={18} aria-hidden="true" />
+          <span className="hidden sm:inline">Buscar na Open Library</span>
         </button>
       )}
     </div>

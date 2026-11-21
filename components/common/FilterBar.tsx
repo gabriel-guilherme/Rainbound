@@ -2,19 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useTransition } from "react";
-import { statusLabel } from "@/app/(main)/library/types";
+import { statusLabel, statusOptions } from "@/app/(main)/library/types";
 import SearchInput from "./SearchInput";
 import { FilterButton } from "./FilterButton";
+import { toolbarFieldClass as stylePattern } from "@/components/forms/fieldStyles";
 
-const statusOptions = ["WANT_TO_READ", "READING", "READ", "ABANDONED"];
 
-const stylePattern =
-  "rounded-lg px-3 py-2 text-sm text-primary outline-none bg-contrast shadow shadow-black/75 opacity-85 focus:opacity-100 hover:opacity-100 focus:border-gray-900";
 
 export function FilterBar({ q, status }: { q?: string; status?: string }) {
   const router = useRouter();
 
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,17 +36,18 @@ export function FilterBar({ q, status }: { q?: string; status?: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mb-6 grid grid-cols-[1fr_44px] gap-3 wrap"
+      className="mb-8 grid grid-cols-[1fr_40px] gap-3"
     >
-      <div className="flex min-w-0 gap-5">
+      <div className="flex min-w-0 gap-3">
         <SearchInput q={q} />
         <select
           name="status"
           defaultValue={status ?? ""}
+          aria-label="Filtrar por status"
           onChange={(e) => e.target.form?.requestSubmit()}
           className={`${stylePattern} cursor-pointer`}
         >
-          <option value="">Status</option>
+          <option value="">Todos os status</option>
           {statusOptions.map((s) => (
             <option key={s} value={s}>
               {statusLabel[s]}
