@@ -1,77 +1,130 @@
 "use client";
 
+import { useState, useTransition } from "react";
+
 import { updateBook } from "@/app/(main)/library/[id]/actions";
-import { statusLabel } from "@/app/(main)/library/types";
+import {
+  statusLabel,
+  statusOptions,
+  typeOptions,
+} from "@/app/(main)/library/types";
+import type {
+  ContentType,
+  FileFormat,
+  ReadingStatus,
+} from "@/generated/prisma/enums";
 import InputBookCover from "@/components/forms/InputBookCover";
 import InputBookFile from "./InputBookFile";
-
-const stylePattern =
-  "shadow shadow-black/75 opacity-30 hover:opacity-70 focus:opacity-70 bg-contrast rounded-lg border border-gray-300 px-3 py-2 text-primary outline-none focus:border-gray-900";
-
-const typeOptions = [
-  { value: "BOOK", label: "Livro" },
-  { value: "COMIC", label: "Quadrinho" },
-  { value: "MANGA", label: "Mangá" },
-];
-
-const formatOptions = [
-  { value: "EPUB", label: "EPUB" },
-  { value: "PDF", label: "PDF" },
-  { value: "CBZ", label: "CBZ" },
-  { value: "CBR", label: "CBR" },
-];
+import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
+import { fieldClass as stylePattern, labelClass } from "./fieldStyles";
 
 type EditBookFormProps = {
   book: {
     id: number;
     title: string;
     creator: string | null;
-    type: "BOOK" | "COMIC" | "MANGA";
-    format: "EPUB" | "PDF" | "CBZ" | "CBR";
-    status: string;
+    type: ContentType;
+    format: FileFormat;
+    status: ReadingStatus;
     rating: number | null;
     notes: string | null;
     coverUrl: string | null;
   };
 };
 
+type SaveState = "idle" | "saving" | "saved" | "error";
+
+const DEFAULT_SAVE_ERROR = "Não foi possível salvar. Tente de novo.";
+
+const saveStateLabel: Record<SaveState, string> = {
+  idle: "As alterações são salvas automaticamente",
+  saving: "Salvando...",
+  saved: "Alterações salvas",
+  error: DEFAULT_SAVE_ERROR,
+};
+
 export default function EditBookForm({ book }: EditBookFormProps) {
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveError, setSaveError] = useState(DEFAULT_SAVE_ERROR);
+  const [, startTransition] = useTransition();
+
+  function save(form: HTMLFormElement | null) {
+    if (!form) {
+      return;
+    }
+
+    const formData = new FormData(form);
+
+    /*
+     * Capa e arquivo já foram enviados neste FormData; limpa os inputs
+     * para não reenviar os mesmos arquivos a cada campo salvo depois.
+     */
+    form
+      .querySelectorAll<HTMLInputElement>('input[type="file"]')
+      .forEach((input) => {
+        input.value = "";
+      });
+
+    setSaveState("saving");
+
+    startTransition(async () => {
+      try {
+        await updateBook(await prepareBookFormData(formData));
+        setSaveState("saved");
+      } catch (error) {
+        setSaveError(
+          error instanceof UploadError ? error.message : DEFAULT_SAVE_ERROR,
+        );
+        setSaveState("error");
+      }
+    });
+  }
+
   return (
     <form
-      action={updateBook}
+      onSubmit={(e) => {
+        /* Enter em um campo salva pelo mesmo caminho do salvamento automático. */
+        e.preventDefault();
+        save(e.currentTarget);
+      }}
       onBlur={(e) => {
-        const target = e.target as HTMLElement;
+        const target = e.target as unknown as HTMLInputElement;
 
-        if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
-          const form = e.currentTarget;
-          const formData = new FormData(form);
-
-          updateBook(formData);
+        /*
+         * Campos de texto salvam ao perder o foco. Selects e arquivos
+         * salvam no onChange (ver abaixo).
+         */
+        if (
+          (target.tagName === "INPUT" && target.type !== "file") ||
+          target.tagName === "TEXTAREA"
+        ) {
+          save(e.currentTarget);
         }
       }}
-      className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-30"
+      className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-16 lg:gap-24"
     >
       <input type="hidden" name="id" value={book.id} />
 
       {/* Coluna da esquerda */}
       <section className="flex flex-col gap-4">
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1">
           <input
             type="text"
             name="title"
             defaultValue={book.title}
             aria-label="Título"
             required
-            className="border-0 bg-transparent px-0 text-2xl font-bold text-contrast shadow-none outline-none focus:opacity-70"
+            className="-mx-2 rounded-md border border-transparent bg-transparent px-2 font-display text-3xl text-contrast outline-none transition-colors hover:border-contrast/15 focus:border-interaction"
           />
 
           <input
             type="text"
             name="creator"
             defaultValue={book.creator ?? ""}
-            aria-label="Criador"
+            aria-label="Autor"
+            placeholder="Autor"
             required
-            className="border-0 bg-transparent px-0 text-sm text-contrast/70 shadow-none outline-none focus:opacity-70"
+            className="-mx-2 rounded-md border border-transparent bg-transparent px-2 text-base text-contrast/70 outline-none transition-colors placeholder:text-contrast/35 hover:border-contrast/15 focus:border-interaction"
           />
         </div>
 
@@ -79,9 +132,13 @@ export default function EditBookForm({ book }: EditBookFormProps) {
           <InputBookCover
             src={book.coverUrl ?? ""}
             alt={`Capa de ${book.title}`}
+            onFileSelected={(input) => save(input.form)}
           />
 
-          <InputBookFile />
+          <InputBookFile
+            label={`Substituir arquivo (${book.format})`}
+            onFileSelected={(input) => save(input.form)}
+          />
         </div>
       </section>
 
@@ -90,12 +147,16 @@ export default function EditBookForm({ book }: EditBookFormProps) {
         <div className="flex w-full flex-col gap-6 text-sm font-medium text-contrast">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col">
-              <label>Tipo</label>
+              <label htmlFor="type" className={labelClass}>
+                Tipo
+              </label>
 
               <select
+                id="type"
                 name="type"
                 defaultValue={book.type}
-                className={`${stylePattern} cursor-pointer text-center`}
+                onChange={(e) => save(e.currentTarget.form)}
+                className={`${stylePattern} cursor-pointer`}
               >
                 {typeOptions.map((type) => (
                   <option key={type.value} value={type.value}>
@@ -106,35 +167,34 @@ export default function EditBookForm({ book }: EditBookFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_20%]">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_25%]">
             <div className="flex flex-col">
-              <label>Status</label>
+              <label htmlFor="status" className={labelClass}>
+                Status
+              </label>
 
               <select
+                id="status"
                 name="status"
                 defaultValue={book.status}
-                onChange={(e) => {
-                  const form = e.currentTarget.form;
-
-                  if (form) {
-                    const formData = new FormData(form);
-                    updateBook(formData);
-                  }
-                }}
-                className={`${stylePattern} cursor-pointer text-center`}
+                onChange={(e) => save(e.currentTarget.form)}
+                className={`${stylePattern} cursor-pointer`}
               >
-                {Object.entries(statusLabel).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {statusLabel[status]}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="flex flex-col">
-              <label>Nota</label>
+              <label htmlFor="rating" className={labelClass}>
+                Nota (0–5)
+              </label>
 
               <input
+                id="rating"
                 type="number"
                 name="rating"
                 defaultValue={book.rating ?? 0}
@@ -146,15 +206,29 @@ export default function EditBookForm({ book }: EditBookFormProps) {
           </div>
 
           <div className="flex flex-col">
-            <label>Notas</label>
+            <label htmlFor="notes" className={labelClass}>
+              Notas
+            </label>
 
             <textarea
+              id="notes"
               name="notes"
               defaultValue={book.notes ?? ""}
               rows={7}
+              placeholder="Impressões, trechos marcantes, lembretes..."
               className={`${stylePattern} resize-y align-top`}
             />
           </div>
+
+          <p
+            role="status"
+            aria-live="polite"
+            className={`text-xs font-normal ${
+              saveState === "error" ? "text-danger" : "text-contrast/45"
+            }`}
+          >
+            {saveState === "error" ? saveError : saveStateLabel[saveState]}
+          </p>
         </div>
       </div>
     </form>

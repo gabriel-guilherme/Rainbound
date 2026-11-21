@@ -2,11 +2,15 @@
 
 import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
-import { uploadBookCover, uploadBookFile } from "@/lib/upload";
-import cloudinary from "@/lib/cloudinary";
+import {
+  cleanupStorage,
+  deleteBookCover,
+  deleteBookFile,
+  uploadBookCover,
+  verifyUploadedBookFile,
+} from "@/lib/upload";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getFileFormat } from "@/lib/utils";
 
 export async function updateBook(formData: FormData) {
   const id = Number(formData.get("id"));
@@ -20,7 +24,7 @@ export async function updateBook(formData: FormData) {
   const ratingRaw = formData.get("rating") as string;
   const notes = formData.get("notes") as string;
 
-  const bookFile = formData.get("bookFile");
+  const filePathRaw = formData.get("filePath");
   const cover = formData.get("cover");
 
   const status = Object.values(ReadingStatus).includes(
@@ -68,10 +72,6 @@ export async function updateBook(formData: FormData) {
 
     data.coverUrl = uploadedCover.url;
     data.coverPublicId = uploadedCover.publicId;
-
-    if (current.coverPublicId) {
-      await cloudinary.uploader.destroy(current.coverPublicId);
-    }
   }
 
   /*
@@ -80,16 +80,25 @@ export async function updateBook(formData: FormData) {
    * ==========================================
    */
 
-  if (bookFile instanceof File && bookFile.size > 0) {
-    /*
-     * O formato muda automaticamente
-     * de acordo com o novo arquivo.
-     */
-    data.format = getFileFormat(bookFile);
+  /*
+   * O novo arquivo já foi enviado pelo navegador direto ao storage
+   * (caminho novo e único). O formato muda de acordo com o arquivo.
+   */
+  if (typeof filePathRaw === "string" && filePathRaw) {
+    try {
+      const uploadedFile = await verifyUploadedBookFile(filePathRaw);
 
-    const uploadedFile = await uploadBookFile(bookFile, id);
+      data.filePath = uploadedFile.filePath;
+      data.format = uploadedFile.format;
+    } catch (error) {
+      const newCoverPublicId = data.coverPublicId;
 
-    data.filePath = uploadedFile.filePath;
+      if (typeof newCoverPublicId === "string") {
+        await cleanupStorage([deleteBookCover(newCoverPublicId)]);
+      }
+
+      throw error;
+    }
   }
 
   /*
@@ -110,35 +119,87 @@ export async function updateBook(formData: FormData) {
     data.finishedAt = new Date();
   }
 
-  await prisma.book.update({
-    where: {
-      id,
-    },
-    data,
-  });
+  try {
+    await prisma.book.update({
+      where: {
+        id,
+      },
+      data,
+    });
+  } catch (error) {
+    /*
+     * O banco não foi atualizado: remove a capa e o arquivo novos.
+     */
+    const newCoverPublicId = data.coverPublicId;
+    const newFilePath = data.filePath;
+
+    await cleanupStorage([
+      ...(typeof newCoverPublicId === "string"
+        ? [deleteBookCover(newCoverPublicId)]
+        : []),
+      ...(typeof newFilePath === "string" ? [deleteBookFile(newFilePath)] : []),
+    ]);
+
+    throw error;
+  }
+
+  /*
+   * Só depois de o banco apontar para os novos arquivos,
+   * remove os antigos que foram substituídos.
+   */
+  const replacedFiles: Array<Promise<unknown>> = [];
+
+  if (data.coverPublicId && current.coverPublicId) {
+    replacedFiles.push(deleteBookCover(current.coverPublicId));
+  }
+
+  if (
+    typeof data.filePath === "string" &&
+    current.filePath &&
+    current.filePath !== data.filePath
+  ) {
+    replacedFiles.push(deleteBookFile(current.filePath));
+  }
+
+  await cleanupStorage(replacedFiles);
 
   revalidatePath("/");
   revalidatePath("/library");
   revalidatePath(`/library/${id}`);
 }
 
-export async function deleteBook(formData: FormData) {
+async function removeBook(formData: FormData) {
   const id = Number(formData.get("id"));
 
-  const book = await prisma.book.findUniqueOrThrow({
+  const book = await prisma.book.delete({
     where: { id },
   });
 
-  if (book.coverPublicId) {
-    await cloudinary.uploader.destroy(book.coverPublicId);
-  }
-
-  await prisma.book.delete({
-    where: { id },
-  });
+  /*
+   * O registro já foi removido; falhas ao limpar o storage
+   * não devem impedir a exclusão.
+   */
+  await cleanupStorage([
+    ...(book.coverPublicId ? [deleteBookCover(book.coverPublicId)] : []),
+    ...(book.filePath ? [deleteBookFile(book.filePath)] : []),
+  ]);
 
   revalidatePath("/");
   revalidatePath("/library");
+}
+
+/*
+ * Exclui o livro e permanece na página atual (ex.: menu do card).
+ */
+export async function deleteBook(formData: FormData) {
+  await removeBook(formData);
+}
+
+/*
+ * Exclui o livro e volta para a biblioteca (ex.: página de detalhe).
+ */
+export async function deleteBookAndRedirect(formData: FormData) {
+  await removeBook(formData);
 
   redirect("/library");
 }

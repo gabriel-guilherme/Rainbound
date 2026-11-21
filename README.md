@@ -146,6 +146,9 @@ Create a local `.env` file with the required environment variables:
 DATABASE_URL=
 DIRECT_URL=
 
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -225,15 +228,20 @@ npm run start     # Start the production server
 
 ```text
 app/
-├── books/              Book pages and server actions
-└── ...
+├── (main)/             Pages with Navbar and Footer
+│   ├── dashboard/      Dashboard
+│   └── library/        Library list, new book, book details and server actions
+├── read/[id]/          In-app reader
+└── read/actions.ts     Reading progress server action
 
-components/             Reusable UI components
+components/             Reusable UI components (Reader, Home, Widgets, forms, common...)
 
 lib/
 ├── prisma.ts            Prisma client configuration
-├── upload.ts            Cloudinary integration
-└── ...
+├── supabase.ts          Supabase client (book file storage)
+├── cloudinary.ts        Cloudinary configuration
+├── upload.ts            Cover and book file uploads
+└── utils.ts             Signed URLs and file format helpers
 
 prisma/
 ├── schema.prisma        Database schema

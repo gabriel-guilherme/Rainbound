@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Ellipsis, Pencil, Trash2 } from "lucide-react";
-import { deleteBook } from "@/app/(main)/actions";
+import { deleteBook } from "@/app/(main)/library/[id]/actions";
 
 type BookActionsMenuProps = {
   bookId: number;
@@ -51,25 +51,32 @@ export default function BookActionsMenu({
         type="button"
         onClick={handleToggle}
         aria-label={`Opções do livro ${bookTitle}`}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
         className="w-8 h-8 flex items-center justify-center rounded-md p-1 text-contrast transition hover:bg-interaction hover:text-primary cursor-pointer"
       >
         <Ellipsis size={24} strokeWidth={2} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-0 right-0 z-50 flex w-36 flex-col rounded-lg opacity-90 bg-contrast shadow-lg ring-1 ring-black/5 overflow-hidden">
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-50 mt-1 flex w-36 flex-col overflow-hidden rounded-lg bg-contrast shadow-lg shadow-black/40 ring-1 ring-black/5"
+        >
           <Link
             href={`/library/${bookId}`}
+            role="menuitem"
             onClick={(e) => e.stopPropagation()}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-interaction"
+            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-interaction/40"
           >
             <Pencil size={16} />
             Editar
           </Link>
           <button
             type="button"
+            role="menuitem"
             onClick={handleDelete}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 cursor-pointer hover:bg-interaction"
+            className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-800 hover:bg-red-800/10"
           >
             <Trash2 size={16} />
             Excluir

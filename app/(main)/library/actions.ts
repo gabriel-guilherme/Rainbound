@@ -1,15 +1,25 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import {
-  ContentType,
-  FileFormat,
-  ReadingStatus,
-} from "@/generated/prisma/enums";
-import { uploadBookCover, uploadBookFile } from "@/lib/upload";
-import { getFileFormat } from "@/lib/utils";
+  cleanupStorage,
+  createBookUploadUrl,
+  deleteBookCover,
+  deleteBookFile,
+  uploadBookCover,
+  verifyUploadedBookFile,
+} from "@/lib/upload";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+/*
+ * Gera a URL assinada para o navegador enviar o arquivo do livro
+ * direto ao Supabase Storage.
+ */
+export async function requestBookUpload(fileName: string, size: number) {
+  return createBookUploadUrl(String(fileName), Number(size));
+}
 
 export async function createBook(formData: FormData) {
   const title = formData.get("title") as string;
@@ -23,7 +33,7 @@ export async function createBook(formData: FormData) {
 
   const coverUrlFromOpenLibrary = formData.get("coverUrl") as string;
 
-  const bookFile = formData.get("bookFile");
+  const filePathRaw = formData.get("filePath");
   const cover = formData.get("cover");
 
   if (!title || !creator) {
@@ -41,67 +51,64 @@ export async function createBook(formData: FormData) {
     : ContentType.BOOK;
 
   /*
-   * O formato será determinado pelo arquivo.
+   * O arquivo já foi enviado pelo navegador; aqui só conferimos que ele
+   * existe no bucket. O formato vem da extensão do arquivo.
    */
-  if (!(bookFile instanceof File) || bookFile.size === 0) {
+  if (typeof filePathRaw !== "string" || !filePathRaw) {
     throw new Error("Arquivo do livro é obrigatório");
   }
 
-  const format = getFileFormat(bookFile);
+  const { filePath, format } = await verifyUploadedBookFile(filePathRaw);
 
   let coverUrl: string | null = coverUrlFromOpenLibrary || null;
-
   let coverPublicId: string | null = null;
 
   /*
-   * Upload da capa.
+   * Upload da capa e criação do livro. Se algo falhar, remove o que já
+   * foi enviado para não deixar arquivos órfãos no storage.
    */
-  if (cover instanceof File && cover.size > 0) {
-    const uploadedCover = await uploadBookCover(cover);
+  try {
+    if (cover instanceof File && cover.size > 0) {
+      const uploadedCover = await uploadBookCover(cover);
 
-    coverUrl = uploadedCover.url;
-    coverPublicId = uploadedCover.publicId;
-  }
+      coverUrl = uploadedCover.url;
+      coverPublicId = uploadedCover.publicId;
+    }
 
-  /*
-   * Cria o livro já com o formato real.
-   */
-  const book = await prisma.book.create({
-    data: {
-      title,
-      creator,
+    await prisma.book.create({
+      data: {
+        title,
+        creator,
 
-      type,
-      format,
+        type,
+        format,
 
-      status,
+        status,
 
-      rating: ratingRaw ? Number(ratingRaw) : null,
+        rating: ratingRaw ? Number(ratingRaw) : null,
 
-      notes: notes || null,
+        notes: notes || null,
 
-      coverUrl,
-      coverPublicId,
+        filePath,
 
-      progress: {
-        create: {},
+        coverUrl,
+        coverPublicId,
+
+        progress: {
+          create: {},
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    const uploadedCoverPublicId = coverPublicId;
 
-  /*
-   * Upload do arquivo.
-   */
-  const uploadedFile = await uploadBookFile(bookFile, book.id);
+    await cleanupStorage([
+      deleteBookFile(filePath),
+      ...(uploadedCoverPublicId ? [deleteBookCover(uploadedCoverPublicId)] : []),
+    ]);
 
-  await prisma.book.update({
-    where: {
-      id: book.id,
-    },
-    data: {
-      filePath: uploadedFile.filePath,
-    },
-  });
+    throw error;
+  }
 
   revalidatePath("/");
   revalidatePath("/library");

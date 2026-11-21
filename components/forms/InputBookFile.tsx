@@ -3,10 +3,26 @@
 import { FileText, Upload } from "lucide-react";
 import { useState } from "react";
 
-const ALLOWED_EXTENSIONS = [".epub", ".pdf", ".cbz"];
+import {
+  BOOK_FILE_ACCEPT,
+  formatFileSize,
+  getBookFileExtension,
+  MAX_BOOK_FILE_SIZE,
+} from "@/lib/bookFiles";
 
-export default function InputBookFile() {
+type InputBookFileProps = {
+  label?: string;
+  required?: boolean;
+  onFileSelected?: (input: HTMLInputElement) => void;
+};
+
+export default function InputBookFile({
+  label = "Selecionar arquivo",
+  required = false,
+  onFileSelected,
+}: InputBookFileProps) {
   const [fileName, setFileName] = useState("");
+  const [error, setError] = useState("");
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -16,42 +32,59 @@ export default function InputBookFile() {
       return;
     }
 
-    const extension = "." + file.name.split(".").pop()?.toLowerCase();
-
-    if (!ALLOWED_EXTENSIONS.includes(extension)) {
-      alert("Selecione um arquivo EPUB, PDF ou CBZ.");
+    if (!getBookFileExtension(file.name)) {
+      setError("Use um arquivo EPUB, PDF ou CBZ.");
       event.target.value = "";
       setFileName("");
       return;
     }
 
-    if (file.size > 50 * 1024 * 1024) {
-      alert("O arquivo deve ter no máximo 50MB.");
+    if (file.size > MAX_BOOK_FILE_SIZE) {
+      setError(
+        `O arquivo deve ter no máximo ${formatFileSize(MAX_BOOK_FILE_SIZE)}.`,
+      );
       event.target.value = "";
       setFileName("");
       return;
     }
 
+    setError("");
     setFileName(file.name);
+    onFileSelected?.(event.target);
   }
 
   return (
-    <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-300 bg-contrast px-4 py-3 text-primary shadow shadow-black/75 transition hover:opacity-80">
-      <Upload size={20} />
+    <div className="flex flex-col gap-2">
+      <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-contrast/15 bg-contrast/[0.07] px-4 py-3 text-sm text-contrast transition-colors hover:border-interaction/60 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-interaction">
+        {fileName ? (
+          <FileText size={18} aria-hidden="true" className="shrink-0 text-interaction" />
+        ) : (
+          <Upload size={18} aria-hidden="true" className="shrink-0 text-contrast/60" />
+        )}
 
-      <div className="flex min-w-0 items-center gap-2">
-        <FileText size={18} />
+        <span className={`truncate ${fileName ? "" : "text-contrast/70"}`}>
+          {fileName || label}
+        </span>
 
-        <span className="truncate">{fileName || "Selecionar arquivo"}</span>
-      </div>
+        <input
+          type="file"
+          name="bookFile"
+          required={required}
+          accept={BOOK_FILE_ACCEPT}
+          onChange={handleChange}
+          className="sr-only"
+        />
+      </label>
 
-      <input
-        type="file"
-        name="bookFile"
-        accept=".epub,.pdf,.cbz,application/epub+zip,application/pdf,application/vnd.comicbook+zip"
-        onChange={handleChange}
-        className="sr-only"
-      />
-    </label>
+      {error ? (
+        <p role="alert" className="text-xs text-danger">
+          {error}
+        </p>
+      ) : (
+        !fileName && (
+          <p className="text-xs text-contrast/40">EPUB, PDF ou CBZ, até {formatFileSize(MAX_BOOK_FILE_SIZE)}</p>
+        )
+      )}
+    </div>
   );
 }

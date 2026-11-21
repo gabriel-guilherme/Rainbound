@@ -1,35 +1,25 @@
 "use client";
 
+import { unstable_rethrow } from "next/navigation";
 import { useState } from "react";
 
 import { createBook } from "../actions";
 import { SubmitButton } from "@/components/common/SubmitButton";
 
-import { statusLabel } from "../types";
+import { statusLabel, statusOptions, typeOptions } from "../types";
 import InputBookCover from "@/components/forms/InputBookCover";
 import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
   OpenLibraryBook,
 } from "@/components/forms/OpenLibrarySearch";
 import InputBookFile from "@/components/forms/InputBookFile";
+import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
+import {
+  fieldClass as stylePattern,
+  labelClass,
+} from "@/components/forms/fieldStyles";
 
-const statusOptions = ["WANT_TO_READ", "READING", "READ", "ABANDONED"];
 
-const typeOptions = [
-  { value: "BOOK", label: "Livro" },
-  { value: "COMIC", label: "Quadrinho" },
-  { value: "MANGA", label: "Mangá" },
-];
-
-const formatOptions = [
-  { value: "EPUB", label: "EPUB" },
-  { value: "PDF", label: "PDF" },
-  { value: "CBZ", label: "CBZ" },
-  { value: "CBR", label: "CBR" },
-];
-
-const stylePattern =
-  "shadow shadow-black/75 opacity-30 hover:opacity-70 focus:opacity-70 bg-contrast rounded-lg border border-gray-300 px-3 py-2 text-primary outline-none focus:border-gray-900";
 
 type BookForm = {
   title: string;
@@ -48,7 +38,7 @@ export default function NewBookPage() {
     creator: "",
     type: "BOOK",
     format: "",
-    status: "",
+    status: "WANT_TO_READ",
     rating: "0",
     notes: "",
     coverUrl: "",
@@ -66,6 +56,28 @@ export default function NewBookPage() {
     }));
   }
 
+  const [submitError, setSubmitError] = useState("");
+
+  /*
+   * O arquivo do livro vai direto do navegador para o storage;
+   * a action recebe só o caminho dele.
+   */
+  async function handleSubmit(formData: FormData) {
+    setSubmitError("");
+
+    try {
+      await createBook(await prepareBookFormData(formData));
+    } catch (error) {
+      unstable_rethrow(error);
+
+      setSubmitError(
+        error instanceof UploadError
+          ? error.message
+          : "Não foi possível adicionar o livro. Tente de novo.",
+      );
+    }
+  }
+
   function updateField(field: keyof BookForm, value: string) {
     setBook((current) => ({
       ...current,
@@ -78,17 +90,17 @@ export default function NewBookPage() {
       <BackButton />
 
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
-        <div className="flex items-center justify-between gap-6">
-          <h1 className="mb-6 text-2xl font-bold text-contrast">
-            Adicionar item
+        <div className="mb-8 flex items-center justify-between gap-6">
+          <h1 className="font-display text-3xl text-contrast">
+            Adicionar livro
           </h1>
 
           <OpenLibrarySearch onSelect={handleBookSelect} />
         </div>
 
         <form
-          action={createBook}
-          className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-30"
+          action={handleSubmit}
+          className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-16 lg:gap-24"
         >
           <section className="relative mx-auto flex aspect-[3/4] w-full max-w-64 flex-col gap-3 md:mx-0 md:max-w-none">
             <InputBookCover
@@ -96,15 +108,16 @@ export default function NewBookPage() {
               alt={`Capa de ${book.title}`}
             />
 
-            <InputBookFile />
+            <InputBookFile required />
           </section>
 
           <section className="flex w-full flex-col gap-6 text-sm font-medium text-contrast">
             <div className="flex flex-col">
-              <label>Título</label>
+              <label htmlFor="title" className={labelClass}>Título</label>
 
               <input
                 type="text"
+                id="title"
                 name="title"
                 required
                 value={book.title}
@@ -114,10 +127,11 @@ export default function NewBookPage() {
             </div>
 
             <div className="flex flex-col">
-              <label>Criador</label>
+              <label htmlFor="creator" className={labelClass}>Autor</label>
 
               <input
                 type="text"
+                id="creator"
                 name="creator"
                 required
                 value={book.creator}
@@ -128,10 +142,11 @@ export default function NewBookPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col">
-                <label>Tipo</label>
+                <label htmlFor="type" className={labelClass}>Tipo</label>
 
                 <select
-                  name="type"
+                  id="type"
+                name="type"
                   required
                   value={book.type}
                   onChange={(e) => updateField("type", e.target.value)}
@@ -148,16 +163,15 @@ export default function NewBookPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[60%_minmax(0,1fr)]">
               <div className="flex flex-col">
-                <label>Status</label>
+                <label htmlFor="status" className={labelClass}>Status</label>
 
                 <select
-                  name="status"
+                  id="status"
+                name="status"
                   value={book.status}
                   onChange={(e) => updateField("status", e.target.value)}
                   className={`${stylePattern} cursor-pointer text-center`}
                 >
-                  <option value="">Status</option>
-
                   {statusOptions.map((status) => (
                     <option key={status} value={status}>
                       {statusLabel[status]}
@@ -167,11 +181,12 @@ export default function NewBookPage() {
               </div>
 
               <div className="flex flex-col">
-                <label>Nota</label>
+                <label htmlFor="rating" className={labelClass}>Nota (0–5)</label>
 
                 <input
                   type="number"
-                  name="rating"
+                  id="rating"
+                name="rating"
                   min="0"
                   max="5"
                   value={book.rating}
@@ -182,20 +197,30 @@ export default function NewBookPage() {
             </div>
 
             <div className="flex flex-col">
-              <label>Notas</label>
+              <label htmlFor="notes" className={labelClass}>Notas</label>
 
               <textarea
+                id="notes"
                 name="notes"
                 rows={7}
                 value={book.notes}
                 onChange={(e) => updateField("notes", e.target.value)}
+                placeholder="Impressões, trechos marcantes, lembretes..."
                 className={`${stylePattern} resize-y align-top`}
               />
             </div>
 
             <input type="hidden" name="coverUrl" value={book.coverUrl} />
 
-            <SubmitButton>Salvar</SubmitButton>
+            {submitError && (
+              <p role="alert" className="text-sm font-normal text-danger">
+                {submitError}
+              </p>
+            )}
+
+            <SubmitButton pendingLabel="Enviando...">
+              Adicionar à biblioteca
+            </SubmitButton>
           </section>
         </form>
       </div>
