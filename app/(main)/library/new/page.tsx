@@ -7,6 +7,9 @@ import { createBook } from "../actions";
 import { SubmitButton } from "@/components/common/SubmitButton";
 
 import { statusLabel, statusOptions, typeOptions } from "../types";
+import BookSpine from "@/components/common/BookSpine";
+import type { ContentType, ReadingStatus } from "@/generated/prisma/enums";
+import { getSpineLook } from "@/lib/spine";
 import InputBookCover from "@/components/forms/InputBookCover";
 import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
@@ -91,8 +94,8 @@ export default function NewBookPage() {
 
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
         <div className="mb-8 flex items-center justify-between gap-6">
-          <h1 className="font-display text-3xl text-contrast">
-            Adicionar livro
+          <h1 className="title-shelf text-5xl text-contrast sm:text-6xl">
+            Colocar na estante
           </h1>
 
           <OpenLibrarySearch onSelect={handleBookSelect} />
@@ -102,14 +105,44 @@ export default function NewBookPage() {
           action={handleSubmit}
           className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-16 lg:gap-24"
         >
-          <section className="relative mx-auto flex aspect-[3/4] w-full max-w-64 flex-col gap-3 md:mx-0 md:max-w-none">
-            <InputBookCover
-              src={book.coverUrl || undefined}
-              alt={`Capa de ${book.title}`}
-            />
+          <div className="flex flex-col gap-8">
+            <section className="relative mx-auto flex aspect-[3/4] w-full max-w-64 flex-col gap-3 md:mx-0 md:max-w-none">
+              <InputBookCover
+                src={book.coverUrl || undefined}
+                alt={`Capa de ${book.title}`}
+              />
 
-            <InputBookFile required />
-          </section>
+              <InputBookFile required />
+            </section>
+
+            {/* Prévia de como o livro vai aparecer na estante. */}
+            <div className="flex flex-col gap-2">
+              <p className="text-xs uppercase tracking-widest text-contrast/55">
+                Na estante
+              </p>
+
+              <div
+                aria-hidden="true"
+                className="shelf-plank flex items-end justify-center gap-1 px-5 pt-8"
+              >
+                <span className="h-[190px] w-[34px] border border-dashed border-contrast/15" />
+                <BookSpine
+                  book={{
+                    title: book.title || "Sem título",
+                    creator: book.creator || null,
+                    status: book.status as ReadingStatus,
+                    percentage: 0,
+                  }}
+                  look={getSpineLook(
+                    book.title || "rascunho",
+                    book.type as ContentType,
+                    null,
+                  )}
+                />
+                <span className="h-[215px] w-[46px] border border-dashed border-contrast/15" />
+              </div>
+            </div>
+          </div>
 
           <section className="flex w-full flex-col gap-6 text-sm font-medium text-contrast">
             <div className="flex flex-col">
@@ -219,7 +252,7 @@ export default function NewBookPage() {
             )}
 
             <SubmitButton pendingLabel="Enviando...">
-              Adicionar à biblioteca
+              Colocar na estante
             </SubmitButton>
           </section>
         </form>
