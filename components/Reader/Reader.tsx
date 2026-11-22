@@ -4,8 +4,19 @@ import FullscreenButton from "@/components/Reader/FullScreenButton";
 import HeaderActionWindow from "@/components/Reader/HeaderActionWindow";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
 import { useReaderProgress } from "@/components/Reader/useReaderProgress";
+import {
+  READER_THEMES,
+  useReaderSettings,
+} from "@/components/Reader/useReaderSettings";
 
-import { ArrowLeft, CloudRainWind, ListOrdered, Settings } from "lucide-react";
+import {
+  ArrowLeft,
+  CloudRainWind,
+  ListOrdered,
+  Minus,
+  Plus,
+  Settings,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
@@ -70,6 +81,14 @@ export default function Reader({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [pageInput, setPageInput] = useState("");
 
+  const { theme, zoom, limits, setTheme, setZoom } = useReaderSettings(format);
+  const canZoom = Boolean(Engine) && limits.max > limits.min;
+  const zoomPercent = Math.round(zoom * 100);
+
+  const zoomIn = useCallback(() => setZoom(zoom + limits.step), [setZoom, zoom, limits.step]);
+  const zoomOut = useCallback(() => setZoom(zoom - limits.step), [setZoom, zoom, limits.step]);
+  const resetZoom = useCallback(() => setZoom(1), [setZoom]);
+
   useReaderProgress({
     bookId,
     progress: readerProgress,
@@ -98,14 +117,11 @@ export default function Reader({
   }
 
   /*
-   * Setas do teclado viram páginas (exceto quando há um campo em foco).
+   * Teclado (exceto quando há um campo em foco):
+   * ← → viram páginas; + − mudam o zoom; 0 volta ao 100%.
    * No EPUB, o próprio motor trata as setas dentro do iframe do livro.
    */
   useEffect(() => {
-    if (!canNavigate) {
-      return;
-    }
-
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
 
@@ -117,14 +133,22 @@ export default function Reader({
         return;
       }
 
-      if (event.key === "ArrowLeft") goToPrevious();
-      if (event.key === "ArrowRight") goToNext();
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+      }
+
+      if (canNavigate && event.key === "ArrowLeft") goToPrevious();
+      if (canNavigate && event.key === "ArrowRight") goToNext();
+
+      if (canZoom && (event.key === "+" || event.key === "=")) zoomIn();
+      if (canZoom && (event.key === "-" || event.key === "_")) zoomOut();
+      if (canZoom && event.key === "0") resetZoom();
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [canNavigate, goToPrevious, goToNext]);
+  }, [canNavigate, canZoom, goToPrevious, goToNext, zoomIn, zoomOut, resetZoom]);
 
   /* No EPUB o cabeçalho mostra o capítulo; nos demais, o título do livro. */
   const headerTitle = pageInfo.chapterTitle || title;
@@ -226,6 +250,92 @@ export default function Reader({
     );
   }
 
+  function renderSettings() {
+    const zoomButtonClass =
+      "flex size-8 cursor-pointer items-center justify-center text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30";
+
+    return (
+      <div className="space-y-3 p-1">
+        <p className="px-2 text-[11px] uppercase tracking-widest text-contrast/50">
+          Configurações
+        </p>
+
+        {canZoom && (
+          <div className="space-y-1.5 px-2">
+            <p className="text-sm text-contrast/75">{limits.label}</p>
+
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={zoomOut}
+                disabled={zoom <= limits.min}
+                aria-label={`Diminuir ${limits.label.toLowerCase()}`}
+                title="Diminuir (−)"
+                className={zoomButtonClass}
+              >
+                <Minus size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={resetZoom}
+                disabled={zoom === 1}
+                title="Voltar ao padrão (0)"
+                aria-label={`${limits.label}: ${zoomPercent}%. Voltar ao padrão`}
+                className="min-w-16 cursor-pointer px-2 py-1 text-center text-sm tabular-nums text-contrast transition-colors hover:bg-contrast/10 disabled:cursor-default disabled:hover:bg-transparent"
+              >
+                <span aria-live="polite">{zoomPercent}%</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={zoomIn}
+                disabled={zoom >= limits.max}
+                aria-label={`Aumentar ${limits.label.toLowerCase()}`}
+                title="Aumentar (+)"
+                className={zoomButtonClass}
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <fieldset className="space-y-1.5 px-2">
+          <legend className="pb-1.5 text-sm text-contrast/75">Tema</legend>
+
+          <div className="grid grid-cols-3 gap-1">
+            {READER_THEMES.map((option) => {
+              const isCurrent = option.value === theme;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setTheme(option.value)}
+                  aria-pressed={isCurrent}
+                  className={[
+                    "flex cursor-pointer flex-col items-center gap-1 px-1 py-2 text-xs transition-colors",
+                    isCurrent
+                      ? "bg-contrast text-primary"
+                      : "text-contrast/75 hover:bg-contrast/10 hover:text-contrast",
+                  ].join(" ")}
+                >
+                  <span
+                    aria-hidden="true"
+                    data-reader-theme={option.value}
+                    className="reader-theme-swatch size-5 border border-current/30"
+                  />
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      </div>
+    );
+  }
+
   function renderFooter() {
     if (!Engine) {
       return null;
@@ -273,7 +383,10 @@ export default function Reader({
   }
 
   return (
-    <div className="reader-shell relative flex w-full flex-col bg-darkest font-sans text-contrast">
+    <div
+      data-reader-theme={theme}
+      className="reader-shell relative flex w-full flex-col bg-darkest font-sans text-contrast transition-colors"
+    >
       <header className="reader-header relative flex shrink-0 items-center justify-between border-b border-contrast/10 px-3 sm:px-5">
         <div className="flex shrink-0 items-center gap-3">
           <Link
@@ -322,31 +435,9 @@ export default function Reader({
             label="Configurações"
             icon={<Settings size={18} strokeWidth={2} />}
             buttonClassName="cursor-pointer"
-            panelClassName="sm:w-56"
+            panelClassName="sm:w-60"
           >
-            <div className="space-y-2 p-1">
-              <p className="px-2 pb-1 text-[11px] uppercase tracking-widest text-contrast/50">
-                Configurações
-              </p>
-              <button
-                type="button"
-                disabled
-                title="Em breve"
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-contrast/40"
-              >
-                Ajustar zoom
-                <span className="text-xs">em breve</span>
-              </button>
-              <button
-                type="button"
-                disabled
-                title="Em breve"
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-contrast/40"
-              >
-                Tema
-                <span className="text-xs">em breve</span>
-              </button>
-            </div>
+            {renderSettings()}
           </HeaderActionWindow>
 
           <FullscreenButton />
@@ -371,6 +462,8 @@ export default function Reader({
               onPageChange={setPageInfo}
               onProgressChange={setReaderProgress}
               onContentsChange={setChapters}
+              zoom={zoom}
+              theme={theme}
             />
           </ReaderNavigation>
         ) : (

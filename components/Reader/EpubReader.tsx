@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import ePub from "@likecoin/epub-ts";
 
+import { fetchBookFile } from "@/lib/bookCache";
+
 import {
   calculateProgress,
   findChapterTitle,
@@ -25,6 +27,45 @@ type EpubLocation = {
   start: EpubLocationPoint;
   end: EpubLocationPoint;
 };
+
+type Rendition = ReturnType<ReturnType<typeof ePub>["renderTo"]>;
+
+/* Tamanho do texto em 100% de zoom. */
+const BASE_FONT_SIZE = 18;
+
+/*
+ * Estilos do livro. As cores vêm das variáveis do tema do leitor
+ * (data-reader-theme no Reader), lidas do elemento que contém o iframe.
+ */
+function buildBookTheme(element: HTMLElement) {
+  const styles = getComputedStyle(element);
+  const text = styles.getPropertyValue("--color-contrast").trim() || "#e0e4ce";
+  const link = styles.getPropertyValue("--color-danger").trim() || "#d4a09a";
+
+  return {
+    body: {
+      "font-family": "Georgia, serif",
+      "font-size": `${BASE_FONT_SIZE}px`,
+      "line-height": "1.7",
+      color: `${text} !important`,
+      background: "none !important",
+      margin: "0",
+      padding: "40px",
+    },
+    p: {
+      "text-align": "justify",
+      "margin-bottom": "1em",
+    },
+    h1: {
+      "font-family": "Georgia, serif",
+      "margin-bottom": "1em",
+    },
+    /* Mesma cor de destaque do site (--color-danger). */
+    a: {
+      color: `${link} !important`,
+    },
+  };
+}
 
 /* Tamanho (em caracteres) de cada "posição" usada no progresso. */
 const LOCATION_CHARS = 1024;
@@ -69,8 +110,19 @@ export default function EpubReader({
   onPageChange,
   onProgressChange,
   onContentsChange,
+  zoom,
+  theme,
 }: ReaderEngineProps) {
   const viewerRef = useRef<HTMLDivElement>(null);
+  const renditionRef = useRef<Rendition | null>(null);
+  const appliedZoomRef = useRef(zoom);
+
+  /* Valores atuais para aplicar ao criar a rendition. */
+  const displayRef = useRef({ zoom, theme });
+
+  useEffect(() => {
+    displayRef.current = { zoom, theme };
+  });
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -116,13 +168,7 @@ export default function EpubReader({
         /*
          * 1. Carrega o EPUB
          */
-        const response = await fetch(bookUrl);
-
-        if (!response.ok) {
-          throw new Error(`Erro ao carregar EPUB: ${response.status}`);
-        }
-
-        await book.open(await response.arrayBuffer());
+        await book.open(await fetchBookFile(bookId, bookUrl));
         await book.ready;
 
         if (cancelled) return;
@@ -162,29 +208,12 @@ export default function EpubReader({
           flow: "paginated",
         });
 
-        rendition.themes.default({
-          body: {
-            "font-family": "Georgia, serif",
-            "font-size": "18px",
-            "line-height": "1.7",
-            color: "#e0e4ce",
-            background: "none",
-            margin: "0",
-            padding: "40px",
-          },
-          p: {
-            "text-align": "justify",
-            "margin-bottom": "1em",
-          },
-          h1: {
-            "font-family": "Georgia, serif",
-            "margin-bottom": "1em",
-          },
-          /* Mesma cor de destaque do site (--color-danger). */
-          a: {
-            color: "#d4a09a",
-          },
-        });
+        rendition.themes.default(buildBookTheme(viewerRef.current));
+        rendition.themes.fontSize(
+          `${BASE_FONT_SIZE * displayRef.current.zoom}px`,
+        );
+        renditionRef.current = rendition;
+        appliedZoomRef.current = displayRef.current.zoom;
 
         /*
          * Setas do teclado dentro do iframe do livro (o listener do
@@ -279,6 +308,7 @@ export default function EpubReader({
 
     return () => {
       cancelled = true;
+      renditionRef.current = null;
 
       /*
        * Não destruir no meio do open(): o epub-ts continua resolvendo
@@ -289,6 +319,42 @@ export default function EpubReader({
       void loading.finally(() => book.destroy());
     };
   }, [bookId, bookUrl]);
+
+  /*
+   * Tema: reaplica as cores ao trocar (o data-reader-theme já está no
+   * DOM quando o efeito roda).
+   */
+  useEffect(() => {
+    const rendition = renditionRef.current;
+
+    if (status !== "ready" || !rendition || !viewerRef.current) return;
+
+    rendition.themes.default(buildBookTheme(viewerRef.current));
+  }, [theme, status]);
+
+  /*
+   * Tamanho do texto: muda a fonte e volta para o mesmo trecho (a
+   * repaginação mudaria a página atual).
+   */
+  useEffect(() => {
+    const rendition = renditionRef.current;
+
+    if (status !== "ready" || !rendition || appliedZoomRef.current === zoom) {
+      return;
+    }
+
+    appliedZoomRef.current = zoom;
+
+    const location = rendition.currentLocation() as unknown as
+      | EpubLocation
+      | undefined;
+
+    rendition.themes.fontSize(`${BASE_FONT_SIZE * zoom}px`);
+
+    if (location?.start?.cfi) {
+      void rendition.display(location.start.cfi);
+    }
+  }, [zoom, status]);
 
   return (
     <div className="relative h-full w-full min-w-0">

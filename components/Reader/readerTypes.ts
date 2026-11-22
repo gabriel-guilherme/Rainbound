@@ -40,4 +40,14 @@ export type ReaderEngineProps = {
   onPageChange: (info: PageInfo) => void;
   onProgressChange: (progress: ReaderProgress) => void;
   onContentsChange?: (chapters: Chapter[]) => void;
+} & ReaderDisplayProps;
+
+/* Tema da área de leitura (Configurações do leitor). */
+export type ReaderTheme = "night" | "sepia" | "light";
+
+/* Configurações visuais que o Reader repassa a todo motor. */
+export type ReaderDisplayProps = {
+  /* PDF/CBZ: escala da página. EPUB: multiplicador do tamanho do texto. */
+  zoom: number;
+  theme: ReaderTheme;
 };

@@ -1,7 +1,14 @@
 "use client";
 
-import { unzip, type Unzipped } from "fflate";
 import { useEffect, useRef, useState } from "react";
+
+import { fetchBookFile } from "@/lib/bookCache";
+import {
+  getImageType,
+  isComicPage,
+  sortComicPages,
+  unzipAsync,
+} from "@/lib/comicFiles";
 
 import { getComicPage } from "./readerUtils";
 import type { ReaderEngineProps } from "./readerTypes";
@@ -9,54 +16,26 @@ import type { ReaderEngineProps } from "./readerTypes";
 /*
  * Leitor de CBZ: o arquivo é um ZIP de imagens. Descompacta no navegador
  * (fflate, em worker) e mostra uma imagem por página, em ordem natural
- * de nome (página 2 antes da 10).
+ * de nome (página 2 antes da 10). O arquivo baixado fica em cache no
+ * navegador (lib/bookCache.ts).
  */
 
-const IMAGE_TYPES: Record<string, string> = {
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  webp: "image/webp",
-  gif: "image/gif",
-  avif: "image/avif",
-};
-
-function getImageType(name: string) {
-  const extension = name.split(".").pop()?.toLowerCase() ?? "";
-
-  return IMAGE_TYPES[extension];
-}
-
-function isComicPage(name: string) {
-  const fileName = name.split("/").pop() ?? "";
-
-  return (
-    Boolean(getImageType(name)) &&
-    !name.startsWith("__MACOSX/") &&
-    !fileName.startsWith(".")
-  );
-}
-
-function unzipAsync(data: Uint8Array) {
-  return new Promise<Unzipped>((resolve, reject) => {
-    unzip(data, { filter: (file) => isComicPage(file.name) }, (error, files) =>
-      error ? reject(error) : resolve(files),
-    );
-  });
-}
-
 export default function ComicReader({
+  bookId,
   bookUrl,
   locator,
   onReady,
   onPageChange,
   onProgressChange,
+  zoom,
 }: ReaderEngineProps) {
   const [pages, setPages] = useState<string[]>([]);
   const [pageNumber, setPageNumber] = useState(() => getComicPage(locator));
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
+
+  const viewerRef = useRef<HTMLDivElement>(null);
 
   const callbacksRef = useRef({ onReady, onPageChange, onProgressChange });
 
@@ -73,21 +52,17 @@ export default function ComicReader({
 
     async function load() {
       try {
-        const response = await fetch(bookUrl);
+        const data = await fetchBookFile(bookId, bookUrl);
 
-        if (!response.ok) {
-          throw new Error(`Erro ao carregar CBZ: ${response.status}`);
-        }
+        if (cancelled) return;
 
-        const files = await unzipAsync(
-          new Uint8Array(await response.arrayBuffer()),
+        const files = await unzipAsync(new Uint8Array(data), (file) =>
+          isComicPage(file.name),
         );
 
         if (cancelled) return;
 
-        const names = Object.keys(files).sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }),
-        );
+        const names = sortComicPages(Object.keys(files));
 
         if (names.length === 0) {
           throw new Error("Nenhuma imagem encontrada no CBZ.");
@@ -115,7 +90,7 @@ export default function ComicReader({
       cancelled = true;
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [bookUrl]);
+  }, [bookId, bookUrl]);
 
   const totalPages = pages.length;
 
@@ -157,6 +132,11 @@ export default function ComicReader({
     });
   }, [pageNumber, totalPages]);
 
+  /* Com zoom, cada página nova começa do topo. */
+  useEffect(() => {
+    viewerRef.current?.scrollTo({ top: 0, left: 0 });
+  }, [pageNumber]);
+
   if (status === "error") {
     return (
       <div
@@ -184,7 +164,15 @@ export default function ComicReader({
   const next = pages[pageNumber];
 
   return (
-    <div className="flex h-full w-full items-center justify-center p-2 sm:p-4">
+    <div ref={viewerRef} className="h-full w-full overflow-auto">
+      {/*
+        * 100% = página inteira na tela. Acima disso a área cresce e o
+        * contêiner rola (centralizar com flex cortaria a borda esquerda).
+        */}
+      <div
+        className="flex min-h-full min-w-full p-2 sm:p-4"
+        style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
+      >
       {current && (
         // Blob URL local: next/image não otimiza esse tipo de origem.
         // eslint-disable-next-line @next/next/no-img-element
@@ -192,9 +180,10 @@ export default function ComicReader({
           key={current}
           src={current}
           alt={`Página ${pageNumber} de ${totalPages}`}
-          className="h-full w-full object-contain shadow-2xl shadow-black/60"
+          className="m-auto h-full w-full object-contain drop-shadow-2xl"
         />
       )}
+      </div>
 
       {/* Pré-carrega a próxima página. */}
       {next && (

@@ -20,6 +20,7 @@ export default function PdfReader({
   onReady,
   onPageChange,
   onProgressChange,
+  zoom,
 }: ReaderEngineProps) {
   const [pageNumber, setPageNumber] = useState(() => getPdfPage(locator));
 
@@ -33,7 +34,6 @@ export default function PdfReader({
     callbacksRef.current = { onReady, onPageChange, onProgressChange };
   });
   const [numPages, setNumPages] = useState<number>(0);
-  const [scale, setScale] = useState<number>(1);
   const [pageWidth, setPageWidth] = useState<number>(600);
 
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -64,14 +64,6 @@ export default function PdfReader({
     return () => resizeObserver.disconnect();
   }, []);
 
-  const zoomIn = () => {
-    setScale((previous) => Math.min(previous + 0.25, 3));
-  };
-
-  const zoomOut = () => {
-    setScale((previous) => Math.max(previous - 0.25, 0.5));
-  };
-
   /*
    * Entrega o controle ao Reader quando o documento carrega.
    */
@@ -91,6 +83,11 @@ export default function PdfReader({
     /* Locator salvo pode apontar além do fim (arquivo trocado). */
     setPageNumber((page) => clamp(page));
   }, [numPages]);
+
+  /* Com zoom, cada página nova começa do topo. */
+  useEffect(() => {
+    viewerRef.current?.scrollTo({ top: 0, left: 0 });
+  }, [pageNumber]);
 
   useEffect(() => {
     if (!numPages || pageNumber > numPages) {
@@ -143,33 +140,6 @@ export default function PdfReader({
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      {/* Zoom */}
-      <div className="flex shrink-0 items-center justify-center gap-1 p-2">
-        <button
-          type="button"
-          onClick={zoomOut}
-          disabled={scale <= 0.5}
-          aria-label="Diminuir zoom"
-          className="flex size-8 cursor-pointer items-center justify-center text-lg text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          −
-        </button>
-
-        <span aria-live="polite" className="w-12 text-center text-xs text-contrast/60">
-          {Math.round(scale * 100)}%
-        </span>
-
-        <button
-          type="button"
-          onClick={zoomIn}
-          disabled={scale >= 3}
-          aria-label="Aumentar zoom"
-          className="flex size-8 cursor-pointer items-center justify-center text-lg text-contrast/70 transition-colors hover:bg-contrast/10 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-30"
-        >
-          +
-        </button>
-      </div>
-
       {/* PDF */}
       <div
         ref={viewerRef}
@@ -191,9 +161,9 @@ export default function PdfReader({
           >
             <Page
               pageNumber={pageNumber}
-              scale={scale}
+              scale={zoom}
               width={pageWidth}
-              className="shadow-2xl shadow-black/60"
+              className="reader-pdf-page shadow-2xl shadow-black/60"
               loading={null}
             />
           </Document>
