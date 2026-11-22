@@ -231,6 +231,7 @@ app/
 ├── (main)/             Pages with Navbar and Footer
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
+├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
 ├── read/[id]/          In-app reader
 └── read/actions.ts     Reading progress server action
 
@@ -242,6 +243,10 @@ lib/
 ├── cloudinary.ts        Cloudinary configuration
 ├── upload.ts            Cover and book file uploads
 ├── spine.ts             Bookshelf spine look (color, width, height)
+├── readingProgress.ts   Reading progress validation and saving
+├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
+├── comicCompression.ts  Browser-side CBZ page compression before upload
+├── bookCache.ts         Browser cache of downloaded CBZ/EPUB files
 └── utils.ts             Signed URLs and file format helpers
 
 prisma/
