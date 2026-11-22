@@ -3,7 +3,12 @@
  * arquivos grandes não passem pelo servidor (limite de ~4,5 MB da Vercel).
  */
 import { requestBookUpload } from "@/app/(main)/library/actions";
-import { formatFileSize, MAX_BOOK_FILE_SIZE } from "./bookFiles";
+import {
+  formatFileSize,
+  getBookFileExtension,
+  getMaxSelectableSize,
+  MAX_BOOK_FILE_SIZE,
+} from "./bookFiles";
 
 /*
  * Erro com mensagem pronta para mostrar ao usuário.
@@ -108,18 +113,76 @@ export async function compressCover(file: File) {
 }
 
 /*
- * Prepara o FormData de um formulário de livro antes de chamar a action:
- * envia o arquivo direto ao storage (trocando-o pelo caminho) e comprime
- * a capa.
+ * CBZ: comprime as páginas antes de enviar (lib/comicCompression.ts,
+ * carregado só quando necessário). Os demais formatos vão como estão.
  */
-export async function prepareBookFormData(formData: FormData) {
+async function optimizeBookFile(
+  file: File,
+  onStatus?: (message: string) => void,
+) {
+  const extension = getBookFileExtension(file.name);
+
+  if (!extension) {
+    throw new UploadError("Use um arquivo EPUB, PDF ou CBZ.");
+  }
+
+  const maxSize = getMaxSelectableSize(extension);
+
+  if (file.size > maxSize) {
+    throw new UploadError(
+      `O arquivo deve ter no máximo ${formatFileSize(maxSize)}.`,
+    );
+  }
+
+  if (extension !== "cbz") {
+    return file;
+  }
+
+  const { compressComic } = await import("./comicCompression");
+
+  let optimized: File;
+
+  try {
+    optimized = await compressComic(file, ({ done, total }) =>
+      onStatus?.(`Otimizando páginas ${done} de ${total}...`),
+    );
+  } catch {
+    throw new UploadError(
+      "Não foi possível ler o CBZ. Confira se o arquivo é um ZIP de imagens.",
+    );
+  }
+
+  if (optimized.size > MAX_BOOK_FILE_SIZE) {
+    throw new UploadError(
+      `Mesmo otimizado, o quadrinho ficou com ${formatFileSize(optimized.size)} ` +
+        `(limite de ${formatFileSize(MAX_BOOK_FILE_SIZE)}). Divida em volumes menores.`,
+    );
+  }
+
+  return optimized;
+}
+
+/*
+ * Prepara o FormData de um formulário de livro antes de chamar a action:
+ * otimiza e envia o arquivo direto ao storage (trocando-o pelo caminho) e
+ * comprime a capa. `onStatus` recebe mensagens de progresso para a tela.
+ */
+export async function prepareBookFormData(
+  formData: FormData,
+  onStatus?: (message: string) => void,
+) {
   const bookFile = formData.get("bookFile");
 
   formData.delete("bookFile");
 
   if (bookFile instanceof File && bookFile.size > 0) {
-    formData.set("filePath", await uploadBookFileDirect(bookFile));
+    const file = await optimizeBookFile(bookFile, onStatus);
+
+    onStatus?.(`Enviando arquivo (${formatFileSize(file.size)})...`);
+    formData.set("filePath", await uploadBookFileDirect(file));
   }
+
+  onStatus?.("Salvando...");
 
   const cover = formData.get("cover");
 

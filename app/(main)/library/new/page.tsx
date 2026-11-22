@@ -60,6 +60,7 @@ export default function NewBookPage() {
   }
 
   const [submitError, setSubmitError] = useState("");
+  const [uploadStatus, setUploadStatus] = useState("");
 
   /*
    * O arquivo do livro vai direto do navegador para o storage;
@@ -67,9 +68,10 @@ export default function NewBookPage() {
    */
   async function handleSubmit(formData: FormData) {
     setSubmitError("");
+    setUploadStatus("");
 
     try {
-      await createBook(await prepareBookFormData(formData));
+      await createBook(await prepareBookFormData(formData, setUploadStatus));
     } catch (error) {
       unstable_rethrow(error);
 
@@ -78,6 +80,7 @@ export default function NewBookPage() {
           ? error.message
           : "Não foi possível adicionar o livro. Tente de novo.",
       );
+      setUploadStatus("");
     }
   }
 
@@ -251,7 +254,7 @@ export default function NewBookPage() {
               </p>
             )}
 
-            <SubmitButton pendingLabel="Enviando...">
+            <SubmitButton pendingLabel={uploadStatus || "Enviando..."}>
               Colocar na estante
             </SubmitButton>
           </section>

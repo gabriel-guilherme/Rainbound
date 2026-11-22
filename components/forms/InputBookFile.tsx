@@ -7,7 +7,9 @@ import {
   BOOK_FILE_ACCEPT,
   formatFileSize,
   getBookFileExtension,
+  getMaxSelectableSize,
   MAX_BOOK_FILE_SIZE,
+  MAX_COMIC_SOURCE_SIZE,
 } from "@/lib/bookFiles";
 
 type InputBookFileProps = {
@@ -32,17 +34,19 @@ export default function InputBookFile({
       return;
     }
 
-    if (!getBookFileExtension(file.name)) {
+    const extension = getBookFileExtension(file.name);
+
+    if (!extension) {
       setError("Use um arquivo EPUB, PDF ou CBZ.");
       event.target.value = "";
       setFileName("");
       return;
     }
 
-    if (file.size > MAX_BOOK_FILE_SIZE) {
-      setError(
-        `O arquivo deve ter no máximo ${formatFileSize(MAX_BOOK_FILE_SIZE)}.`,
-      );
+    const maxSize = getMaxSelectableSize(extension);
+
+    if (file.size > maxSize) {
+      setError(`O arquivo deve ter no máximo ${formatFileSize(maxSize)}.`);
       event.target.value = "";
       setFileName("");
       return;
@@ -82,7 +86,10 @@ export default function InputBookFile({
         </p>
       ) : (
         !fileName && (
-          <p className="text-xs text-contrast/40">EPUB, PDF ou CBZ, até {formatFileSize(MAX_BOOK_FILE_SIZE)}</p>
+          <p className="text-xs text-contrast/40">
+            EPUB ou PDF até {formatFileSize(MAX_BOOK_FILE_SIZE)}; CBZ até{" "}
+            {formatFileSize(MAX_COMIC_SOURCE_SIZE)} (as páginas são otimizadas no envio)
+          </p>
         )
       )}
     </div>

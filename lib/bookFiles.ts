@@ -22,6 +22,22 @@ export type BookFileExtension = keyof typeof BOOK_FILE_TYPES;
  */
 export const MAX_BOOK_FILE_SIZE = 50 * 1000 * 1000;
 
+/*
+ * CBZ escolhido no formulário (antes da compressão no navegador, ver
+ * lib/comicCompression.ts). Depois de comprimido ainda precisa caber em
+ * MAX_BOOK_FILE_SIZE. O limite evita estourar a memória do navegador.
+ */
+export const MAX_COMIC_SOURCE_SIZE = 400 * 1000 * 1000;
+
+/* Páginas de CBZ: maior lado em px e qualidade do WEBP/JPEG gerado. */
+export const COMIC_PAGE_MAX_DIMENSION = 2400;
+export const COMIC_PAGE_QUALITY = 0.8;
+
+/* Tamanho máximo aceito no formulário para cada extensão. */
+export function getMaxSelectableSize(extension: BookFileExtension) {
+  return extension === "cbz" ? MAX_COMIC_SOURCE_SIZE : MAX_BOOK_FILE_SIZE;
+}
+
 /* Limite da imagem de capa escolhida (antes da compressão no navegador). */
 export const MAX_COVER_FILE_SIZE = 10 * 1024 * 1024;
 

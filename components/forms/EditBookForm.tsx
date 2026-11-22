@@ -46,6 +46,7 @@ const saveStateLabel: Record<SaveState, string> = {
 export default function EditBookForm({ book }: EditBookFormProps) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveError, setSaveError] = useState(DEFAULT_SAVE_ERROR);
+  const [savingLabel, setSavingLabel] = useState("");
   const [, startTransition] = useTransition();
 
   function save(form: HTMLFormElement | null) {
@@ -66,10 +67,11 @@ export default function EditBookForm({ book }: EditBookFormProps) {
       });
 
     setSaveState("saving");
+    setSavingLabel("");
 
     startTransition(async () => {
       try {
-        await updateBook(await prepareBookFormData(formData));
+        await updateBook(await prepareBookFormData(formData, setSavingLabel));
         setSaveState("saved");
       } catch (error) {
         setSaveError(
@@ -227,7 +229,11 @@ export default function EditBookForm({ book }: EditBookFormProps) {
               saveState === "error" ? "text-danger" : "text-contrast/45"
             }`}
           >
-            {saveState === "error" ? saveError : saveStateLabel[saveState]}
+            {saveState === "error"
+              ? saveError
+              : saveState === "saving" && savingLabel
+                ? savingLabel
+                : saveStateLabel[saveState]}
           </p>
         </div>
       </div>
