@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { parseReadingProgress, saveReadingProgress } from "@/lib/readingProgress";
 
 export async function saveBookProgress(
   bookId: number,
@@ -11,24 +11,11 @@ export async function saveBookProgress(
     locator?: string | null;
   },
 ) {
-  await prisma.readingProgress.upsert({
-    where: {
-      bookId,
-    },
+  const parsed = parseReadingProgress(bookId, data);
 
-    create: {
-      bookId,
-      currentPosition: data.currentPosition,
-      totalPositions: data.totalPositions,
-      percentage: data.percentage,
-      locator: data.locator ?? null,
-    },
+  if (!parsed) {
+    throw new Error("Progresso de leitura inválido.");
+  }
 
-    update: {
-      currentPosition: data.currentPosition,
-      totalPositions: data.totalPositions,
-      percentage: data.percentage,
-      locator: data.locator ?? null,
-    },
-  });
+  await saveReadingProgress(parsed.bookId, parsed.progress);
 }
