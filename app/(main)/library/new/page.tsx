@@ -1,9 +1,10 @@
 "use client";
 
 import { unstable_rethrow } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { createBook } from "../actions";
+import { createBook, getMyStorageUsage } from "../actions";
+import StorageMeter from "@/components/common/StorageMeter";
 import { SubmitButton } from "@/components/common/SubmitButton";
 
 import {
@@ -71,6 +72,17 @@ export default function NewBookPage() {
     }));
   }
 
+  /* Espaço usado e limite, mostrados junto do campo de arquivo. */
+  const [storage, setStorage] = useState<Awaited<
+    ReturnType<typeof getMyStorageUsage>
+  > | null>(null);
+
+  useEffect(() => {
+    getMyStorageUsage()
+      .then(setStorage)
+      .catch(() => setStorage(null));
+  }, []);
+
   const [submitError, setSubmitError] = useState("");
   const [uploadStatus, setUploadStatus] = useState("");
 
@@ -132,6 +144,10 @@ export default function NewBookPage() {
               />
 
               <InputBookFile label="Selecionar arquivo (opcional)" />
+
+              {storage && (
+                <StorageMeter used={storage.used} limit={storage.limit} />
+              )}
 
               <p className="text-xs text-contrast/55">
                 Vai ler em outro lugar? Cadastre sem arquivo e registre as

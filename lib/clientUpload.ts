@@ -21,7 +21,8 @@ const COVER_QUALITY = 0.85;
 /* Capa que ainda passa pela Server Action precisa caber no limite dela. */
 const MAX_COVER_UPLOAD_SIZE = 3.5 * 1024 * 1024;
 
-export async function uploadBookFileDirect(file: File) {
+/* `bookId`: livro cujo arquivo está sendo trocado (edição). */
+export async function uploadBookFileDirect(file: File, bookId?: number) {
   if (file.size > MAX_BOOK_FILE_SIZE) {
     throw new UploadError(
       `O arquivo deve ter no máximo ${formatFileSize(MAX_BOOK_FILE_SIZE)}.`,
@@ -31,9 +32,14 @@ export async function uploadBookFileDirect(file: File) {
   let upload: Awaited<ReturnType<typeof requestBookUpload>>;
 
   try {
-    upload = await requestBookUpload(file.name, file.size);
+    upload = await requestBookUpload(file.name, file.size, bookId);
   } catch {
     throw new UploadError("Não foi possível preparar o envio do arquivo.");
+  }
+
+  /* Sem espaço: a mensagem já vem pronta (quanto falta e como liberar). */
+  if ("error" in upload) {
+    throw new UploadError(upload.error);
   }
 
   /* PUT do arquivo puro na URL pré-assinada do R2. */
@@ -160,11 +166,14 @@ export async function prepareBookFormData(
 
   formData.delete("bookFile");
 
+  /* Na edição, o formulário tem o id do livro (arquivo substituído). */
+  const bookId = Number(formData.get("id")) || undefined;
+
   if (bookFile instanceof File && bookFile.size > 0) {
     const file = await optimizeBookFile(bookFile, onStatus);
 
     onStatus?.(`Enviando arquivo (${formatFileSize(file.size)})...`);
-    formData.set("filePath", await uploadBookFileDirect(file));
+    formData.set("filePath", await uploadBookFileDirect(file, bookId));
   }
 
   onStatus?.("Salvando...");

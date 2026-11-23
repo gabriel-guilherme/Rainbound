@@ -38,6 +38,8 @@ The project was built as a full-stack application, combining a responsive fronte
 - Customizable home widgets: two carousels with tabs; each widget has a wide
   (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
+- Storage limit per user for book files (1 GB by default, adjustable per user
+  by the admin); deleting a book or replacing its file frees the space in R2
 - Reading statuses:
   - Want to read
   - Reading
@@ -289,7 +291,7 @@ app/
 ├── read/[id]/          In-app reader
 └── read/actions.ts     Reading progress and bookmark server actions
 
-components/             Reusable UI components (Reader, Home, Widgets, auth, forms, common...)
+components/             Reusable UI components (Reader, Home, Widgets, auth, admin, forms, common...)
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
@@ -300,6 +302,7 @@ lib/
 ├── r2.ts                Cloudflare R2 client (presigned URLs, book file storage)
 ├── cloudinary.ts        Cloudinary configuration
 ├── upload.ts            Cover and book file uploads
+├── storage.ts           Per-user storage usage and limit checks
 ├── spine.ts             Bookshelf spine look (color, width, height)
 ├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
 ├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)

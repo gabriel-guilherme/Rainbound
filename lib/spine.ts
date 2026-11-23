@@ -71,6 +71,21 @@ function hashString(value: string) {
   return Math.abs(hash);
 }
 
+/*
+ * Embaralha os bits do hash. Ids seguidos ("book-1", "book-2"...) geram
+ * hashes vizinhos, que davam a mesma altura e quase a mesma largura para
+ * vários livros em sequência; misturado, cada livro varia por conta própria.
+ */
+function mixHash(value: number) {
+  let mixed = value ^ (value >>> 16);
+  mixed = Math.imul(mixed, 0x45d9f3b);
+  mixed ^= mixed >>> 16;
+  mixed = Math.imul(mixed, 0x45d9f3b);
+  mixed ^= mixed >>> 16;
+
+  return mixed >>> 0;
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -107,15 +122,17 @@ export function getSpineLook(
   pages: number | null,
 ): SpineLook {
   const hash = hashString(seed);
+  const mixed = mixHash(hash);
+  /* A cor usa o hash puro para os livros não mudarem de cor. */
   const color = SPINE_COLORS[hash % SPINE_COLORS.length];
-  const fallbackPages = 180 + (hash % 280);
+  const fallbackPages = 180 + ((mixed >>> 8) % 280);
   const width = clamp(Math.round(20 + (pages ?? fallbackPages) / 13), 28, 66);
 
   /*
    * Quadrinhos e mangás são mais altos que livros. Máximo de 232px, abaixo
    * da altura da prateleira (--slot em .bookcase).
    */
-  const height = (type === "BOOK" ? 172 : 196) + ((hash >> 3) % 5) * 9;
+  const height = (type === "BOOK" ? 172 : 196) + (mixed % 5) * 9;
 
   return {
     ...color,

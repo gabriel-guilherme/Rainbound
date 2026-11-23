@@ -9,6 +9,8 @@ import BookPoster from "@/components/common/BookPoster";
 import Bookcase from "@/components/common/Bookcase";
 import Pagination from "@/components/common/Pagination";
 import ViewToggle from "@/components/common/ViewToggle";
+import StorageMeter from "@/components/common/StorageMeter";
+import { getStorageUsage } from "@/lib/storage";
 import { toSpineBook } from "@/lib/spine";
 import {
   buildLibraryHref,
@@ -61,7 +63,10 @@ export default async function BooksPage({
       ? orderByOptions[sort as keyof typeof orderByOptions]
       : orderByOptions.added_desc;
 
-  const totalItems = await prisma.book.count({ where });
+  const [totalItems, storage] = await Promise.all([
+    prisma.book.count({ where }),
+    getStorageUsage(userId),
+  ]);
   const totalPages = Math.max(1, Math.ceil(totalItems / LIBRARY_PAGE_SIZE));
 
   /* Filtros mantidos nos links (paginação, visualização). */
@@ -130,12 +135,16 @@ export default async function BooksPage({
           Minha estante
         </h1>
 
-        {totalItems > 0 && (
-          <p className="text-sm tabular-nums text-contrast/50">
-            {totalItems} {totalItems === 1 ? "item" : "itens"}
-            {totalPages > 1 && ` · página ${page} de ${totalPages}`}
-          </p>
-        )}
+        <div className="flex w-full flex-col gap-3 sm:w-64">
+          {totalItems > 0 && (
+            <p className="text-sm tabular-nums text-contrast/50 sm:text-right">
+              {totalItems} {totalItems === 1 ? "item" : "itens"}
+              {totalPages > 1 && ` · página ${page} de ${totalPages}`}
+            </p>
+          )}
+
+          <StorageMeter used={storage.used} limit={storage.limit} />
+        </div>
       </div>
 
       <FilterBar q={q} status={statusFilter}>

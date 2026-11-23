@@ -11,6 +11,7 @@ import {
 } from "./bookFiles";
 import cloudinary from "./cloudinary";
 import { deleteObject, getObjectSize, presignObjectUrl } from "./r2";
+import { assertStorageAvailable } from "./storage";
 
 export async function uploadBookCover(file: File) {
   const bytes = await file.arrayBuffer();
@@ -55,10 +56,16 @@ export async function uploadBookCover(file: File) {
 /* Prazo para o navegador começar o envio depois de receber a URL. */
 const UPLOAD_URL_EXPIRES_IN = 30 * 60;
 
+/*
+ * `replacingBookId`: livro cujo arquivo está sendo trocado (o antigo não
+ * conta no espaço usado, porque será apagado). Lança StorageLimitError
+ * se o arquivo não cabe no espaço do usuário.
+ */
 export async function createBookUploadUrl(
   userId: string,
   fileName: string,
   size: number,
+  replacingBookId?: number,
 ) {
   const extension = getBookFileExtension(fileName);
 
@@ -71,6 +78,8 @@ export async function createBookUploadUrl(
       `O arquivo deve ter no máximo ${formatFileSize(MAX_BOOK_FILE_SIZE)}.`,
     );
   }
+
+  await assertStorageAvailable(userId, size, replacingBookId);
 
   /* Cada usuário tem a própria pasta: books/<userId>/<uuid>.<ext>. */
   const path = buildUploadedBookPath(userId, `${randomUUID()}.${extension}`);
@@ -87,9 +96,14 @@ export async function createBookUploadUrl(
  * usuário (pasta dele) e se o arquivo realmente existe no bucket dentro
  * do limite de tamanho. A URL de envio
  * não trava o tamanho (o R2 não assina Content-Length); a conferência é
- * aqui, e o que passar do limite é apagado.
+ * aqui, e o que passar do limite (do arquivo ou do espaço do usuário)
+ * é apagado.
  */
-export async function verifyUploadedBookFile(path: string, userId: string) {
+export async function verifyUploadedBookFile(
+  path: string,
+  userId: string,
+  replacingBookId?: number,
+) {
   if (!isUploadedBookPath(path, userId)) {
     throw new Error("Caminho de arquivo inválido.");
   }
@@ -108,11 +122,24 @@ export async function verifyUploadedBookFile(path: string, userId: string) {
     );
   }
 
+  /*
+   * Confere de novo com o tamanho real: o navegador pode ter mandado um
+   * arquivo diferente do anunciado, ou outro envio ocupou o espaço.
+   */
+  try {
+    await assertStorageAvailable(userId, size, replacingBookId);
+  } catch (error) {
+    await cleanupStorage([deleteBookFile(path)]);
+
+    throw error;
+  }
+
   const extension = getBookFileExtension(path) as BookFileExtension;
 
   return {
     filePath: path,
     format: BOOK_FILE_TYPES[extension].format,
+    fileSize: size,
   };
 }
 

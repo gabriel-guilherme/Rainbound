@@ -11,6 +11,7 @@ import {
   uploadBookCover,
   verifyUploadedBookFile,
 } from "@/lib/upload";
+import { getStorageUsage, StorageLimitError } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -18,12 +19,39 @@ import { parsePageCount } from "./types";
 
 /*
  * Gera a URL assinada para o navegador enviar o arquivo do livro
- * direto ao R2.
+ * direto ao R2. `bookId`: livro cujo arquivo será trocado (edição).
+ *
+ * Falta de espaço volta como `{ error }`, e não como exceção: em
+ * produção o Next esconde a mensagem de erros lançados em Server Actions.
  */
-export async function requestBookUpload(fileName: string, size: number) {
+export async function requestBookUpload(
+  fileName: string,
+  size: number,
+  bookId?: number,
+) {
   const userId = await getApprovedUserId();
 
-  return createBookUploadUrl(userId, String(fileName), Number(size));
+  try {
+    return await createBookUploadUrl(
+      userId,
+      String(fileName),
+      Number(size),
+      Number.isInteger(bookId) ? bookId : undefined,
+    );
+  } catch (error) {
+    if (error instanceof StorageLimitError) {
+      return { error: error.message };
+    }
+
+    throw error;
+  }
+}
+
+/* Espaço usado e limite (bytes), para o formulário. */
+export async function getMyStorageUsage() {
+  const userId = await getApprovedUserId();
+
+  return getStorageUsage(userId);
 }
 
 export async function createBook(formData: FormData) {
@@ -65,10 +93,10 @@ export async function createBook(formData: FormData) {
    * aqui só conferimos que ele existe no bucket. O formato vem da
    * extensão do arquivo.
    */
-  const { filePath, format } =
+  const { filePath, format, fileSize } =
     typeof filePathRaw === "string" && filePathRaw
       ? await verifyUploadedBookFile(filePathRaw, userId)
-      : { filePath: null, format: null };
+      : { filePath: null, format: null, fileSize: null };
 
   let coverUrl: string | null = coverUrlFromOpenLibrary || null;
   let coverPublicId: string | null = null;
@@ -111,6 +139,7 @@ export async function createBook(formData: FormData) {
         notes: notes || null,
 
         filePath,
+        fileSize,
 
         coverUrl,
         coverPublicId,

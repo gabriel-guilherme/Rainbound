@@ -103,10 +103,12 @@ export async function updateBook(formData: FormData) {
    */
   if (typeof filePathRaw === "string" && filePathRaw) {
     try {
-      const uploadedFile = await verifyUploadedBookFile(filePathRaw, userId);
+      /* O arquivo antigo será apagado: não conta no espaço usado. */
+      const uploadedFile = await verifyUploadedBookFile(filePathRaw, userId, id);
 
       data.filePath = uploadedFile.filePath;
       data.format = uploadedFile.format;
+      data.fileSize = uploadedFile.fileSize;
     } catch (error) {
       const newCoverPublicId = data.coverPublicId;
 
