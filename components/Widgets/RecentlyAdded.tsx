@@ -2,40 +2,71 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { DEFAULT_COVER, typeLabel } from "@/app/(main)/library/types";
-import type { ContentType } from "@/generated/prisma/enums";
+import type { WidgetVariant } from "@/lib/dashboardLayout";
+import { prisma } from "@/lib/prisma";
 
-type RecentlyAddedProps = {
-  recentlyAdded: {
-    id: number;
-    title: string;
-    creator: string | null;
-    type: ContentType;
-    coverUrl: string | null;
-    createdAt: Date;
-  }[];
-};
+import WidgetCard from "./WidgetCard";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   day: "numeric",
   month: "short",
 });
 
-export default function RecentlyAdded({ recentlyAdded }: RecentlyAddedProps) {
+/*
+ * "Chegaram": últimos livros adicionados.
+ * - tall: lista com capa pequena, autor, tipo e data;
+ * - wide: fileira de capas com título e data embaixo.
+ */
+export default async function RecentlyAdded({ variant }: { variant: WidgetVariant }) {
+  const recentlyAdded = await prisma.book.findMany({
+    orderBy: { createdAt: "desc" },
+    take: variant === "wide" ? 10 : 5,
+    select: {
+      id: true,
+      title: true,
+      creator: true,
+      type: true,
+      coverUrl: true,
+      createdAt: true,
+    },
+  });
+
   return (
-    <section className="flex flex-col gap-3 bg-primary p-5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="title-shelf text-3xl text-contrast">Chegaram</h2>
-
-        <Link
-          href="/library/new"
-          className="text-xs uppercase tracking-widest text-contrast/55 hover:text-danger"
-        >
-          + Adicionar
-        </Link>
-      </div>
-
+    <WidgetCard
+      title="Chegaram"
+      action={{ href: "/library/new", label: "+ Adicionar" }}
+    >
       {recentlyAdded.length === 0 ? (
         <p className="text-sm text-contrast/60">Nenhum livro adicionado ainda.</p>
+      ) : variant === "wide" ? (
+        <ul className="scrollbar-none -mx-1 flex gap-4 overflow-x-auto px-1 pb-1">
+          {recentlyAdded.map((book) => (
+            <li key={book.id} className="w-24 shrink-0">
+              <Link href={`/library/${book.id}`} className="group block">
+                <span className="relative block aspect-[7/10] w-full">
+                  <Image
+                    src={book.coverUrl ?? DEFAULT_COVER}
+                    alt=""
+                    fill
+                    sizes="96px"
+                    className="object-cover shadow-[0_10px_16px_-10px_rgb(0_0_0/0.8)] transition-transform group-hover:-translate-y-1"
+                  />
+                </span>
+
+                <span className="mt-2 block truncate text-sm font-medium group-hover:text-danger">
+                  {book.title}
+                </span>
+
+                <time
+                  dateTime={book.createdAt.toISOString()}
+                  className="block text-xs tabular-nums text-contrast/45"
+                >
+                  {dateFormatter.format(book.createdAt)}
+                </time>
+              </Link>
+            </li>
+          ))}
+        </ul>
       ) : (
         <ul className="flex flex-col">
           {recentlyAdded.map((book) => (
@@ -74,6 +105,6 @@ export default function RecentlyAdded({ recentlyAdded }: RecentlyAddedProps) {
           ))}
         </ul>
       )}
-    </section>
+    </WidgetCard>
   );
 }

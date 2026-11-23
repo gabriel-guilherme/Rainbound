@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { statusColor, statusLabel, statusOptions } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
+import type { WidgetVariant } from "@/lib/dashboardLayout";
+
+import WidgetCard from "./WidgetCard";
 
 /* Cor do trecho de cada status na barra (fundo / texto). */
 const barColor: Record<ReadingStatus, string> = {
@@ -10,7 +13,12 @@ const barColor: Record<ReadingStatus, string> = {
   ABANDONED: "bg-danger text-primary",
 };
 
-export default async function BookStatus() {
+/*
+ * Livros por status.
+ * - wide: uma barra dividida na largura toda + os números embaixo;
+ * - tall: uma linha por status, com barra proporcional ao maior.
+ */
+export default async function BookStatus({ variant }: { variant: WidgetVariant }) {
   /*
    * Uma única consulta agrupada por status, em vez de um count por status.
    */
@@ -29,8 +37,44 @@ export default async function BookStatus() {
     count: countByStatus(status),
   }));
 
+  if (variant === "tall") {
+    const max = Math.max(1, ...stats.map((stat) => stat.count));
+
+    return (
+      <WidgetCard title="Na estante" action={{ href: "/library", label: "Ver todos" }}>
+        <p className="-mt-2 text-sm tabular-nums text-contrast/55">
+          {total} {total === 1 ? "livro" : "livros"}
+        </p>
+
+        <dl className="flex flex-col gap-3">
+          {stats.map((stat) => (
+            <div key={stat.status} className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="flex items-center gap-1.5 text-sm text-contrast/70">
+                  <span
+                    aria-hidden="true"
+                    className={`size-1.5 rounded-full ${statusColor[stat.status]}`}
+                  />
+                  {statusLabel[stat.status]}
+                </dt>
+                <dd className="title-shelf text-2xl tabular-nums">{stat.count}</dd>
+              </div>
+
+              <div aria-hidden="true" className="h-2 bg-darkest/50">
+                <div
+                  className={`h-full ${barColor[stat.status]}`}
+                  style={{ width: `${(stat.count / max) * 100}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </dl>
+      </WidgetCard>
+    );
+  }
+
   return (
-    <section aria-label="Livros por status" className="flex flex-col gap-4 bg-primary p-5">
+    <WidgetCard ariaLabel="Livros por status">
       {total > 0 ? (
         <div className="flex h-10 w-full" aria-hidden="true">
           {stats
@@ -69,6 +113,6 @@ export default async function BookStatus() {
           </div>
         ))}
       </dl>
-    </section>
+    </WidgetCard>
   );
 }
