@@ -29,6 +29,8 @@ The project was built as a full-stack application, combining a responsive fronte
 ## Features
 
 - Responsive personal book library
+- Accounts with username or email login; open sign-up with manual approval
+  (each approved user has their own shelf)
 - Book cards with cover images
 - Search by title or creator
 - Filter books by reading status
@@ -64,6 +66,7 @@ The project was built as a full-stack application, combining a responsive fronte
 - **lucide-react-motion**
 - **Motion** — scroll animations (home)
 - **DOMPurify** — sanitizes EPUB chapters before rendering
+- **Better Auth** — authentication (users and sessions stored in PostgreSQL via Prisma)
 
 ### Database
 
@@ -146,6 +149,17 @@ When a book cover is uploaded, the image is sent to Cloudinary and the resulting
 
 This keeps image files separate from the application server while allowing covers to be efficiently delivered through Cloudinary's infrastructure.
 
+### Authentication
+
+Authentication uses **Better Auth** with the Prisma adapter, so users, sessions and passwords live in the app's own database (local Docker Postgres in development, Supabase in production). No extra service or project is needed.
+
+- Sign in with **username or email** and password (username plugin).
+- Anyone can request access at `/cadastro`; the account starts as `PENDING` and only sees the waiting screen until the admin approves it at `/admin/pedidos`.
+- The account created with `ADMIN_EMAIL` is approved and made admin automatically, and receives the books created before authentication existed.
+- Every page, Server Action and API route checks the session and only touches the current user's books. `proxy.ts` only redirects visitors without a session cookie to `/login`.
+- Login and sign-up attempts are rate limited (stored in the database, so it works across serverless instances).
+- Password reset by email is not available yet; the admin resets it manually.
+
 ### Cloudflare R2
 
 R2 stores the book files (up to 200 MB each) under `books/<uuid>.<ext>`. Downloads from R2 have no egress fees.
@@ -173,6 +187,10 @@ Create a local `.env` file with the required environment variables:
 ```env
 DATABASE_URL=
 DIRECT_URL=
+
+BETTER_AUTH_SECRET=   # openssl rand -base64 32
+BETTER_AUTH_URL=      # http://localhost:3000 locally, the site URL in production
+ADMIN_EMAIL=          # account created with this email is approved as admin
 
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
@@ -258,18 +276,24 @@ npm run start     # Start the production server
 
 ```text
 app/
+├── (auth)/             Login, sign-up (access request) and waiting screen
 ├── (main)/             Pages with Navbar and Footer
+│   ├── admin/pedidos/  Access requests (approve / reject), admin only
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
+├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
 ├── read/[id]/          In-app reader
 └── read/actions.ts     Reading progress and bookmark server actions
 
-components/             Reusable UI components (Reader, Home, Widgets, forms, common...)
+components/             Reusable UI components (Reader, Home, Widgets, auth, forms, common...)
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
 ├── prisma.ts            Prisma client configuration
+├── auth.ts              Better Auth configuration (username plugin, approval, rate limit)
+├── authClient.ts        Browser auth client and translated error messages
+├── session.ts           Current user helpers (requireApprovedUser, requireAdmin...)
 ├── r2.ts                Cloudflare R2 client (presigned URLs, book file storage)
 ├── cloudinary.ts        Cloudinary configuration
 ├── upload.ts            Cover and book file uploads
@@ -285,6 +309,8 @@ lib/
 prisma/
 ├── schema.prisma        Database schema
 └── migrations/          Database migrations
+
+proxy.ts                 Redirects to /login when there is no session cookie
 
 public/                  Static assets
 
