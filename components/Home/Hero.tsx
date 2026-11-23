@@ -72,34 +72,28 @@ export default function Hero({ continueReading }: HeroProps) {
     }
   }, []);
 
-  /*
-   * Celular: título e janela dividem a mesma célula, então se revezam
-   * sem sobrepor. Pelo scroll do Hero (0 → 1):
-   *   título sai (0–0.25) → janela entra (0.3–0.45) → janela fica →
-   *   janela sai (0.65–0.8) → título volta (0.8–0.95).
-   * Os intervalos não se cruzam: um só aparece depois que o outro sumiu.
-   */
+  // Animações mais suaves
   const messageOpacity = useTransform(
     scrollYProgress,
-    [0, 0.25, 0.8, 0.95],
-    [1, 0, 0, 1],
+    [0, 0.35, 0.7, 1],
+    [1, 0.5, 1, 1],
   );
 
   const desktopMessageOpacity = useTransform(
     heroExitProgress,
-    [0, 0.4, 0.6, 1],
-    [1, 1, 0, 0],
+    [0, 0.35, 0.6, 1],
+    [1, 0.8, 0, 0],
   );
 
   const windowOpacity = useTransform(
     scrollYProgress,
-    [0.3, 0.45, 0.65, 0.8],
+    [0.15, 0.35, 0.5, 0.65],
     [0, 1, 1, 0],
   );
 
   const desktopWindowOpacity = useTransform(
     heroExitProgress,
-    [0, 0.4, 0.6, 1],
+    [0, 0.35, 0.6, 1],
     [1, 1, 0, 0],
   );
 
@@ -152,8 +146,10 @@ export default function Hero({ continueReading }: HeroProps) {
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16">
           {/* Conteúdo */}
           <motion.div
-            className={`relative z-10 col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1 lg:justify-start lg:text-left ${responsiveFade}`}
-            style={messageStyle}
+            className="col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1 transition-opacity duration-700"
+            style={{
+              opacity: isDesktop ? desktopMessageOpacity : messageOpacity,
+            }}
           >
             <motion.div
               initial={{
@@ -165,8 +161,7 @@ export default function Hero({ continueReading }: HeroProps) {
                 y: 0,
               }}
               transition={{
-                duration: 0.8,
-                ease: "easeOut",
+                duration: 1.2,
               }}
               className="w-full max-w-xl"
             >
