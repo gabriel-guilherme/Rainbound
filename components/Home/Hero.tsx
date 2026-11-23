@@ -6,7 +6,12 @@ import { ArrowRight } from "lucide-react";
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
 import type { FileFormat } from "@/generated/prisma/enums";
 import RainWindow from "../RainWindow/RainWindow";
-import { motion, useScroll, useTransform } from "motion/react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  type MotionStyle,
+} from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 type HeroProps = {
@@ -45,7 +50,6 @@ function describeProgress(book: NonNullable<HeroProps["continueReading"]>) {
 
 export default function Hero({ continueReading }: HeroProps) {
   const [isRainPaused, setIsRainPaused] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   const heroRef = useRef<HTMLElement>(null);
 
@@ -68,24 +72,17 @@ export default function Hero({ continueReading }: HeroProps) {
     }
   }, []);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 1024px)");
-
-    const update = () => setIsDesktop(mediaQuery.matches);
-
-    update();
-
-    mediaQuery.addEventListener("change", update);
-
-    return () => {
-      mediaQuery.removeEventListener("change", update);
-    };
-  }, []);
-
+  /*
+   * Celular: título e janela dividem a mesma célula, então se revezam
+   * sem sobrepor. Pelo scroll do Hero (0 → 1):
+   *   título sai (0–0.25) → janela entra (0.3–0.45) → janela fica →
+   *   janela sai (0.65–0.8) → título volta (0.8–0.95).
+   * Os intervalos não se cruzam: um só aparece depois que o outro sumiu.
+   */
   const messageOpacity = useTransform(
     scrollYProgress,
-    [0, 0.4, 0.8, 1],
-    [1, 0, 1, 1],
+    [0, 0.25, 0.8, 0.95],
+    [1, 0, 0, 1],
   );
 
   const desktopMessageOpacity = useTransform(
@@ -96,8 +93,8 @@ export default function Hero({ continueReading }: HeroProps) {
 
   const windowOpacity = useTransform(
     scrollYProgress,
-    [0.2, 0.4, 0.55],
-    [0, 1, 1],
+    [0.3, 0.45, 0.65, 0.8],
+    [0, 1, 1, 0],
   );
 
   const desktopWindowOpacity = useTransform(
@@ -123,6 +120,29 @@ export default function Hero({ continueReading }: HeroProps) {
     toPointerEvents,
   );
 
+  /*
+   * Celular e desktop têm animações diferentes. Os dois valores vão como
+   * variáveis CSS e o `lg:` do CSS escolhe qual vale: assim o HTML do
+   * servidor já sai certo para cada tela (escolher em JS com matchMedia
+   * só acertaria depois da hidratação, e a janela "piscava" no desktop).
+   */
+  const messageStyle = {
+    "--fade": messageOpacity,
+    "--fade-lg": desktopMessageOpacity,
+    "--pointer": messagePointerEvents,
+    "--pointer-lg": desktopMessagePointerEvents,
+  } as MotionStyle;
+
+  const windowStyle = {
+    "--fade": windowOpacity,
+    "--fade-lg": desktopWindowOpacity,
+    "--pointer": windowPointerEvents,
+    "--pointer-lg": desktopWindowPointerEvents,
+  } as MotionStyle;
+
+  const responsiveFade =
+    "opacity-(--fade) [pointer-events:var(--pointer)] lg:opacity-(--fade-lg) lg:[pointer-events:var(--pointer-lg)]";
+
   return (
     <section
       ref={heroRef}
@@ -132,13 +152,8 @@ export default function Hero({ continueReading }: HeroProps) {
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-8 lg:px-10 xl:grid-cols-[1.15fr_0.85fr] xl:gap-16">
           {/* Conteúdo */}
           <motion.div
-            className="relative z-10 col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1 lg:justify-start lg:text-left"
-            style={{
-              opacity: isDesktop ? desktopMessageOpacity : messageOpacity,
-              pointerEvents: isDesktop
-                ? desktopMessagePointerEvents
-                : messagePointerEvents,
-            }}
+            className={`relative z-10 col-start-1 row-start-1 flex items-center justify-center text-center lg:col-start-2 lg:row-start-1 lg:justify-start lg:text-left ${responsiveFade}`}
+            style={messageStyle}
           >
             <motion.div
               initial={{
@@ -221,13 +236,8 @@ export default function Hero({ continueReading }: HeroProps) {
 
           {/* Janela */}
           <motion.div
-            className="col-start-1 row-start-1 flex min-w-0 items-center justify-center lg:col-start-1 lg:row-start-1"
-            style={{
-              opacity: isDesktop ? desktopWindowOpacity : windowOpacity,
-              pointerEvents: isDesktop
-                ? desktopWindowPointerEvents
-                : windowPointerEvents,
-            }}
+            className={`col-start-1 row-start-1 flex min-w-0 items-center justify-center lg:col-start-1 lg:row-start-1 ${responsiveFade}`}
+            style={windowStyle}
           >
             <RainWindow isPaused={isRainPaused} setIsPaused={setIsRainPaused} />
           </motion.div>
