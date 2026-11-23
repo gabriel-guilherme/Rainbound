@@ -3,6 +3,7 @@ import Hero from "@/components/Home/Hero";
 import Thoughts from "@/components/Home/Thoughts";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { connection } from "next/server";
 import { toSpineBook } from "@/lib/spine";
 
 /* Campos do cartão "Continuar" no Hero. */
@@ -48,6 +49,13 @@ async function findContinueReading() {
 }
 
 export default async function Home() {
+  /*
+   * Renderiza a cada acesso: sem isso o Next pré-renderiza a home no
+   * build (consultando o banco ali) e ela fica congelada até o próximo
+   * deploy, além de quebrar o build se o banco não estiver acessível.
+   */
+  await connection();
+
   /* As três consultas são independentes: vão juntas ao banco. */
   const [thoughts, books, continueReading] = await Promise.all([
     prisma.$queryRaw<{ title: string; note: string }[]>`
