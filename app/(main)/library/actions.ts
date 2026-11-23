@@ -85,6 +85,14 @@ export async function createBook(formData: FormData) {
 
         status,
 
+        /*
+         * Mesma regra da edição (updateBook): começar como "Lendo" marca
+         * o início e como "Lido", o fim. Sem isso, livros criados já
+         * nesses status ficavam sem data.
+         */
+        startedAt: status === ReadingStatus.READING ? new Date() : null,
+        finishedAt: status === ReadingStatus.READ ? new Date() : null,
+
         rating: ratingRaw ? Number(ratingRaw) : null,
 
         notes: notes || null,
