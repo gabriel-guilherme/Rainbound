@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { SubmitButton } from "@/components/common/SubmitButton";
 import { AccountStatus } from "@/generated/prisma/enums";
+import StorageLimitControl from "@/components/admin/StorageLimitControl";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 
@@ -31,12 +32,13 @@ const userSelect = {
   status: true,
   createdAt: true,
   reviewedAt: true,
+  storageLimitMb: true,
 } as const;
 
 export default async function AccessRequestsPage() {
   const admin = await requireAdmin();
 
-  const [pending, reviewed] = await Promise.all([
+  const [pending, reviewed, usage, adminLimit] = await Promise.all([
     prisma.user.findMany({
       where: { status: AccountStatus.PENDING },
       orderBy: { createdAt: "asc" },
@@ -48,13 +50,39 @@ export default async function AccessRequestsPage() {
       take: 20,
       select: userSelect,
     }),
+    /* Espaço usado por dono (livros antigos sem tamanho contam 0 até o dono abrir a estante). */
+    prisma.book.groupBy({
+      by: ["userId"],
+      _sum: { fileSize: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: admin.id },
+      select: { storageLimitMb: true },
+    }),
   ]);
+
+  const usedByUser = new Map(
+    usage.map((row) => [row.userId, row._sum.fileSize ?? 0]),
+  );
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-4 py-10 pt-32">
       <h1 className="title-shelf text-5xl text-contrast sm:text-6xl">
         Pedidos de acesso
       </h1>
+
+      <section aria-labelledby="own-storage-title" className="mt-10">
+        <h2 id="own-storage-title" className="text-sm uppercase tracking-[0.3em] text-contrast/50">
+          Seu espaço
+        </h2>
+
+        <StorageLimitControl
+          userId={admin.id}
+          used={usedByUser.get(admin.id) ?? 0}
+          storageLimitMb={adminLimit?.storageLimitMb ?? null}
+          className="mt-4"
+        />
+      </section>
 
       <section aria-labelledby="pending-title" className="mt-10">
         <h2 id="pending-title" className="text-sm uppercase tracking-[0.3em] text-danger">
@@ -113,6 +141,15 @@ export default async function AccessRequestsPage() {
                   <p className="truncate text-contrast">{user.displayUsername || user.username}</p>
                   <p className="truncate text-sm text-contrast/55">{user.email}</p>
                 </div>
+
+                {user.status === AccountStatus.APPROVED && (
+                  <StorageLimitControl
+                    userId={user.id}
+                    used={usedByUser.get(user.id) ?? 0}
+                    storageLimitMb={user.storageLimitMb}
+                    className="w-full sm:order-last"
+                  />
+                )}
 
                 <div className="flex items-center gap-3">
                   <span

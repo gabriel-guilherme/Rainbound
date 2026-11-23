@@ -67,6 +67,12 @@ model User {
   role       Role          @default(USER)
   reviewedAt DateTime?
 
+  /**
+   * Limite de espaço dos arquivos de livro, em MB (base decimal). Vazio:
+   * o padrão do app (DEFAULT_STORAGE_LIMIT_MB em lib/bookFiles.ts).
+   */
+  storageLimitMb Int?
+
   sessions Session[]
   accounts Account[]
   books    Book[]
@@ -175,6 +181,13 @@ model Book {
   notes  String?
 
   filePath String?
+
+  /**
+   * Tamanho do arquivo no R2, em bytes (conta para o limite de espaço do
+   * dono). Livros enviados antes do limite ficam vazios até o uso ser
+   * calculado pela primeira vez (lib/storage.ts).
+   */
+  fileSize Int?
 
   coverUrl      String?
   coverPublicId String?

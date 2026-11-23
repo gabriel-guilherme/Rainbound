@@ -81,3 +81,29 @@ export function isUploadedBookPath(path: string, userId: string) {
 export function formatFileSize(bytes: number) {
   return `${Math.round(bytes / (1000 * 1000))} MB`;
 }
+
+/// Limite de espaço por usuário
+
+export const BYTES_PER_MB = 1000 * 1000;
+
+/*
+ * Espaço padrão de cada usuário para arquivos de livro (1 GB). O admin
+ * pode mudar o de cada pessoa em /admin/pedidos (User.storageLimitMb).
+ */
+export const DEFAULT_STORAGE_LIMIT_MB = 1000;
+
+/* Maior limite aceito no admin (100 GB), só para barrar erro de digitação. */
+export const MAX_STORAGE_LIMIT_MB = 100_000;
+
+/* "320 MB", "1,2 GB" (base decimal, como o limite). */
+export function formatStorageSize(bytes: number) {
+  if (bytes >= 1000 * BYTES_PER_MB) {
+    const gb = bytes / (1000 * BYTES_PER_MB);
+
+    return `${gb.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} GB`;
+  }
+
+  const mb = bytes / BYTES_PER_MB;
+
+  return mb > 0 && mb < 1 ? "< 1 MB" : `${Math.round(mb)} MB`;
+}
