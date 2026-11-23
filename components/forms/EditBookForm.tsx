@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { useRef, useState, useTransition, type ReactNode } from "react";
 
-import { updateBook } from "@/app/(main)/library/[id]/actions";
+import { removeBookFile, updateBook } from "@/app/(main)/library/[id]/actions";
 import {
   statusColor,
   statusLabel,
@@ -19,6 +19,7 @@ import type {
 } from "@/generated/prisma/enums";
 import InputBookCover from "@/components/forms/InputBookCover";
 import InputBookFile from "./InputBookFile";
+import { formatStorageSize } from "@/lib/bookFiles";
 import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
 import { fieldClass as stylePattern, labelClass } from "./fieldStyles";
 
@@ -45,6 +46,7 @@ type EditBookFormProps = {
     notes: string | null;
     coverUrl: string | null;
     filePath: string | null;
+    fileSize: number | null;
   };
   readingPanel: ReactNode;
 };
@@ -84,6 +86,8 @@ export default function EditBookForm({ book, readingPanel }: EditBookFormProps) 
   const [saveError, setSaveError] = useState(DEFAULT_SAVE_ERROR);
   const [savingLabel, setSavingLabel] = useState("");
   const [, startTransition] = useTransition();
+  const [isRemovingFile, startRemovingFile] = useTransition();
+  const [removeFileError, setRemoveFileError] = useState("");
   const tabRefs = useRef<Record<TabId, HTMLButtonElement | null>>({
     reading: null,
     details: null,
@@ -145,6 +149,28 @@ export default function EditBookForm({ book, readingPanel }: EditBookFormProps) 
     event.preventDefault();
     setTab(TABS[next].id);
     tabRefs.current[TABS[next].id]?.focus();
+  }
+
+  /* Apaga só o arquivo; o livro continua na estante. */
+  function handleRemoveFile() {
+    const message =
+      "Remover o arquivo deste livro? O livro continua na estante com o " +
+      "status, as notas e o progresso, mas não poderá mais ser lido no site " +
+      "(os marcadores também saem).";
+
+    if (!confirm(message)) {
+      return;
+    }
+
+    setRemoveFileError("");
+
+    startRemovingFile(async () => {
+      try {
+        await removeBookFile(book.id);
+      } catch {
+        setRemoveFileError("Não foi possível remover o arquivo. Tente de novo.");
+      }
+    });
   }
 
   const stars = ratingStars(book.rating);
@@ -383,6 +409,32 @@ export default function EditBookForm({ book, readingPanel }: EditBookFormProps) 
               }
               onFileSelected={(input) => save(input.form)}
             />
+
+            {book.filePath && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <button
+                  type="button"
+                  onClick={handleRemoveFile}
+                  disabled={isRemovingFile}
+                  className="text-sm text-danger underline-offset-4 hover:underline disabled:cursor-wait disabled:opacity-60"
+                >
+                  {isRemovingFile ? "Removendo..." : "Remover arquivo"}
+                </button>
+
+                <span className="text-xs font-normal text-contrast/50">
+                  {book.fileSize
+                    ? `Libera ${formatStorageSize(book.fileSize)} do seu espaço. `
+                    : "Libera espaço. "}
+                  O livro fica na estante com status e progresso.
+                </span>
+              </div>
+            )}
+
+            {removeFileError && (
+              <p role="alert" className="mt-2 text-xs font-normal text-danger">
+                {removeFileError}
+              </p>
+            )}
           </div>
 
           {saveStatus}
