@@ -5,10 +5,12 @@ import { Expand, Minimize } from "lucide-react";
 
 interface FullscreenButtonProps {
   onClick?: () => void;
+  className?: string;
 }
 
 export default function FullscreenButton({
   onClick,
+  className = "",
 }: FullscreenButtonProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -45,7 +47,7 @@ export default function FullscreenButton({
       }}
       aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
       title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
-      className="flex h-10 w-10 cursor-pointer items-center justify-center text-contrast/80 transition-colors hover:bg-contrast/10 hover:text-contrast"
+      className={`flex h-10 w-10 cursor-pointer items-center justify-center text-contrast/80 transition-colors hover:bg-contrast/10 hover:text-contrast ${className}`}
     >
       {isFullscreen ? (
         <Minimize size={20} strokeWidth={1.8} />

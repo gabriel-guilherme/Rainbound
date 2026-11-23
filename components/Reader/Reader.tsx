@@ -1,5 +1,6 @@
 "use client";
 
+import BookmarksPanel from "@/components/Reader/BookmarksPanel";
 import FullscreenButton from "@/components/Reader/FullScreenButton";
 import HeaderActionWindow from "@/components/Reader/HeaderActionWindow";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
@@ -11,8 +12,11 @@ import {
 
 import {
   ArrowLeft,
+  Bookmark as BookmarkIcon,
   CloudRainWind,
+  Expand,
   ListOrdered,
+  Minimize,
   Minus,
   Plus,
   Settings,
@@ -20,12 +24,19 @@ import {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
+import {
+  createBookmark,
+  deleteBookmark,
+  moveBookmark,
+} from "@/app/read/actions";
 import type {
+  Bookmark,
   Chapter,
   PageInfo,
   ReaderController,
   ReaderEngineProps,
   ReaderProgress,
+  TurnDirection,
 } from "./readerTypes";
 import type { FileFormat } from "@/generated/prisma/enums";
 
@@ -42,6 +53,11 @@ const engines: Partial<Record<FileFormat, ComponentType<ReaderEngineProps>>> = {
   CBZ: dynamic(() => import("@/components/Reader/ComicReader"), { ssr: false }),
 };
 
+/* Animação ao virar a página: deslocamento (px), duração e validade (ms). */
+const TURN_OFFSET = 48;
+const TURN_DURATION = 280;
+const TURN_TIMEOUT = 1500;
+
 /* Formatos navegados por página (com seletor de página). */
 const PAGED_FORMATS: FileFormat[] = ["PDF", "CBZ"];
 
@@ -49,7 +65,8 @@ const initialPageInfo: PageInfo = {
   currentPage: 1,
   totalPages: 0,
   progress: 0,
-  isTwoPages: false,
+  atStart: true,
+  atEnd: false,
   chapterTitle: "",
 };
 
@@ -59,12 +76,17 @@ export default function Reader({
   title,
   format,
   locator,
+  savedProgress,
+  bookmarks: initialBookmarks,
 }: {
   bookId: number;
   bookUrl: string;
   title: string;
   format: FileFormat;
   locator?: string | null;
+  /* Marcador padrão: progresso salvo no banco. */
+  savedProgress: ReaderProgress | null;
+  bookmarks: Bookmark[];
 }) {
   const Engine = engines[format];
   const isPaged = PAGED_FORMATS.includes(format);
@@ -80,6 +102,12 @@ export default function Reader({
   const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [pageInput, setPageInput] = useState("");
+  /*
+   * Celular: esconde cabeçalho, rodapé e setas para o conteúdo ocupar
+   * a tela toda (no lugar da tela cheia do navegador, que o Safari do
+   * iPhone não oferece). As páginas viram arrastando para o lado.
+   */
+  const [isImmersive, setIsImmersive] = useState(false);
 
   const { theme, zoom, limits, setTheme, setZoom } = useReaderSettings(format);
   const canZoom = Boolean(Engine) && limits.max > limits.min;
@@ -89,11 +117,15 @@ export default function Reader({
   const zoomOut = useCallback(() => setZoom(zoom - limits.step), [setZoom, zoom, limits.step]);
   const resetZoom = useCallback(() => setZoom(1), [setZoom]);
 
-  useReaderProgress({
+  const { saved, forceSave } = useReaderProgress({
     bookId,
     progress: readerProgress,
+    initialSaved: savedProgress,
     delay: 800,
   });
+
+  const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
+  const [bookmarks, setBookmarks] = useState(initialBookmarks);
 
   const handleReady = useCallback((controller: ReaderController) => {
     controllerRef.current = controller;
@@ -103,23 +135,119 @@ export default function Reader({
   const { currentPage, totalPages } = pageInfo;
   const canNavigate = isReady && totalPages > 0;
 
-  const goToPrevious = useCallback(() => controllerRef.current?.previous(), []);
-  const goToNext = useCallback(() => controllerRef.current?.next(), []);
+  /*
+   * Animação ao virar a página: o pedido fica guardado e a animação só
+   * roda quando o motor avisa a nova posição (onPageChange), para não
+   * animar a página antiga antes da troca. Pedidos que não mudam nada
+   * (fim do livro) expiram.
+   */
+  const pageRef = useRef<HTMLDivElement>(null);
+  const pendingTurnRef = useRef<{ direction: TurnDirection; time: number } | null>(
+    null,
+  );
+
+  /* Início/fim atuais para barrar viradas (teclado, setas, arraste). */
+  const pageInfoRef = useRef(pageInfo);
+
+  useEffect(() => {
+    pageInfoRef.current = pageInfo;
+  });
+
+  const turnPage = useCallback((direction: TurnDirection) => {
+    const { atStart, atEnd } = pageInfoRef.current;
+
+    if (direction === "next" ? atEnd : atStart) return;
+
+    pendingTurnRef.current = { direction, time: Date.now() };
+
+    if (direction === "next") controllerRef.current?.next();
+    else controllerRef.current?.previous();
+  }, []);
+
+  useEffect(() => {
+    const pending = pendingTurnRef.current;
+    const element = pageRef.current;
+
+    pendingTurnRef.current = null;
+
+    if (!pending || !element || Date.now() - pending.time > TURN_TIMEOUT) {
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const offset = pending.direction === "next" ? TURN_OFFSET : -TURN_OFFSET;
+
+    element.animate(
+      [
+        { opacity: 0.2, transform: `translateX(${offset}px)` },
+        { opacity: 1, transform: "translateX(0)" },
+      ],
+      { duration: TURN_DURATION, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" },
+    );
+  }, [pageInfo]);
+
+  const goToPrevious = useCallback(() => turnPage("previous"), [turnPage]);
+  const goToNext = useCallback(() => turnPage("next"), [turnPage]);
 
   function goToPage(page: number) {
+    pendingTurnRef.current = null;
     controllerRef.current?.goToPage?.(page);
     setIsNavigatorOpen(false);
   }
 
   function goToChapter(href: string) {
+    pendingTurnRef.current = null;
     controllerRef.current?.goToChapter?.(href);
     setIsNavigatorOpen(false);
   }
 
+  /* Marcadores: ir até um, "Salvar aqui" e os personalizados. */
+  function goToLocator(target: string) {
+    pendingTurnRef.current = null;
+    controllerRef.current?.goToLocator(target);
+    setIsBookmarksOpen(false);
+  }
+
+  async function saveHere() {
+    if (readerProgress) await forceSave(readerProgress);
+  }
+
+  async function addBookmark(name: string) {
+    if (!readerProgress) return;
+
+    const bookmark = await createBookmark(bookId, name, readerProgress);
+
+    setBookmarks((current) => [...current, bookmark]);
+  }
+
+  async function moveBookmarkHere(bookmarkId: number) {
+    if (!readerProgress) return;
+
+    const bookmark = await moveBookmark(bookId, bookmarkId, readerProgress);
+
+    setBookmarks((current) =>
+      current.map((item) => (item.id === bookmark.id ? bookmark : item)),
+    );
+  }
+
+  async function removeBookmark(bookmarkId: number) {
+    await deleteBookmark(bookId, bookmarkId);
+
+    setBookmarks((current) => current.filter((item) => item.id !== bookmarkId));
+  }
+
+  /* Nome sugerido para um marcador novo. */
+  const suggestedBookmarkName = isPaged
+    ? `Página ${pageInfo.currentPage}`
+    : pageInfo.chapterTitle || `Página ${pageInfo.currentPage}`;
+
   /*
    * Teclado (exceto quando há um campo em foco):
    * ← → viram páginas; + − mudam o zoom; 0 volta ao 100%.
-   * No EPUB, o próprio motor trata as setas dentro do iframe do livro.
+   * No EPUB, o motor repassa para cá as teclas de dentro do iframe.
    */
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -136,6 +264,8 @@ export default function Reader({
       if (event.ctrlKey || event.metaKey || event.altKey) {
         return;
       }
+
+      if (event.key === "Escape") setIsImmersive(false);
 
       if (canNavigate && event.key === "ArrowLeft") goToPrevious();
       if (canNavigate && event.key === "ArrowRight") goToNext();
@@ -163,7 +293,9 @@ export default function Reader({
 
           <div className="flex flex-col gap-0.5">
             {chapters.map((chapter, index) => {
-              const isCurrent = chapter.title === pageInfo.chapterTitle;
+              const isCurrent = pageInfo.chapterHref
+                ? chapter.href === pageInfo.chapterHref
+                : chapter.title === pageInfo.chapterTitle;
 
               return (
                 <button
@@ -171,6 +303,8 @@ export default function Reader({
                   type="button"
                   onClick={() => goToChapter(chapter.href)}
                   aria-current={isCurrent ? "true" : undefined}
+                  /* Subitens (capítulos dentro de partes) indentados. */
+                  style={{ paddingLeft: `${0.75 + Math.min(chapter.level, 3) * 1}rem` }}
                   className={[
                     "w-full cursor-pointer px-3 py-2 text-left text-sm transition-colors",
                     isCurrent
@@ -351,22 +485,15 @@ export default function Reader({
 
     return (
       <>
+        {/* EPUB: "página" é uma posição de ~1024 caracteres (estável com o zoom). */}
         <div className="flex items-baseline justify-center gap-2 tabular-nums">
-          {isPaged ? (
-            <>
-              <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
-                Página {currentPage}{" "}
-                <span className="text-contrast/40">de</span> {totalPages}
-              </span>
-              <span className="text-xs text-contrast/40">
-                {pageInfo.progress}%
-              </span>
-            </>
-          ) : (
-            <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
-              {pageInfo.progress}% <span className="text-contrast/40">lido</span>
-            </span>
-          )}
+          <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
+            Página {currentPage}{" "}
+            <span className="text-contrast/40">de</span> {totalPages}
+          </span>
+          <span className="text-xs text-contrast/40">
+            {pageInfo.progress}%
+          </span>
         </div>
 
         <div
@@ -387,7 +514,12 @@ export default function Reader({
       data-reader-theme={theme}
       className="reader-shell relative flex w-full flex-col bg-darkest font-sans text-contrast transition-colors"
     >
-      <header className="reader-header relative flex shrink-0 items-center justify-between border-b border-contrast/10 px-3 sm:px-5">
+      <header
+        className={[
+          "reader-header relative flex shrink-0 items-center justify-between border-b border-contrast/10 px-3 sm:px-5",
+          isImmersive ? "max-sm:hidden" : "",
+        ].join(" ")}
+      >
         <div className="flex shrink-0 items-center gap-3">
           <Link
             href="/library"
@@ -430,6 +562,28 @@ export default function Reader({
           </HeaderActionWindow>
 
           <HeaderActionWindow
+            isOpen={isBookmarksOpen}
+            onOpenChange={setIsBookmarksOpen}
+            label="Marcadores"
+            disabled={!canNavigate}
+            icon={<BookmarkIcon size={18} strokeWidth={2} />}
+            buttonClassName="cursor-pointer"
+            panelClassName="sm:w-80"
+          >
+            <BookmarksPanel
+              current={readerProgress}
+              suggestedName={suggestedBookmarkName}
+              saved={saved}
+              bookmarks={bookmarks}
+              onGo={goToLocator}
+              onSaveHere={saveHere}
+              onCreate={addBookmark}
+              onMove={moveBookmarkHere}
+              onDelete={removeBookmark}
+            />
+          </HeaderActionWindow>
+
+          <HeaderActionWindow
             isOpen={isSettingsOpen}
             onOpenChange={setIsSettingsOpen}
             label="Configurações"
@@ -440,31 +594,61 @@ export default function Reader({
             {renderSettings()}
           </HeaderActionWindow>
 
-          <FullscreenButton />
+          {/* Celular: modo imersivo. A partir de sm: tela cheia do navegador. */}
+          <button
+            type="button"
+            onClick={() => setIsImmersive(true)}
+            aria-label="Tela cheia"
+            title="Tela cheia"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center text-contrast/80 transition-colors hover:bg-contrast/10 hover:text-contrast sm:hidden"
+          >
+            <Expand size={20} strokeWidth={1.8} />
+          </button>
+
+          <FullscreenButton className="max-sm:hidden" />
         </div>
       </header>
 
-      <main className="relative min-h-0 flex-1">
+      <main
+        className={[
+          "relative min-h-0 flex-1",
+          isImmersive ? "reader-immersive" : "",
+        ].join(" ")}
+      >
+        {isImmersive && (
+          <button
+            type="button"
+            onClick={() => setIsImmersive(false)}
+            aria-label="Sair da tela cheia"
+            title="Sair da tela cheia"
+            className="reader-immersive-exit absolute right-2 z-20 flex size-9 cursor-pointer items-center justify-center bg-darkest/60 text-contrast/60 backdrop-blur-sm transition-colors hover:text-contrast sm:hidden"
+          >
+            <Minimize size={18} strokeWidth={1.8} />
+          </button>
+        )}
+
         {Engine ? (
           <ReaderNavigation
+            hideArrowsOnMobile={isImmersive}
             onPrevious={goToPrevious}
             onNext={goToNext}
-            previousDisabled={!canNavigate || (isPaged && currentPage <= 1)}
-            nextDisabled={
-              !canNavigate || (isPaged && currentPage >= totalPages)
-            }
+            previousDisabled={!canNavigate || pageInfo.atStart}
+            nextDisabled={!canNavigate || pageInfo.atEnd}
           >
-            <Engine
-              bookId={bookId}
-              bookUrl={bookUrl}
-              locator={locator}
-              onReady={handleReady}
-              onPageChange={setPageInfo}
-              onProgressChange={setReaderProgress}
-              onContentsChange={setChapters}
-              zoom={zoom}
-              theme={theme}
-            />
+            <div ref={pageRef} className="h-full w-full">
+              <Engine
+                bookId={bookId}
+                bookUrl={bookUrl}
+                locator={locator}
+                onReady={handleReady}
+                onPageChange={setPageInfo}
+                onProgressChange={setReaderProgress}
+                onContentsChange={setChapters}
+                onTurnPage={turnPage}
+                zoom={zoom}
+                theme={theme}
+              />
+            </div>
           </ReaderNavigation>
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
@@ -487,7 +671,12 @@ export default function Reader({
         )}
       </main>
 
-      <footer className="reader-footer flex shrink-0 flex-col justify-center gap-1.5 border-t border-contrast/10 px-4">
+      <footer
+        className={[
+          "reader-footer flex shrink-0 flex-col justify-center gap-1.5 border-t border-contrast/10 px-4",
+          isImmersive ? "max-sm:hidden" : "",
+        ].join(" ")}
+      >
         {renderFooter()}
       </footer>
     </div>

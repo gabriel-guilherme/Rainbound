@@ -1,17 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ePub from "@likecoin/epub-ts";
+import ePub, { EpubCFI, type Contents } from "@likecoin/epub-ts";
 
 import { fetchBookFile } from "@/lib/bookCache";
 
 import {
+  buildTocEntries,
   calculateProgress,
-  findChapterTitle,
+  findCurrentChapter,
   getEpubPosition,
   isValidEpubLocator,
 } from "./readerUtils";
-import type { Chapter, ReaderEngineProps } from "./readerTypes";
+import type {
+  Chapter,
+  ReaderEngineProps,
+  ReaderProgress,
+  ReaderTheme,
+  TurnDirection,
+} from "./readerTypes";
+import { sanitizeEpubDocument } from "./epubSanitize";
+import FileError from "./FileError";
+import { attachSwipe } from "@/lib/swipe";
 
 /*
  * O tipo `Location` do @likecoin/epub-ts aponta para um `types.d.ts`
@@ -26,7 +36,37 @@ type EpubLocationPoint = {
 type EpubLocation = {
   start: EpubLocationPoint;
   end: EpubLocationPoint;
+  atStart?: boolean;
+  atEnd?: boolean;
 };
+
+/*
+ * O teclado dentro do iframe do livro não chega ao window do Reader;
+ * repassamos a tecla para ele tratar setas, zoom e Esc como nos outros
+ * formatos. Campos de texto do próprio livro ficam com a tecla.
+ */
+function forwardKeyToReader(event: KeyboardEvent) {
+  const target = event.target as HTMLElement | null;
+
+  if (
+    target &&
+    (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+      target.isContentEditable)
+  ) {
+    return;
+  }
+
+  window.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: event.key,
+      code: event.code,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      altKey: event.altKey,
+      shiftKey: event.shiftKey,
+    }),
+  );
+}
 
 type Rendition = ReturnType<ReturnType<typeof ePub>["renderTo"]>;
 
@@ -36,13 +76,31 @@ const BASE_FONT_SIZE = 18;
 /*
  * Estilos do livro. As cores vêm das variáveis do tema do leitor
  * (data-reader-theme no Reader), lidas do elemento que contém o iframe.
+ *
+ * O site usa `color-scheme: dark`; se o documento do livro ficar com o
+ * esquema claro padrão, o navegador pinta o iframe de branco opaco. Por
+ * isso o livro recebe o esquema do tema e o fundo do leitor explícito.
  */
-function buildBookTheme(element: HTMLElement) {
+function buildBookTheme(element: HTMLElement, theme: ReaderTheme) {
   const styles = getComputedStyle(element);
+  const background =
+    styles.getPropertyValue("--color-darkest").trim() || "#080c0d";
   const text = styles.getPropertyValue("--color-contrast").trim() || "#e0e4ce";
   const link = styles.getPropertyValue("--color-danger").trim() || "#d4a09a";
 
   return {
+    html: {
+      "color-scheme": theme === "night" ? "dark" : "light",
+      background: `${background} !important`,
+    },
+    /*
+     * Muitos EPUBs fixam texto preto e fundos brancos no próprio CSS;
+     * sem isso o texto some no tema noite.
+     */
+    "body *": {
+      color: "inherit !important",
+      "background-color": "transparent !important",
+    },
     body: {
       "font-family": "Georgia, serif",
       "font-size": `${BASE_FONT_SIZE}px`,
@@ -60,8 +118,11 @@ function buildBookTheme(element: HTMLElement) {
       "font-family": "Georgia, serif",
       "margin-bottom": "1em",
     },
-    /* Mesma cor de destaque do site (--color-danger). */
-    a: {
+    /*
+     * Mesma cor de destaque do site (--color-danger). Seletores mais
+     * específicos que `body *` para não herdarem a cor do texto.
+     */
+    "html body a, html body a *": {
       color: `${link} !important`,
     },
   };
@@ -110,6 +171,7 @@ export default function EpubReader({
   onPageChange,
   onProgressChange,
   onContentsChange,
+  onTurnPage,
   zoom,
   theme,
 }: ReaderEngineProps) {
@@ -127,6 +189,9 @@ export default function EpubReader({
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
+  /* Falha ao baixar (rede) ou ao abrir (arquivo inválido). */
+  const [errorKind, setErrorKind] = useState<"download" | "file">("file");
+  const [retryKey, setRetryKey] = useState(0);
 
   /*
    * Callbacks em ref: o Reader pode recriá-los a cada render sem
@@ -137,6 +202,7 @@ export default function EpubReader({
     onPageChange,
     onProgressChange,
     onContentsChange,
+    onTurnPage,
   });
 
   useEffect(() => {
@@ -145,6 +211,7 @@ export default function EpubReader({
       onPageChange,
       onProgressChange,
       onContentsChange,
+      onTurnPage,
     };
   });
 
@@ -161,17 +228,40 @@ export default function EpubReader({
 
     let cancelled = false;
     let progressEnabled = false;
+    /* Posição da restauração, entregue ao Reader quando ela termina. */
+    let restoredProgress: ReaderProgress | null = null;
     const book = ePub();
 
     async function loadBook() {
+      let data: ArrayBuffer;
+
+      try {
+        data = await fetchBookFile(bookId, bookUrl);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Erro ao baixar EPUB:", error);
+          setErrorKind("download");
+          setStatus("error");
+        }
+        return;
+      }
+
       try {
         /*
          * 1. Carrega o EPUB
          */
-        await book.open(await fetchBookFile(bookId, bookUrl));
+        await book.open(data);
         await book.ready;
 
         if (cancelled) return;
+
+        /*
+         * Limpa cada seção antes de ela virar HTML do iframe (o iframe
+         * roda com scripts liberados; ver epubSanitize.ts).
+         */
+        book.spine.hooks.content.register((document: Document) => {
+          sanitizeEpubDocument(document);
+        });
 
         /*
          * 2. Locations (com cache no navegador)
@@ -191,12 +281,17 @@ export default function EpubReader({
         /*
          * 3. Sumário
          */
-        const chapters: Chapter[] = book.navigation.toc.map((item) => ({
-          title: item.label.trim(),
-          href: item.href,
+        const tocEntries = buildTocEntries(book);
+
+        const chapters: Chapter[] = tocEntries.map((entry) => ({
+          title: entry.title,
+          href: entry.href,
+          level: entry.level,
         }));
 
         callbacksRef.current.onContentsChange?.(chapters);
+
+        const epubCfi = new EpubCFI();
 
         /*
          * 4. Rendition
@@ -206,9 +301,17 @@ export default function EpubReader({
           height: "100%",
           spread: "auto",
           flow: "paginated",
+          /*
+           * Necessário no WebKit (iPhone): sem allow-scripts no sandbox,
+           * os listeners de toque e teclado no livro não disparam. O
+           * conteúdo que executa código é removido antes (epubSanitize).
+           */
+          allowScriptedContent: true,
         });
 
-        rendition.themes.default(buildBookTheme(viewerRef.current));
+        rendition.themes.default(
+          buildBookTheme(viewerRef.current, displayRef.current.theme),
+        );
         rendition.themes.fontSize(
           `${BASE_FONT_SIZE * displayRef.current.zoom}px`,
         );
@@ -216,14 +319,26 @@ export default function EpubReader({
         appliedZoomRef.current = displayRef.current.zoom;
 
         /*
-         * Setas do teclado dentro do iframe do livro (o listener do
-         * Reader não recebe eventos de dentro dele).
+         * Teclado e arraste para o lado dentro do iframe do livro (os
+         * listeners do Reader não recebem eventos de dentro dele). Os
+         * listeners somem junto com o iframe de cada seção.
          */
+        /* Pelo Reader quando possível, para animar a virada. */
+        const turn = (direction: TurnDirection) => {
+          const onTurnPage = callbacksRef.current.onTurnPage;
+
+          if (onTurnPage) onTurnPage(direction);
+          else if (direction === "next") void rendition.next();
+          else void rendition.prev();
+        };
+
         rendition.hooks.content.register((contents: { document: Document }) => {
-          contents.document.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowLeft") void rendition.prev();
-            if (event.key === "ArrowRight") void rendition.next();
-          });
+          contents.document.addEventListener("keydown", forwardKeyToReader);
+
+          attachSwipe(contents.document, () => ({
+            onPrevious: () => turn("previous"),
+            onNext: () => turn("next"),
+          }));
         });
 
         /*
@@ -234,35 +349,76 @@ export default function EpubReader({
 
           if (!cfi) return;
 
-          const currentPosition = getEpubPosition(book, cfi);
+          const startPosition = getEpubPosition(book, cfi);
 
-          if (currentPosition === null) return;
+          if (startPosition === null) return;
 
           const totalPositions = book.locations.length();
-          const percentage = calculateProgress(currentPosition, totalPositions);
+          /*
+           * A última tela começa algumas posições antes do fim; nela o
+           * livro conta como terminado (última página, 100%).
+           */
+          const currentPosition = location.atEnd
+            ? Math.max(totalPositions - 1, startPosition)
+            : startPosition;
+          const percentage = calculateProgress(
+            currentPosition + 1,
+            totalPositions,
+          );
 
-          const section = book.spine.get(location.start.index);
+          /*
+           * Capítulo pela última posição visível: se o título de um
+           * capítulo aparece na tela, o cabeçalho já mostra ele.
+           */
+          const sectionIndex = location.end.index;
+          const endCfi = location.end.cfi;
+
+          const chapter = findCurrentChapter(
+            tocEntries,
+            sectionIndex,
+            (fragment) => {
+              const contents = (rendition.getContents() as Contents[]).find(
+                (item) => item.sectionIndex === sectionIndex,
+              );
+              const anchor = contents?.document.getElementById(fragment);
+
+              /* Sem como conferir: considera que o capítulo começou. */
+              if (!contents || !anchor || !endCfi) return true;
+
+              try {
+                return epubCfi.compare(contents.cfiFromNode(anchor), endCfi) <= 0;
+              } catch {
+                return true;
+              }
+            },
+          );
 
           callbacksRef.current.onPageChange({
             currentPage: currentPosition + 1,
             totalPages: totalPositions,
             progress: percentage,
-            isTwoPages:
-              location.start.displayed.page !== location.end.displayed.page,
-            chapterTitle: findChapterTitle(book, section?.href),
+            atStart: Boolean(location.atStart),
+            atEnd: Boolean(location.atEnd),
+            chapterTitle: chapter?.title ?? "",
+            chapterHref: chapter?.href,
           });
 
+          const progress = {
+            currentPosition,
+            totalPositions,
+            percentage,
+            locator: cfi,
+          };
+
           /*
-           * O primeiro relocated só reconstrói a interface; depois dele,
-           * a posição muda de verdade e é salva.
+           * Durante a restauração da posição salva, o epub-ts pode passar
+           * pelo início do livro; só a posição final vale (entregue depois
+           * de restaurar, logo abaixo).
            */
           if (progressEnabled) {
-            callbacksRef.current.onProgressChange({
-              currentPosition,
-              totalPositions,
-              percentage,
-              locator: cfi,
-            });
+            callbacksRef.current.onProgressChange(progress);
+          } else {
+            restoredProgress = progress;
           }
         });
 
@@ -270,6 +426,9 @@ export default function EpubReader({
           previous: () => void rendition.prev(),
           next: () => void rendition.next(),
           goToChapter: (href) => void rendition.display(href),
+          goToLocator: (locator) => {
+            if (isValidEpubLocator(locator)) void rendition.display(locator);
+          },
         });
 
         /*
@@ -295,10 +454,20 @@ export default function EpubReader({
         if (cancelled) return;
 
         progressEnabled = true;
+
+        /*
+         * O Reader precisa da posição atual (marcadores) desde o início.
+         * É a própria posição salva: o salvamento automático, que só
+         * avança, não grava nada por causa dela.
+         */
+        if (restoredProgress) {
+          callbacksRef.current.onProgressChange(restoredProgress);
+        }
         setStatus("ready");
       } catch (error) {
         if (!cancelled) {
-          console.error("Erro ao carregar EPUB:", error);
+          console.error("Erro ao abrir EPUB:", error);
+          setErrorKind("file");
           setStatus("error");
         }
       }
@@ -318,7 +487,44 @@ export default function EpubReader({
        */
       void loading.finally(() => book.destroy());
     };
-  }, [bookId, bookUrl]);
+  }, [bookId, bookUrl, retryKey]);
+
+  /*
+   * Tamanho da área do livro. O epub-ts só repagina no `resize` da
+   * janela; aqui a área também muda sem a janela mudar (modo tela cheia
+   * do celular esconde cabeçalho, rodapé e setas). Ele volta sozinho
+   * para o mesmo trecho depois de repaginar.
+   */
+  useEffect(() => {
+    const viewer = viewerRef.current;
+
+    if (status !== "ready" || !viewer) return;
+
+    let lastSize = `${viewer.clientWidth}x${viewer.clientHeight}`;
+    let timeoutId: number | undefined;
+
+    const observer = new ResizeObserver(() => {
+      window.clearTimeout(timeoutId);
+
+      timeoutId = window.setTimeout(() => {
+        const size = `${viewer.clientWidth}x${viewer.clientHeight}`;
+
+        if (size === lastSize || !viewer.clientWidth || !viewer.clientHeight) {
+          return;
+        }
+
+        lastSize = size;
+        renditionRef.current?.resize();
+      }, 100);
+    });
+
+    observer.observe(viewer);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      observer.disconnect();
+    };
+  }, [status]);
 
   /*
    * Tema: reaplica as cores ao trocar (o data-reader-theme já está no
@@ -329,7 +535,7 @@ export default function EpubReader({
 
     if (status !== "ready" || !rendition || !viewerRef.current) return;
 
-    rendition.themes.default(buildBookTheme(viewerRef.current));
+    rendition.themes.default(buildBookTheme(viewerRef.current, theme));
   }, [theme, status]);
 
   /*
@@ -367,15 +573,19 @@ export default function EpubReader({
       )}
 
       {status === "error" && (
-        <div
-          role="alert"
-          className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center"
-        >
-          <p className="title-shelf text-3xl">Não foi possível abrir o EPUB.</p>
-
-          <p className="max-w-md text-sm text-contrast/50">
-            O arquivo pode estar corrompido ou fora do padrão EPUB.
-          </p>
+        <div className="absolute inset-0 bg-darkest">
+          <FileError
+            title="Não foi possível abrir o EPUB."
+            message={
+              errorKind === "download"
+                ? "Não foi possível baixar o arquivo. Verifique a conexão."
+                : "O arquivo pode estar corrompido ou fora do padrão EPUB."
+            }
+            onRetry={() => {
+              setStatus("loading");
+              setRetryKey((previous) => previous + 1);
+            }}
+          />
         </div>
       )}
     </div>

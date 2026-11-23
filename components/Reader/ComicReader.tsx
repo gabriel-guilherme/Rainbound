@@ -10,7 +10,8 @@ import {
   unzipAsync,
 } from "@/lib/comicFiles";
 
-import { getComicPage } from "./readerUtils";
+import FileError from "./FileError";
+import { calculateProgress, getComicPage } from "./readerUtils";
 import type { ReaderEngineProps } from "./readerTypes";
 
 /*
@@ -34,6 +35,11 @@ export default function ComicReader({
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
+  /* Motivo do erro mostrado na tela. */
+  const [errorKind, setErrorKind] = useState<"download" | "file" | "empty">(
+    "file",
+  );
+  const [retryKey, setRetryKey] = useState(0);
 
   const viewerRef = useRef<HTMLDivElement>(null);
 
@@ -51,8 +57,20 @@ export default function ComicReader({
     let urls: string[] = [];
 
     async function load() {
+      let data: ArrayBuffer;
+
       try {
-        const data = await fetchBookFile(bookId, bookUrl);
+        data = await fetchBookFile(bookId, bookUrl);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Erro ao baixar CBZ:", error);
+          setErrorKind("download");
+          setStatus("error");
+        }
+        return;
+      }
+
+      try {
 
         if (cancelled) return;
 
@@ -65,7 +83,9 @@ export default function ComicReader({
         const names = sortComicPages(Object.keys(files));
 
         if (names.length === 0) {
-          throw new Error("Nenhuma imagem encontrada no CBZ.");
+          setErrorKind("empty");
+          setStatus("error");
+          return;
         }
 
         urls = names.map((name) =>
@@ -78,7 +98,8 @@ export default function ComicReader({
         setStatus("ready");
       } catch (error) {
         if (!cancelled) {
-          console.error("Erro ao carregar CBZ:", error);
+          console.error("Erro ao abrir CBZ:", error);
+          setErrorKind("file");
           setStatus("error");
         }
       }
@@ -90,7 +111,7 @@ export default function ComicReader({
       cancelled = true;
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [bookId, bookUrl]);
+  }, [bookId, bookUrl, retryKey]);
 
   const totalPages = pages.length;
 
@@ -106,6 +127,7 @@ export default function ComicReader({
       previous: () => setPageNumber((page) => clamp(page - 1)),
       next: () => setPageNumber((page) => clamp(page + 1)),
       goToPage: (page) => setPageNumber(clamp(page)),
+      goToLocator: (locator) => setPageNumber(clamp(getComicPage(locator))),
     });
 
     setPageNumber((page) => clamp(page));
@@ -114,13 +136,14 @@ export default function ComicReader({
   useEffect(() => {
     if (!totalPages || pageNumber > totalPages) return;
 
-    const percentage = Math.round((pageNumber / totalPages) * 100);
+    const percentage = calculateProgress(pageNumber, totalPages);
 
     callbacksRef.current.onPageChange({
       currentPage: pageNumber,
       totalPages,
       progress: percentage,
-      isTwoPages: false,
+      atStart: pageNumber <= 1,
+      atEnd: pageNumber >= totalPages,
       chapterTitle: "",
     });
 
@@ -139,16 +162,20 @@ export default function ComicReader({
 
   if (status === "error") {
     return (
-      <div
-        role="alert"
-        className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center"
-      >
-        <p className="title-shelf text-3xl">Não foi possível abrir o CBZ.</p>
-
-        <p className="max-w-md text-sm text-contrast/50">
-          O arquivo pode estar corrompido ou não conter imagens.
-        </p>
-      </div>
+      <FileError
+        title="Não foi possível abrir o CBZ."
+        message={
+          errorKind === "download"
+            ? "Não foi possível baixar o arquivo. Verifique a conexão."
+            : errorKind === "empty"
+              ? "Nenhuma imagem encontrada no arquivo."
+              : "O arquivo pode estar corrompido ou fora do padrão CBZ."
+        }
+        onRetry={() => {
+          setStatus("loading");
+          setRetryKey((previous) => previous + 1);
+        }}
+      />
     );
   }
 

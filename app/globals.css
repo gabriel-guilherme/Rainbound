@@ -312,6 +312,21 @@
    height: calc(2.5rem + env(safe-area-inset-bottom));
 }
 
+/*
+ * Modo imersivo (celular): sem cabeçalho e rodapé, o conteúdo respeita
+ * o entalhe e a barra de gestos do aparelho.
+ */
+@media (max-width: 639px) {
+   .reader-immersive {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+   }
+}
+
+.reader-immersive-exit {
+   top: calc(0.5rem + env(safe-area-inset-top));
+}
+
 @media (min-width: 640px) {
    .reader-header {
       height: 5rem;

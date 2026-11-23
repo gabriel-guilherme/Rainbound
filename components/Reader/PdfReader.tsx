@@ -6,7 +6,10 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
-import { getPdfPage } from "./readerUtils";
+import { fetchBookFile } from "@/lib/bookCache";
+
+import FileError from "./FileError";
+import { calculateProgress, getPdfPage } from "./readerUtils";
 import type { ReaderEngineProps } from "./readerTypes";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -15,6 +18,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export default function PdfReader({
+  bookId,
   bookUrl,
   locator,
   onReady,
@@ -38,8 +42,40 @@ export default function PdfReader({
 
   const viewerRef = useRef<HTMLDivElement>(null);
 
-  const [loadError, setLoadError] = useState<Error | null>(null);
+  /* Falha ao baixar (rede) ou ao abrir (arquivo inválido). */
+  const [loadError, setLoadError] = useState<"download" | "file" | null>(
+    null,
+  );
   const [retryKey, setRetryKey] = useState<number>(0);
+
+  /*
+   * Arquivo pelo cache do navegador (lib/bookCache.ts), como EPUB e CBZ.
+   * O objeto fica em estado para o react-pdf não recarregar a cada
+   * render. O pdf.js transfere o buffer para o worker (ele fica
+   * inutilizável aqui), então cada tentativa busca uma cópia nova.
+   */
+  const [file, setFile] = useState<{ data: Uint8Array } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setFile(null);
+
+    fetchBookFile(bookId, bookUrl)
+      .then((data) => {
+        if (!cancelled) setFile({ data: new Uint8Array(data) });
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          console.error("Erro ao baixar PDF:", error);
+          setLoadError("download");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookId, bookUrl, retryKey]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -78,6 +114,7 @@ export default function PdfReader({
       previous: () => setPageNumber((page) => clamp(page - 1)),
       next: () => setPageNumber((page) => clamp(page + 1)),
       goToPage: (page) => setPageNumber(clamp(page)),
+      goToLocator: (locator) => setPageNumber(clamp(getPdfPage(locator))),
     });
 
     /* Locator salvo pode apontar além do fim (arquivo trocado). */
@@ -94,13 +131,14 @@ export default function PdfReader({
       return;
     }
 
-    const percentage = Math.round((pageNumber / numPages) * 100);
+    const percentage = calculateProgress(pageNumber, numPages);
 
     callbacksRef.current.onPageChange({
       currentPage: pageNumber,
       totalPages: numPages,
       progress: percentage,
-      isTwoPages: false,
+      atStart: pageNumber <= 1,
+      atEnd: pageNumber >= numPages,
       chapterTitle: "",
     });
 
@@ -114,27 +152,18 @@ export default function PdfReader({
 
   if (loadError) {
     return (
-      <div
-        role="alert"
-        className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center"
-      >
-        <p className="title-shelf text-3xl">Não foi possível abrir o PDF.</p>
-
-        <p className="max-w-md text-sm text-contrast/50">
-          {loadError.message}
-        </p>
-
-        <button
-          type="button"
-          onClick={() => {
-            setLoadError(null);
-            setRetryKey((previous) => previous + 1);
-          }}
-          className="btn-shelf mt-2 bg-danger text-primary hover:bg-contrast"
-        >
-          Tentar de novo
-        </button>
-      </div>
+      <FileError
+        title="Não foi possível abrir o PDF."
+        message={
+          loadError === "download"
+            ? "Não foi possível baixar o arquivo. Verifique a conexão."
+            : "O arquivo pode estar corrompido ou fora do padrão PDF."
+        }
+        onRetry={() => {
+          setLoadError(null);
+          setRetryKey((previous) => previous + 1);
+        }}
+      />
     );
   }
 
@@ -146,13 +175,21 @@ export default function PdfReader({
         className="z-0 flex min-h-0 min-w-0 flex-1 items-start justify-start overflow-auto"
       >
         <div className="flex min-h-full w-max min-w-full shrink-0 items-center justify-center p-4">
+          {!file ? (
+            <div className="flex h-[60vh] items-center justify-center text-sm text-contrast/50">
+              Abrindo PDF...
+            </div>
+          ) : (
           <Document
             key={retryKey}
-            file={bookUrl}
+            file={file}
             onLoadSuccess={({ numPages }) => {
               setNumPages(numPages);
             }}
-            onLoadError={setLoadError}
+            onLoadError={(error) => {
+              console.error("Erro ao abrir PDF:", error);
+              setLoadError("file");
+            }}
             loading={
               <div className="flex h-[60vh] items-center justify-center text-sm text-contrast/50">
                 Abrindo PDF...
@@ -167,6 +204,7 @@ export default function PdfReader({
               loading={null}
             />
           </Document>
+          )}
         </div>
       </div>
     </div>
