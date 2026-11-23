@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 
+import { requireApprovedUser } from "@/lib/session";
+
 import DashboardEditor from "@/components/Widgets/DashboardEditor";
 import WidgetSection, {
   type WidgetSectionItem,
@@ -50,6 +52,8 @@ function buildSections(
 }
 
 export default async function DashBoardPage() {
+  await requireApprovedUser();
+
   /* Arrumação deste aparelho (cookie); sem cookie, a padrão. */
   const layout = readDashboardLayout(
     (await cookies()).get(DASHBOARD_LAYOUT_COOKIE)?.value,

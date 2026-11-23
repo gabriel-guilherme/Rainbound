@@ -6,6 +6,7 @@ import { deleteBookAndRedirect } from "./actions";
 import BackButton from "@/components/common/BackButton";
 import ConfirmSubmitButton from "@/components/common/ConfirmSubmitButton";
 import EditBookForm from "@/components/forms/EditBookForm";
+import { requireApprovedUser } from "@/lib/session";
 import { parseBookId } from "@/lib/utils";
 
 export default async function BookDetailPage({
@@ -13,13 +14,15 @@ export default async function BookDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id: userId } = await requireApprovedUser();
   const id = parseBookId((await params).id);
 
   if (id === null) {
     notFound();
   }
 
-  const book = await prisma.book.findUnique({ where: { id } });
+  /* Livro de outra pessoa responde 404, como se não existisse. */
+  const book = await prisma.book.findFirst({ where: { id, userId } });
 
   if (!book) {
     notFound();

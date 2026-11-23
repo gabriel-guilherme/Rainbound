@@ -1,15 +1,12 @@
-import supabase from "./supabase";
+import { presignObjectUrl } from "./r2";
 
+/*
+ * URL de leitura do arquivo do livro (R2), válida por 1 hora. O caminho
+ * da URL não muda entre aberturas, então o cache do navegador
+ * (lib/bookCache.ts) reconhece o mesmo arquivo.
+ */
 export async function getBookFileUrl(filePath: string) {
-  const { data, error } = await supabase.storage
-    .from("ebooks")
-    .createSignedUrl(filePath, 60 * 60);
-
-  if (error || !data) {
-    throw new Error(`Falha ao gerar URL do livro: ${error?.message}`);
-  }
-
-  return data.signedUrl;
+  return presignObjectUrl(filePath, "GET", 60 * 60);
 }
 
 /* Maior valor de uma coluna Int do Postgres. */

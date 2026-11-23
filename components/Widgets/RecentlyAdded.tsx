@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DEFAULT_COVER, typeLabel } from "@/app/(main)/library/types";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/session";
 
 import WidgetCard from "./WidgetCard";
 
@@ -18,7 +19,10 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
  * - wide: fileira de capas com título e data embaixo.
  */
 export default async function RecentlyAdded({ variant }: { variant: WidgetVariant }) {
+  const { id: userId } = await requireApprovedUser();
+
   const recentlyAdded = await prisma.book.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: variant === "wide" ? 10 : 5,
     select: {

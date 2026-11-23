@@ -6,11 +6,13 @@ import { prisma } from "@/lib/prisma";
 import {
   bookmarkSelect,
   isBookmarkId,
+  isOwnBook,
   parseBookmarkName,
   parseReadingProgress,
   saveReadingProgress,
   setReadingProgress,
 } from "@/lib/readingProgress";
+import { getApprovedUserId } from "@/lib/session";
 
 type ProgressData = {
   currentPosition: number;
@@ -19,19 +21,30 @@ type ProgressData = {
   locator?: string | null;
 };
 
-function parseOrThrow(bookId: number, data: ProgressData) {
+/* Toda action do leitor: usuário aprovado e dono do livro. */
+async function assertOwnBook(bookId: number) {
+  const userId = await getApprovedUserId();
+
+  if (!(await isOwnBook(bookId, userId))) {
+    throw new Error("Livro não encontrado.");
+  }
+}
+
+async function parseOrThrow(bookId: number, data: ProgressData) {
   const parsed = parseReadingProgress(bookId, data);
 
   if (!parsed) {
     throw new Error("Progresso de leitura inválido.");
   }
 
+  await assertOwnBook(parsed.bookId);
+
   return parsed;
 }
 
 /* Marcadores apontam para um lugar: sem locator não há para onde ir. */
-function parsePositionOrThrow(bookId: number, data: ProgressData) {
-  const parsed = parseOrThrow(bookId, data);
+async function parsePositionOrThrow(bookId: number, data: ProgressData) {
+  const parsed = await parseOrThrow(bookId, data);
   const { locator } = parsed.progress;
 
   if (!locator) {
@@ -43,7 +56,7 @@ function parsePositionOrThrow(bookId: number, data: ProgressData) {
 
 /* Salvamento automático do leitor: só avança (ver saveReadingProgress). */
 export async function saveBookProgress(bookId: number, data: ProgressData) {
-  const parsed = parseOrThrow(bookId, data);
+  const parsed = await parseOrThrow(bookId, data);
 
   return saveReadingProgress(parsed.bookId, parsed.progress);
 }
@@ -53,7 +66,7 @@ export async function saveBookProgress(bookId: number, data: ProgressData) {
  * anterior à salva.
  */
 export async function setBookProgress(bookId: number, data: ProgressData) {
-  const parsed = parseOrThrow(bookId, data);
+  const parsed = await parseOrThrow(bookId, data);
 
   await setReadingProgress(parsed.bookId, parsed.progress);
 
@@ -73,7 +86,7 @@ export async function createBookmark(
     throw new Error("Nome do marcador inválido.");
   }
 
-  const parsed = parsePositionOrThrow(bookId, data);
+  const parsed = await parsePositionOrThrow(bookId, data);
 
   const bookmark = await prisma.bookmark.create({
     data: { bookId: parsed.bookId, name: parsedName, ...parsed.progress },
@@ -95,7 +108,7 @@ export async function moveBookmark(
     throw new Error("Marcador inválido.");
   }
 
-  const parsed = parsePositionOrThrow(bookId, data);
+  const parsed = await parsePositionOrThrow(bookId, data);
 
   /* `bookId` no filtro: o marcador precisa ser deste livro. */
   const bookmark = await prisma.bookmark.update({
@@ -113,6 +126,8 @@ export async function deleteBookmark(bookId: number, bookmarkId: number) {
   if (!isBookmarkId(bookmarkId) || !isBookmarkId(bookId)) {
     throw new Error("Marcador inválido.");
   }
+
+  await assertOwnBook(bookId);
 
   await prisma.bookmark.deleteMany({ where: { id: bookmarkId, bookId } });
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getApprovedUserId } from "@/lib/session";
 import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import {
   cleanupStorage,
@@ -15,13 +16,17 @@ import { redirect } from "next/navigation";
 
 /*
  * Gera a URL assinada para o navegador enviar o arquivo do livro
- * direto ao Supabase Storage.
+ * direto ao R2.
  */
 export async function requestBookUpload(fileName: string, size: number) {
-  return createBookUploadUrl(String(fileName), Number(size));
+  const userId = await getApprovedUserId();
+
+  return createBookUploadUrl(userId, String(fileName), Number(size));
 }
 
 export async function createBook(formData: FormData) {
+  const userId = await getApprovedUserId();
+
   const title = formData.get("title") as string;
   const creator = formData.get("creator") as string;
 
@@ -58,7 +63,7 @@ export async function createBook(formData: FormData) {
     throw new Error("Arquivo do livro é obrigatório");
   }
 
-  const { filePath, format } = await verifyUploadedBookFile(filePathRaw);
+  const { filePath, format } = await verifyUploadedBookFile(filePathRaw, userId);
 
   let coverUrl: string | null = coverUrlFromOpenLibrary || null;
   let coverPublicId: string | null = null;
@@ -77,6 +82,8 @@ export async function createBook(formData: FormData) {
 
     await prisma.book.create({
       data: {
+        userId,
+
         title,
         creator,
 

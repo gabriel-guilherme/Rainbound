@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/session";
 import { statusColor, statusLabel, statusOptions } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
@@ -22,8 +23,11 @@ export default async function BookStatus({ variant }: { variant: WidgetVariant }
   /*
    * Uma única consulta agrupada por status, em vez de um count por status.
    */
+  const { id: userId } = await requireApprovedUser();
+
   const groups = await prisma.book.groupBy({
     by: ["status"],
+    where: { userId },
     _count: { _all: true },
   });
 

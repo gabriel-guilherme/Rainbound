@@ -9,9 +9,12 @@ import {
   parseDashboardLayout,
   type DashboardLayout,
 } from "@/lib/dashboardLayout";
+import { getApprovedUserId } from "@/lib/session";
 
 /* Grava a arrumação dos widgets no cookie deste aparelho. */
 export async function saveDashboardLayout(layout: DashboardLayout) {
+  await getApprovedUserId();
+
   const parsed = parseDashboardLayout(layout);
 
   if (!parsed) {
@@ -30,6 +33,8 @@ export async function saveDashboardLayout(layout: DashboardLayout) {
 
 /* Volta à arrumação padrão. */
 export async function resetDashboardLayout() {
+  await getApprovedUserId();
+
   (await cookies()).delete(DASHBOARD_LAYOUT_COOKIE);
 
   revalidatePath("/dashboard");

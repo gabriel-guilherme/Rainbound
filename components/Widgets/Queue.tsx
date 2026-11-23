@@ -5,6 +5,7 @@ import { DEFAULT_COVER } from "@/app/(main)/library/types";
 import BookSpine from "@/components/common/BookSpine";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/session";
 import {
   getLastName,
   getSpineLookForBook,
@@ -32,14 +33,16 @@ function pickOfTheDay<T>(items: T[]) {
  * - tall: a sugestão do dia com capa e descrição + os próximos da fila.
  */
 export default async function Queue({ variant }: { variant: WidgetVariant }) {
+  const { id: userId } = await requireApprovedUser();
+
   const [books, total] = await Promise.all([
     prisma.book.findMany({
-      where: { status: "WANT_TO_READ" },
+      where: { userId, status: "WANT_TO_READ" },
       orderBy: { createdAt: "asc" },
       take: 16,
       include: { progress: true },
     }),
-    prisma.book.count({ where: { status: "WANT_TO_READ" } }),
+    prisma.book.count({ where: { userId, status: "WANT_TO_READ" } }),
   ]);
 
   const queue: QueueBook[] = books.map((book) => ({

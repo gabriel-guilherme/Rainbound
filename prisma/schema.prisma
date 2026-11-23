@@ -27,8 +27,134 @@ enum ReadingStatus {
   ABANDONED
 }
 
+/**
+ * Pedido de acesso: quem cria conta espera aprovação do admin.
+ */
+enum AccountStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+/**
+ * Autenticação (Better Auth, lib/auth.ts). User, Session, Account e
+ * Verification seguem o formato que o Better Auth espera; username vem
+ * do plugin de username e status/role são campos do app.
+ */
+model User {
+  id String @id
+
+  name          String
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  image         String?
+
+  /**
+   * Plugin username: guardado em minúsculas; displayUsername como digitado.
+   */
+  username        String? @unique
+  displayUsername String?
+
+  /**
+   * Pedido de acesso: só APPROVED usa a estante.
+   */
+  status     AccountStatus @default(PENDING)
+  role       Role          @default(USER)
+  reviewedAt DateTime?
+
+  sessions Session[]
+  accounts Account[]
+  books    Book[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model Session {
+  id String @id
+
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+/**
+ * Credenciais (a senha com hash fica em `password`, providerId "credential").
+ */
+model Account {
+  id String @id
+
+  accountId  String
+  providerId String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id String @id
+
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+/*
+ * Limite de tentativas do Better Auth (login, cadastro) guardado no banco:
+ * na Vercel cada requisição pode cair numa instância diferente, então a
+ * memória não serve.
+ */
+model RateLimit {
+  id String @id
+
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
 model Book {
   id Int @id @default(autoincrement())
+
+  /**
+   * Dono do livro. Opcional só para os livros de antes da autenticação:
+   * eles passam para o admin quando a conta dele é criada.
+   */
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title       String
   creator     String?
@@ -55,6 +181,7 @@ model Book {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId, status])
   @@index([type])
   @@index([format])
   @@index([status])
@@ -63,10 +190,10 @@ model Book {
 model ReadingProgress {
   id Int @id @default(autoincrement())
 
-  bookId Int @unique
+  bookId Int  @unique
   book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
-  currentPosition Int @default(0)
+  currentPosition Int  @default(0)
   totalPositions  Int?
 
   percentage Float @default(0)
@@ -76,7 +203,7 @@ model ReadingProgress {
   updatedAt DateTime @updatedAt
 }
 
-/*
+/**
  * Marcadores com nome criados no leitor. O marcador padrão ("Onde parei")
  * é o ReadingProgress; estes são os extras.
  */
@@ -88,7 +215,9 @@ model Bookmark {
 
   name String
 
-  /* Mesmo formato do ReadingProgress: "pdf-page:X", "cbz-page:X" ou CFI. */
+  /**
+   * Mesmo formato do ReadingProgress: "pdf-page:X", "cbz-page:X" ou CFI.
+   */
   locator         String
   currentPosition Int
   totalPositions  Int?
