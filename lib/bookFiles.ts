@@ -57,13 +57,25 @@ export function getBookFileExtension(fileName: string): BookFileExtension | null
 
 /*
  * Caminho no bucket de um arquivo enviado direto pelo navegador:
- * "books/<uuid>.<extensão>".
+ * "books/<userId>/<uuid>.<extensão>". A pasta do usuário impede que
+ * alguém registre como seu um arquivo enviado por outra pessoa.
  */
-const UPLOADED_BOOK_PATH =
-  /^books\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(epub|pdf|cbz)$/;
+const UPLOADED_FILE_NAME =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(epub|pdf|cbz)$/;
 
-export function isUploadedBookPath(path: string) {
-  return UPLOADED_BOOK_PATH.test(path);
+/* Ids do Better Auth: letras, números, - e _. */
+const USER_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function buildUploadedBookPath(userId: string, fileName: string) {
+  return `books/${userId}/${fileName}`;
+}
+
+export function isUploadedBookPath(path: string, userId: string) {
+  if (!USER_ID.test(userId)) return false;
+
+  const prefix = buildUploadedBookPath(userId, "");
+
+  return path.startsWith(prefix) && UPLOADED_FILE_NAME.test(path.slice(prefix.length));
 }
 
 export function formatFileSize(bytes: number) {

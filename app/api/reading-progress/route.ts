@@ -1,8 +1,10 @@
 import {
   isMissingBookError,
+  isOwnBook,
   parseReadingProgress,
   saveReadingProgress,
 } from "@/lib/readingProgress";
+import { getCurrentUser, isApproved } from "@/lib/session";
 
 /*
  * Recebe o progresso enviado por `navigator.sendBeacon` quando a aba é
@@ -11,6 +13,13 @@ import {
  * Action `saveBookProgress`.
  */
 export async function POST(request: Request) {
+  /* O beacon leva o cookie de sessão (mesma origem). */
+  const user = await getCurrentUser();
+
+  if (!isApproved(user)) {
+    return Response.json({ error: "Não autorizado." }, { status: 401 });
+  }
+
   let body: unknown;
 
   try {
@@ -27,6 +36,11 @@ export async function POST(request: Request) {
 
   if (!parsed) {
     return Response.json({ error: "Progresso inválido." }, { status: 400 });
+  }
+
+  /* Livro de outra pessoa responde como inexistente. */
+  if (!(await isOwnBook(parsed.bookId, user.id))) {
+    return Response.json({ error: "Livro não encontrado." }, { status: 404 });
   }
 
   try {

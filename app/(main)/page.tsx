@@ -1,16 +1,18 @@
+import { redirect } from "next/navigation";
+
 import Collection from "@/components/Home/Collection";
 import Hero from "@/components/Home/Hero";
+import Landing from "@/components/Home/Landing";
 import Thoughts from "@/components/Home/Thoughts";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { connection } from "next/server";
+import { getCurrentUser, isApproved } from "@/lib/session";
 import { toSpineBook } from "@/lib/spine";
 
 /* Campos do cartão "Continuar" no Hero. */
 const continueReadingSelect = {
   id: true,
   title: true,
-  format: true,
   coverUrl: true,
   progress: {
     select: {
@@ -26,8 +28,9 @@ const continueReadingSelect = {
  * não o último editado (ler só atualiza o ReadingProgress, não o Book).
  * Se nenhum livro "Lendo" foi aberto ainda, cai no editado por último.
  */
-async function findContinueReading() {
+async function findContinueReading(userId: string) {
   const where = {
+    userId,
     status: "READING",
     filePath: { not: null },
   } satisfies Prisma.BookWhereInput;
@@ -50,30 +53,37 @@ async function findContinueReading() {
 
 export default async function Home() {
   /*
-   * Renderiza a cada acesso: sem isso o Next pré-renderiza a home no
-   * build (consultando o banco ali) e ela fica congelada até o próximo
-   * deploy, além de quebrar o build se o banco não estiver acessível.
+   * Ler a sessão já faz a home renderizar a cada acesso (nunca no build).
+   * Visitante vê a apresentação; pedido pendente vai para a tela de espera.
    */
-  await connection();
+  const user = await getCurrentUser();
+
+  if (!user) return <Landing />;
+
+  if (!isApproved(user)) redirect("/aguardando");
+
+  const userId = user.id;
 
   /* As três consultas são independentes: vão juntas ao banco. */
   const [thoughts, books, continueReading] = await Promise.all([
     prisma.$queryRaw<{ title: string; note: string }[]>`
       SELECT title, notes AS note
       FROM "Book"
-      WHERE notes IS NOT NULL
+      WHERE "userId" = ${userId}
+        AND notes IS NOT NULL
         AND TRIM(notes) <> ''
       ORDER BY RANDOM()
       LIMIT 4
     `,
 
     prisma.book.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: 9,
       include: { progress: true },
     }),
 
-    findContinueReading(),
+    findContinueReading(userId),
   ]);
 
   return (

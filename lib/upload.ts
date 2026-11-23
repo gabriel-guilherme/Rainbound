@@ -4,6 +4,7 @@ import {
   BOOK_FILE_TYPES,
   type BookFileExtension,
   formatFileSize,
+  buildUploadedBookPath,
   getBookFileExtension,
   isUploadedBookPath,
   MAX_BOOK_FILE_SIZE,
@@ -54,7 +55,11 @@ export async function uploadBookCover(file: File) {
 /* Prazo para o navegador começar o envio depois de receber a URL. */
 const UPLOAD_URL_EXPIRES_IN = 30 * 60;
 
-export async function createBookUploadUrl(fileName: string, size: number) {
+export async function createBookUploadUrl(
+  userId: string,
+  fileName: string,
+  size: number,
+) {
   const extension = getBookFileExtension(fileName);
 
   if (!extension) {
@@ -67,7 +72,8 @@ export async function createBookUploadUrl(fileName: string, size: number) {
     );
   }
 
-  const path = `books/${randomUUID()}.${extension}`;
+  /* Cada usuário tem a própria pasta: books/<userId>/<uuid>.<ext>. */
+  const path = buildUploadedBookPath(userId, `${randomUUID()}.${extension}`);
 
   return {
     path,
@@ -77,13 +83,14 @@ export async function createBookUploadUrl(fileName: string, size: number) {
 }
 
 /*
- * Confere se o caminho foi gerado por createBookUploadUrl e se o arquivo
- * realmente existe no bucket dentro do limite de tamanho. A URL de envio
+ * Confere se o caminho foi gerado por createBookUploadUrl PARA ESTE
+ * usuário (pasta dele) e se o arquivo realmente existe no bucket dentro
+ * do limite de tamanho. A URL de envio
  * não trava o tamanho (o R2 não assina Content-Length); a conferência é
  * aqui, e o que passar do limite é apagado.
  */
-export async function verifyUploadedBookFile(path: string) {
-  if (!isUploadedBookPath(path)) {
+export async function verifyUploadedBookFile(path: string, userId: string) {
+  if (!isUploadedBookPath(path, userId)) {
     throw new Error("Caminho de arquivo inválido.");
   }
 

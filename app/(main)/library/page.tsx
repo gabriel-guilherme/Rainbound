@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/session";
 import type { Prisma } from "@/generated/prisma/client";
 
 import { FilterBar } from "@/components/common/FilterBar";
@@ -29,6 +30,8 @@ export default async function BooksPage({
     page?: string;
   }>;
 }) {
+  const { id: userId } = await requireApprovedUser();
+
   const { status, q, sort, view: viewParam, page: pageParam } =
     await searchParams;
   const view = isLibraryView(viewParam) ? viewParam : "spines";
@@ -40,6 +43,7 @@ export default async function BooksPage({
   const statusFilter = isReadingStatus(status) ? status : undefined;
 
   const where: Prisma.BookWhereInput = {
+    userId,
     status: statusFilter,
 
     OR: q
@@ -96,7 +100,7 @@ export default async function BooksPage({
       .map((book) => book.id);
 
     const pageBooks = await prisma.book.findMany({
-      where: { id: { in: pageIds } },
+      where: { id: { in: pageIds }, userId },
       include: { progress: true },
     });
 

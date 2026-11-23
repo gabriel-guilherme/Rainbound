@@ -61,6 +61,16 @@ export function parseReadingProgress(
   };
 }
 
+/* O livro existe e é do usuário (progresso e marcadores pertencem a ele). */
+export async function isOwnBook(bookId: number, userId: string) {
+  const book = await prisma.book.findFirst({
+    where: { id: bookId, userId },
+    select: { id: true },
+  });
+
+  return book !== null;
+}
+
 /* Erro do Prisma quando o bookId não existe (chave estrangeira). */
 export function isMissingBookError(error: unknown) {
   return (

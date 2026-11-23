@@ -2,6 +2,7 @@
 
 import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { getApprovedUserId } from "@/lib/session";
 import {
   cleanupStorage,
   deleteBookCover,
@@ -12,7 +13,21 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+/* Livro do usuário atual; de outra pessoa (ou inexistente) é erro. */
+async function findOwnBook(id: number, userId: string) {
+  const book = Number.isInteger(id)
+    ? await prisma.book.findFirst({ where: { id, userId } })
+    : null;
+
+  if (!book) {
+    throw new Error("Livro não encontrado.");
+  }
+
+  return book;
+}
+
 export async function updateBook(formData: FormData) {
+  const userId = await getApprovedUserId();
   const id = Number(formData.get("id"));
 
   const title = formData.get("title") as string;
@@ -37,11 +52,7 @@ export async function updateBook(formData: FormData) {
     ? (typeRaw as ContentType)
     : null;
 
-  const current = await prisma.book.findUniqueOrThrow({
-    where: {
-      id,
-    },
-  });
+  const current = await findOwnBook(id, userId);
 
   const data: Parameters<typeof prisma.book.update>[0]["data"] = {
     title,
@@ -86,7 +97,7 @@ export async function updateBook(formData: FormData) {
    */
   if (typeof filePathRaw === "string" && filePathRaw) {
     try {
-      const uploadedFile = await verifyUploadedBookFile(filePathRaw);
+      const uploadedFile = await verifyUploadedBookFile(filePathRaw, userId);
 
       data.filePath = uploadedFile.filePath;
       data.format = uploadedFile.format;
@@ -169,11 +180,12 @@ export async function updateBook(formData: FormData) {
 }
 
 async function removeBook(formData: FormData) {
+  const userId = await getApprovedUserId();
   const id = Number(formData.get("id"));
 
-  const book = await prisma.book.delete({
-    where: { id },
-  });
+  const book = await findOwnBook(id, userId);
+
+  await prisma.book.delete({ where: { id: book.id } });
 
   /*
    * O registro já foi removido; falhas ao limpar o storage

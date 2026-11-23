@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
 import { bookmarkSelect } from "@/lib/readingProgress";
+import { requireApprovedUser } from "@/lib/session";
 import { getBookFileUrl, parseBookId } from "@/lib/utils";
 
 export default async function Read({
@@ -10,15 +11,18 @@ export default async function Read({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id: userId } = await requireApprovedUser();
   const id = parseBookId((await params).id);
 
   if (id === null) {
     notFound();
   }
 
-  const book = await prisma.book.findUnique({
+  /* Livro de outra pessoa responde 404, como se não existisse. */
+  const book = await prisma.book.findFirst({
     where: {
       id,
+      userId,
     },
     include: {
       progress: true,

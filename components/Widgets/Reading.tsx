@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/prisma";
+import { requireApprovedUser } from "@/lib/session";
 import { getSpineLookForBook, toSpineBook, type SpineBook } from "@/lib/spine";
 
 import WidgetCard from "./WidgetCard";
@@ -24,8 +25,10 @@ function bookHref(book: SpineBook) {
  * - wide: fileira de cartões com capa e barra de progresso.
  */
 export default async function Reading({ variant }: { variant: WidgetVariant }) {
+  const { id: userId } = await requireApprovedUser();
+
   const books = await prisma.book.findMany({
-    where: { status: "READING" },
+    where: { userId, status: "READING" },
     orderBy: { updatedAt: "desc" },
     take: variant === "wide" ? 8 : 5,
     include: { progress: true },
