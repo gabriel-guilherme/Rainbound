@@ -8,27 +8,378 @@
   --color-interaction-contrast: #114d4d;
   --color-interaction: #6e9987;
   --color-contrast: #e0e4ce;
+  --color-danger: #d4a09a;
+}
 
-  /* =========================
-     Fontes — Serif
-     ========================= */
+/*
+ * Fontes carregadas via next/font em app/layout.tsx.
+ * display: condensada das lombadas e títulos; sans: interface;
+ * reading: texto corrido (notas e leitor).
+ */
+@theme inline {
+  --font-display: var(--font-big-shoulders), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-instrument-sans), system-ui, sans-serif;
+  --font-reading: var(--font-eb-garamond), Georgia, serif;
+}
 
-  --font-cormorant: "Cormorant Garamond", serif;
-  --font-instrument: "Instrument Serif", serif;
-  --font-lora: "Lora", serif;
-  --font-dm-serif: "DM Serif Display", serif;
-  --font-playfair: "Playfair Display", serif;
+/* Títulos no estilo estante: condensada, caixa alta, entrelinha curta. */
+@utility title-shelf {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+}
 
-  /* =========================
-     Fontes — Sans
-     ========================= */
+/* Tábua da prateleira: borda grossa embaixo + sombra dura. */
+@utility shelf-plank {
+  border-bottom: 12px solid var(--color-primary);
+  box-shadow: 0 6px 0 -1px rgb(0 0 0 / 0.5);
+}
 
-  --font-inter: "Inter", sans-serif;
-  --font-manrope: "Manrope", sans-serif;
-  --font-dm-sans: "DM Sans", sans-serif;
-  --font-jakarta: "Plus Jakarta Sans", sans-serif;
-  --font-geist: "Geist", sans-serif;
+/* Base dos botões: cantos retos, condensada em caixa alta. Cor fica no uso. */
+@utility btn-shelf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    color 150ms,
+    box-shadow 150ms;
+}
 
-  --font-display: "Lora", serif;
-  --font-sans: "Manrope", sans-serif;
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-interaction-contrast);
+    color: var(--color-contrast);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-interaction);
+    outline-offset: 2px;
+  }
+
+  /* Opções de <select> legíveis no tema escuro */
+  option {
+    background-color: var(--color-secondary);
+    color: var(--color-contrast);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*
+ * Lombadas (components/common/BookSpine.tsx). Tamanho, cores e progresso
+ * chegam por variáveis CSS calculadas em lib/spine.ts.
+ */
+@layer components {
+  .spine {
+    position: relative;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: var(--spine-w);
+    height: var(--spine-h);
+    padding: 12px 0 10px;
+    background: var(--spine-bg);
+    color: var(--spine-fg);
+    box-shadow:
+      inset 3px 0 0 rgb(255 255 255 / 0.07),
+      inset -5px 0 7px rgb(0 0 0 / 0.35);
+    transition: transform 250ms ease;
+    cursor: pointer;
+  }
+
+  /*
+   * Levanta ao passar o mouse só em aparelhos com mouse: no toque o
+   * :hover fica preso depois de tocar e o livro continuaria flutuando.
+   */
+  @media (hover: hover) {
+    .spine:hover {
+      transform: translateY(-14px);
+    }
+  }
+
+  .spine:focus-visible {
+    transform: translateY(-14px);
+  }
+
+  .spine[data-selected="true"] {
+    transform: translateY(-22px);
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 0;
+  }
+
+  /*
+   * Abandonado: tomba para a esquerda apoiado no canto de baixo à direita;
+   * a margem abre espaço para não invadir a lombada vizinha.
+   */
+  .spine[data-tilt="true"] {
+    /*
+     * Girando no canto de baixo à direita, o canto de baixo à esquerda
+     * desce largura × sen(7°) e entraria na tábua; sobe essa medida.
+     */
+    --tilt-rise: calc(var(--spine-w) * -0.122);
+    transform: translateY(var(--tilt-rise)) rotate(-7deg);
+    transform-origin: bottom right;
+    margin-left: calc(var(--spine-h) * 0.13);
+  }
+
+  @media (hover: hover) {
+    .spine[data-tilt="true"]:hover {
+      transform: translateY(calc(var(--tilt-rise) - 12px)) rotate(-7deg);
+    }
+  }
+
+  .spine[data-tilt="true"]:focus-visible,
+  .spine[data-tilt="true"][data-selected="true"] {
+    transform: translateY(calc(var(--tilt-rise) - 12px)) rotate(-7deg);
+  }
+
+  /*
+   * Acabou de sair da seleção: volta para a prateleira mesmo com o mouse
+   * ainda em cima ou com foco, até o ponteiro sair (ver Bookcase.tsx).
+   */
+  .spine[data-released="true"],
+  .spine[data-released="true"]:hover,
+  .spine[data-released="true"]:focus-visible {
+    transform: none;
+  }
+
+  .spine[data-released="true"][data-tilt="true"],
+  .spine[data-released="true"][data-tilt="true"]:hover,
+  .spine[data-released="true"][data-tilt="true"]:focus-visible {
+    transform: translateY(var(--tilt-rise)) rotate(-7deg);
+  }
+
+  .spine-static,
+  .spine-static:hover {
+    cursor: default;
+    transform: none;
+  }
+
+  .spine-bands {
+    position: absolute;
+    inset: 6px 0 auto;
+    height: 4px;
+    border-block: 1px solid currentColor;
+    opacity: 0.3;
+  }
+
+  .spine-title,
+  .spine-author {
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .spine-title {
+    /* Reserva o pé da lombada para o sobrenome (ver .spine-author). */
+    max-height: calc(var(--spine-h) - 84px);
+    font-family: var(--font-display);
+    font-size: var(--spine-fs);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    text-overflow: ellipsis;
+  }
+
+  .spine-author {
+    max-height: 48px;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    opacity: 0.72;
+  }
+
+  .spine-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    height: var(--spine-p);
+    background: var(--spine-accent);
+  }
+
+  /* Fita de marcador saindo por cima (livros em leitura). */
+  .spine-mark {
+    position: absolute;
+    top: -16px;
+    left: 58%;
+    width: 9px;
+    height: 26px;
+    background: var(--spine-accent);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  }
+
+  /*
+   * Estante com várias prateleiras: cada linha do flex-wrap cai sobre
+   * uma tábua desenhada no fundo. O período do gradiente é a altura de
+   * uma linha (slot + tábua) mais o row-gap.
+   */
+  .bookcase {
+    --slot: 236px;
+    --plank: 12px;
+    /* Espaço para a lombada selecionada subir sem tocar a tábua de cima. */
+    --row-gap: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    align-content: flex-start;
+    column-gap: 3px;
+    row-gap: var(--row-gap);
+    padding: 18px 16px 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(var(--slot) + 18px),
+      var(--color-primary) calc(var(--slot) + 18px)
+        calc(var(--slot) + 18px + var(--plank)),
+      rgb(0 0 0 / 0.55) calc(var(--slot) + 18px + var(--plank))
+        calc(var(--slot) + 22px + var(--plank)),
+      transparent calc(var(--slot) + 22px + var(--plank))
+        calc(var(--slot) + var(--plank) + var(--row-gap))
+    );
+  }
+
+  .bookcase-slot {
+    display: flex;
+    align-items: flex-end;
+    height: var(--slot);
+    margin-bottom: var(--plank);
+  }
+
+  /* No celular a estante encolhe para caber mais livros por prateleira. */
+  @media (max-width: 639px) {
+    .bookcase {
+      zoom: 0.8;
+    }
+  }
+}
+
+/* Keep the reader inside the viewport that the mobile browser currently exposes. */
+.reader-shell {
+   height: 100vh;
+   height: 100dvh;
+   min-height: 0;
+   overscroll-behavior: none;
+}
+
+.reader-header {
+   padding-top: env(safe-area-inset-top);
+   height: calc(4rem + env(safe-area-inset-top));
+}
+
+.reader-footer {
+   padding-bottom: env(safe-area-inset-bottom);
+   height: calc(2.5rem + env(safe-area-inset-bottom));
+}
+
+/*
+ * Modo imersivo (celular): sem cabeçalho e rodapé, o conteúdo respeita
+ * o entalhe e a barra de gestos do aparelho.
+ */
+@media (max-width: 639px) {
+   .reader-immersive {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+   }
+}
+
+.reader-immersive-exit {
+   top: calc(0.5rem + env(safe-area-inset-top));
+}
+
+@media (min-width: 640px) {
+   .reader-header {
+      height: 5rem;
+   }
+
+   .reader-footer {
+      height: 3rem;
+   }
+}
+
+/*
+ * Temas do leitor (Configurações → Tema). Redefinem as cores do tema só
+ * dentro do leitor: todas as classes bg-darkest, text-contrast, ... de
+ * cabeçalho, painéis e rodapé acompanham. "night" repete as cores do
+ * @theme para que a amostra dele funcione dentro de outro tema.
+ */
+[data-reader-theme="night"] {
+   --color-darkest: #080c0d;
+   --color-primary: #27191c;
+   --color-secondary: #2d3839;
+   --color-interaction: #6e9987;
+   --color-contrast: #e0e4ce;
+   --color-danger: #d4a09a;
+}
+
+[data-reader-theme="sepia"] {
+   --color-darkest: #efe4cc;
+   --color-primary: #e3d4b4;
+   --color-secondary: #d6c5a2;
+   --color-interaction: #4f7565;
+   --color-contrast: #3a2e22;
+   --color-danger: #9a4b3c;
+}
+
+[data-reader-theme="light"] {
+   --color-darkest: #f6f5f0;
+   --color-primary: #e8e6dd;
+   --color-secondary: #dad8ce;
+   --color-interaction: #3f6b5c;
+   --color-contrast: #1f2424;
+   --color-danger: #a24a3e;
+}
+
+/* Amostra do tema: fundo da página com uma faixa da cor do texto. */
+.reader-theme-swatch {
+   background: linear-gradient(
+      to right,
+      var(--color-darkest) 65%,
+      var(--color-contrast) 65%
+   );
+}
+
+/* PDF em sépia: o papel branco ganha o tom do tema. */
+[data-reader-theme="sepia"] .reader-pdf-page canvas {
+   filter: sepia(0.45) brightness(0.97);
 }

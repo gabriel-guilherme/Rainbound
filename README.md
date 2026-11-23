@@ -30,8 +30,11 @@ The project was built as a full-stack application, combining a responsive fronte
 
 - Responsive personal book library
 - Book cards with cover images
-- Search by title or author
+- Search by title or creator
 - Filter books by reading status
+- Reader bookmarks: forward-only "where I stopped" plus named bookmarks
+- Customizable home widgets: two carousels with tabs; each widget has a wide
+  (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
 - Reading statuses:
   - Want to read
@@ -59,6 +62,8 @@ The project was built as a full-stack application, combining a responsive fronte
 - **Tailwind CSS 4**
 - **Lucide Icons**
 - **lucide-react-motion**
+- **Motion** — scroll animations (home)
+- **DOMPurify** — sanitizes EPUB chapters before rendering
 
 ### Database
 
@@ -146,6 +151,9 @@ Create a local `.env` file with the required environment variables:
 DATABASE_URL=
 DIRECT_URL=
 
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -225,15 +233,29 @@ npm run start     # Start the production server
 
 ```text
 app/
-├── books/              Book pages and server actions
-└── ...
+├── (main)/             Pages with Navbar and Footer
+│   ├── dashboard/      Dashboard
+│   └── library/        Library list, new book, book details and server actions
+├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
+├── read/[id]/          In-app reader
+└── read/actions.ts     Reading progress and bookmark server actions
 
-components/             Reusable UI components
+components/             Reusable UI components (Reader, Home, Widgets, forms, common...)
+└── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
 ├── prisma.ts            Prisma client configuration
-├── upload.ts            Cloudinary integration
-└── ...
+├── supabase.ts          Supabase client (book file storage)
+├── cloudinary.ts        Cloudinary configuration
+├── upload.ts            Cover and book file uploads
+├── spine.ts             Bookshelf spine look (color, width, height)
+├── readingProgress.ts   Reading progress (forward-only) and bookmark validation
+├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
+├── comicCompression.ts  Browser-side CBZ page compression before upload
+├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files
+├── dashboardLayout.ts   Home widget layout (tabs, widgets, cookie parsing)
+├── swipe.ts             Touch swipe gesture (reader and widget carousel)
+└── utils.ts             Signed URLs and file format helpers
 
 prisma/
 ├── schema.prisma        Database schema

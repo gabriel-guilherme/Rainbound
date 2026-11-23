@@ -1,0 +1,51 @@
+"use client";
+
+import { Search } from "lucide-react";
+import { useRef, useState } from "react";
+import { toolbarFieldClass as stylePattern } from "@/components/forms/fieldStyles";
+
+
+export default function SearchInput({
+  q,
+  iconOnly = false,
+}: {
+  q?: string;
+  iconOnly?: boolean;
+}) {
+  const [searchOpen, setSearchOpen] = useState(Boolean(q) && !iconOnly);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  function openSearch() {
+    setSearchOpen(true);
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    });
+  }
+
+  return (
+    <>
+      <input
+        ref={searchInputRef}
+        type="search"
+        name="q"
+        aria-label="Buscar por título ou autor"
+        defaultValue={q ?? ""}
+        placeholder="Buscar por título ou autor..."
+        onChange={(e) => e.target.form?.requestSubmit()}
+        onBlur={() => setSearchOpen(false)}
+        className={`${stylePattern} min-w-0 flex-1 ${searchOpen || !iconOnly ? "block" : "hidden"} ${iconOnly && !searchOpen ? "sm:hidden" : ""}`}
+      />
+      {!searchOpen && (
+        <button
+          type="button"
+          aria-label="Abrir busca"
+          onClick={openSearch}
+          className={`${stylePattern} flex aspect-square items-center justify-center p-0 cursor-pointer ${iconOnly ? "" : "sm:hidden"}`}
+        >
+          <Search size={18} />
+        </button>
+      )}
+    </>
+  );
+}

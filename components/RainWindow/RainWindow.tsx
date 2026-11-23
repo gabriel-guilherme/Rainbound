@@ -13,7 +13,7 @@ type RainWindowProps = {
 };
 
 export default function RainWindow({ isPaused, setIsPaused }: RainWindowProps) {
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   return (
     <div className="relative mx-auto flex max-w-7xl items-center justify-center px-4 py-10">
@@ -32,8 +32,10 @@ export default function RainWindow({ isPaused, setIsPaused }: RainWindowProps) {
           <button
             type="button"
             onClick={() => setIsMuted((prev) => !prev)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white shadow-lg backdrop-blur-md transition-colors hover:bg-black/60"
-            title={isMuted ? "Ligar som" : "Mutar som"}
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-darkest/50 text-contrast shadow-lg backdrop-blur-md transition-colors hover:bg-darkest/70"
+            title={isMuted ? "Ligar som da chuva" : "Silenciar chuva"}
+            aria-label={isMuted ? "Ligar som da chuva" : "Silenciar chuva"}
+            aria-pressed={!isMuted}
           >
             {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
@@ -41,8 +43,10 @@ export default function RainWindow({ isPaused, setIsPaused }: RainWindowProps) {
           <button
             type="button"
             onClick={() => setIsPaused((prev) => !prev)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white shadow-lg backdrop-blur-md transition-colors hover:bg-black/60"
-            title={isPaused ? "Retomar animação" : "Pausar animação"}
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-darkest/50 text-contrast shadow-lg backdrop-blur-md transition-colors hover:bg-darkest/70"
+            title={isPaused ? "Retomar chuva" : "Pausar chuva"}
+            aria-label={isPaused ? "Retomar chuva" : "Pausar chuva"}
+            aria-pressed={isPaused}
           >
             {isPaused ? <Play size={18} /> : <Pause size={18} />}
           </button>
