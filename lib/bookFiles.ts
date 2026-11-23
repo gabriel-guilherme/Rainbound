@@ -17,10 +17,11 @@ export const BOOK_FILE_TYPES = {
 export type BookFileExtension = keyof typeof BOOK_FILE_TYPES;
 
 /*
- * Limite do bucket "ebooks" no Supabase (50 MB). Usa base decimal
- * para ficar sempre um pouco abaixo do limite real do bucket.
+ * Limite por arquivo no R2 (200 MB, base decimal). O R2 aceitaria muito
+ * mais; o limite é do app, para downloads e o cache do navegador.
+ * Conferido no servidor depois do envio (verifyUploadedBookFile).
  */
-export const MAX_BOOK_FILE_SIZE = 50 * 1000 * 1000;
+export const MAX_BOOK_FILE_SIZE = 200 * 1000 * 1000;
 
 /*
  * CBZ escolhido no formulário (antes da compressão no navegador, ver

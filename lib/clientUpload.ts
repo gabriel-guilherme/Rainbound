@@ -36,20 +36,14 @@ export async function uploadBookFileDirect(file: File) {
     throw new UploadError("Não foi possível preparar o envio do arquivo.");
   }
 
-  /*
-   * Mesmo formato que o supabase-js usa em uploadToSignedUrl.
-   */
-  const body = new FormData();
-  body.append("cacheControl", "3600");
-  body.append("", file);
-
+  /* PUT do arquivo puro na URL pré-assinada do R2. */
   let response: Response;
 
   try {
     response = await fetch(upload.signedUrl, {
       method: "PUT",
-      headers: { "x-upsert": "false" },
-      body,
+      headers: { "Content-Type": upload.contentType },
+      body: file,
     });
   } catch {
     throw new UploadError(
@@ -58,16 +52,7 @@ export async function uploadBookFileDirect(file: File) {
   }
 
   if (!response.ok) {
-    const detail = await response
-      .json()
-      .then((data: { message?: string }) => data.message)
-      .catch(() => undefined);
-
-    throw new UploadError(
-      detail?.includes("maximum allowed size")
-        ? `O arquivo é maior que o limite do storage (${formatFileSize(MAX_BOOK_FILE_SIZE)}).`
-        : "Não foi possível enviar o arquivo do livro.",
-    );
+    throw new UploadError("Não foi possível enviar o arquivo do livro.");
   }
 
   return upload.path;

@@ -1,7 +1,7 @@
 /*
  * Cache de arquivos de livro no navegador (Cache API), para não baixar
- * o mesmo CBZ/EPUB do storage a cada leitura (economiza o tráfego do
- * Supabase e abre na hora).
+ * o mesmo CBZ/EPUB do storage (R2) a cada leitura: abre na hora e
+ * poupa a rede.
  *
  * - A chave usa o caminho do arquivo (sem o token da URL assinada, que
  *   muda a cada visita). Trocar o arquivo gera caminho novo.

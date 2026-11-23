@@ -15,7 +15,7 @@ import { redirect } from "next/navigation";
 
 /*
  * Gera a URL assinada para o navegador enviar o arquivo do livro
- * direto ao Supabase Storage.
+ * direto ao R2.
  */
 export async function requestBookUpload(fileName: string, size: number) {
   return createBookUploadUrl(String(fileName), Number(size));

@@ -9,7 +9,7 @@ import {
   MAX_BOOK_FILE_SIZE,
 } from "./bookFiles";
 import cloudinary from "./cloudinary";
-import supabase from "./supabase";
+import { deleteObject, getObjectSize, presignObjectUrl } from "./r2";
 
 export async function uploadBookCover(file: File) {
   const bytes = await file.arrayBuffer();
@@ -47,11 +47,12 @@ export async function uploadBookCover(file: File) {
  * ==========================================
  *
  * O arquivo não passa pelo servidor: a Vercel limita o corpo das
- * requisições a ~4,5 MB. O servidor só gera uma URL assinada de upload
- * e, depois, confere o arquivo que chegou ao bucket.
+ * requisições a ~4,5 MB. O servidor só gera uma URL pré-assinada de
+ * upload no R2 e, depois, confere o arquivo que chegou ao bucket.
  */
 
-const BOOKS_BUCKET = "ebooks";
+/* Prazo para o navegador começar o envio depois de receber a URL. */
+const UPLOAD_URL_EXPIRES_IN = 30 * 60;
 
 export async function createBookUploadUrl(fileName: string, size: number) {
   const extension = getBookFileExtension(fileName);
@@ -68,38 +69,31 @@ export async function createBookUploadUrl(fileName: string, size: number) {
 
   const path = `books/${randomUUID()}.${extension}`;
 
-  const { data, error } = await supabase.storage
-    .from(BOOKS_BUCKET)
-    .createSignedUploadUrl(path);
-
-  if (error || !data) {
-    throw new Error(`Falha ao preparar o upload: ${error?.message}`);
-  }
-
   return {
-    path: data.path,
-    signedUrl: data.signedUrl,
+    path,
+    signedUrl: await presignObjectUrl(path, "PUT", UPLOAD_URL_EXPIRES_IN),
+    contentType: BOOK_FILE_TYPES[extension].contentType,
   };
 }
 
 /*
  * Confere se o caminho foi gerado por createBookUploadUrl e se o arquivo
- * realmente existe no bucket dentro do limite de tamanho.
+ * realmente existe no bucket dentro do limite de tamanho. A URL de envio
+ * não trava o tamanho (o R2 não assina Content-Length); a conferência é
+ * aqui, e o que passar do limite é apagado.
  */
 export async function verifyUploadedBookFile(path: string) {
   if (!isUploadedBookPath(path)) {
     throw new Error("Caminho de arquivo inválido.");
   }
 
-  const { data, error } = await supabase.storage
-    .from(BOOKS_BUCKET)
-    .info(path);
+  const size = await getObjectSize(path);
 
-  if (error || !data) {
+  if (size === null) {
     throw new Error("O arquivo do livro não foi encontrado no storage.");
   }
 
-  if (data.size !== undefined && data.size > MAX_BOOK_FILE_SIZE) {
+  if (size > MAX_BOOK_FILE_SIZE) {
     await cleanupStorage([deleteBookFile(path)]);
 
     throw new Error(
@@ -120,11 +114,7 @@ export async function deleteBookCover(publicId: string) {
 }
 
 export async function deleteBookFile(filePath: string) {
-  const { error } = await supabase.storage.from(BOOKS_BUCKET).remove([filePath]);
-
-  if (error) {
-    throw new Error(`Falha ao remover o arquivo do livro: ${error.message}`);
-  }
+  await deleteObject(filePath);
 }
 
 /*
