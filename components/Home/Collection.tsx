@@ -13,27 +13,18 @@ type CollectionProps = {
   books: SpineBook[];
 };
 
-export default function Collection({ books }: CollectionProps) {
-  const windowRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: windowRef,
-    offset: ["start end", "end start"],
-  });
-
-  // Animação suave
-  const opacity = useTransform(
-    scrollYProgress,
-    [0, 0.3, 0.7, 1],
-    [0, 1, 1, 0],
-  );
+/* Posições na prateleira que mostram a capa de frente, como numa livraria. */
+const FACED_OUT = new Set([0, 4]);
 
 export default function Collection({ books }: CollectionProps) {
   return (
-    <section className="font-sans flex h-screen w-full flex-col justify-center overflow-hidden bg-darkest px-4 py-10 sm:px-8 lg:px-16 xl:px-24 2xl:px-48">
-      <h3 className="shrink-0 text-lg text-contrast opacity-50">
-        YOUR COLLECTION
-      </h3>
+    <section className="flex w-full flex-col overflow-hidden bg-darkest px-4 py-20 sm:px-8 lg:px-16 lg:py-28 xl:px-24 2xl:px-48">
+      <div className="flex min-h-0 w-full flex-col gap-4">
+        <ScrollReveal className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-danger">
+              Sua coleção
+            </p>
 
             <h2 className="title-shelf mt-2 text-5xl text-contrast sm:text-6xl">
               Adicionados recentemente
@@ -56,12 +47,9 @@ export default function Collection({ books }: CollectionProps) {
               Sua estante ainda está vazia.
             </p>
 
-        {/* Livros - Melhor espaçamento e responsividade */}
-        <div className="flex min-h-0 w-full gap-6 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pb-0">
-          {books.map((book) => (
-            <div
-              key={book.id}
-              className="w-[85%] shrink-0 snap-center transition-all duration-300 hover:scale-105 lg:w-auto lg:hover:scale-105"
+            <Link
+              href="/library/new"
+              className="btn-shelf bg-danger text-primary hover:bg-contrast"
             >
               Colocar o primeiro livro
             </Link>
