@@ -39,7 +39,8 @@ The project was built as a full-stack application, combining a responsive fronte
   (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
 - Storage limit per user for book files (1 GB by default, adjustable per user
-  by the admin); deleting a book or replacing its file frees the space in R2
+  by the admin); deleting a book, replacing its file or removing only the file
+  (the book stays on the shelf with its status and progress) frees the space in R2
 - Reading statuses:
   - Want to read
   - Reading

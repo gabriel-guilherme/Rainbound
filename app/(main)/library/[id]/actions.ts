@@ -209,6 +209,37 @@ async function removeBook(formData: FormData) {
 }
 
 /*
+ * Remove só o arquivo do livro (libera o espaço no R2). O livro fica na
+ * estante com status, nota, notas e progresso; passa a ser registrado à
+ * mão (aba Leitura). Os marcadores saem junto: apontam para posições
+ * daquele arquivo.
+ */
+export async function removeBookFile(id: number) {
+  const userId = await getApprovedUserId();
+  const book = await findOwnBook(id, userId);
+
+  if (!book.filePath) {
+    return;
+  }
+
+  await prisma.$transaction([
+    prisma.book.update({
+      where: { id: book.id },
+      data: { filePath: null, format: null, fileSize: null },
+    }),
+    prisma.bookmark.deleteMany({ where: { bookId: book.id } }),
+  ]);
+
+  /* O banco já não aponta para o arquivo; falha ao apagar só vai pro log. */
+  await cleanupStorage([deleteBookFile(book.filePath)]);
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/library");
+  revalidatePath(`/library/${book.id}`);
+}
+
+/*
  * Exclui o livro e permanece na página atual (ex.: menu do card).
  */
 export async function deleteBook(formData: FormData) {

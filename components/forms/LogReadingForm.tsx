@@ -73,9 +73,16 @@ export default function LogReadingForm({
   pageCount,
   progress,
 }: LogReadingFormProps) {
-  /* Páginas por padrão; porcentagem se o último registro foi em %. */
+  /*
+   * Páginas por padrão. Porcentagem se o último registro foi em %, ou se
+   * não há número de páginas mas já existe progresso (ex.: o arquivo foi
+   * removido e o progresso veio do leitor): mostra a % salva em vez de 0.
+   */
   const [mode, setMode] = useState<Mode>(
-    progress?.locator?.startsWith("manual-percent:") ? "percent" : "page",
+    progress?.locator?.startsWith("manual-percent:") ||
+      (!pageCount && (progress?.percentage ?? 0) > 0)
+      ? "percent"
+      : "page",
   );
   const [page, setPage] = useState(String(getInitialPage(pageCount, progress)));
   const [total, setTotal] = useState(pageCount ? String(pageCount) : "");
