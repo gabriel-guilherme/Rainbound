@@ -136,6 +136,87 @@ export async function setReadingProgress(
   });
 }
 
+/// Registro manual (livro lido fora do site)
+
+/*
+ * Página atual (com o total da edição) ou porcentagem, como a pessoa
+ * informou no bloco "Registrar leitura".
+ */
+export type ManualProgressEntry =
+  | { mode: "page"; page: number; pageCount: number }
+  | { mode: "percent"; percentage: number };
+
+/*
+ * Confere o registro manual e monta o progresso a gravar. O `locator`
+ * marca a origem ("manual-page:120" / "manual-percent:45"), para não ser
+ * confundido com uma posição do leitor do site. Na porcentagem, a página
+ * é estimada pelo total já salvo (`pageCount`), se houver.
+ */
+export function parseManualProgress(
+  entry: unknown,
+  savedPageCount: number | null,
+  maxPageCount: number,
+) {
+  if (typeof entry !== "object" || entry === null) {
+    return null;
+  }
+
+  const { mode } = entry as Record<string, unknown>;
+
+  if (mode === "page") {
+    const { page, pageCount } = entry as Record<string, unknown>;
+
+    if (
+      !Number.isInteger(pageCount) ||
+      (pageCount as number) < 1 ||
+      (pageCount as number) > maxPageCount ||
+      !Number.isInteger(page) ||
+      (page as number) < 0 ||
+      (page as number) > (pageCount as number)
+    ) {
+      return null;
+    }
+
+    const total = pageCount as number;
+    const current = page as number;
+
+    return {
+      pageCount: total,
+      currentPosition: current,
+      totalPositions: total,
+      percentage: Math.round((current / total) * 1000) / 10,
+      locator: `manual-page:${current}`,
+    };
+  }
+
+  if (mode === "percent") {
+    const { percentage } = entry as Record<string, unknown>;
+
+    if (
+      typeof percentage !== "number" ||
+      !Number.isFinite(percentage) ||
+      percentage < 0 ||
+      percentage > 100
+    ) {
+      return null;
+    }
+
+    const rounded = Math.round(percentage * 10) / 10;
+
+    return {
+      pageCount: savedPageCount,
+      currentPosition: savedPageCount
+        ? Math.round((rounded / 100) * savedPageCount)
+        : 0,
+      totalPositions: savedPageCount,
+      percentage: rounded,
+      locator: `manual-percent:${rounded}`,
+    };
+  }
+
+  return null;
+}
+
 /// Marcadores
 
 const MAX_BOOKMARK_NAME_LENGTH = 80;

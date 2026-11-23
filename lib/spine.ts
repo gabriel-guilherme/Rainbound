@@ -7,10 +7,10 @@ import type {
 /*
  * Aparência das lombadas na estante.
  *
- * Não há campos no banco para cor ou número de páginas: a cor sai de um
- * hash estável (o mesmo livro tem sempre a mesma cor) e a largura vem do
- * total de posições salvo pelo leitor. Sem esse total, a largura também
- * sai do hash.
+ * Não há campo no banco para a cor: ela sai de um hash estável (o mesmo
+ * livro tem sempre a mesma cor). A largura vem do número de páginas
+ * informado (`pageCount`) ou, sem ele, do total de posições salvo pelo
+ * leitor. Sem nenhum dos dois, a largura também sai do hash.
  */
 
 /* Dados mínimos de um livro para desenhar a lombada e o painel da estante. */
@@ -19,10 +19,11 @@ export type SpineBook = {
   title: string;
   creator: string | null;
   type: ContentType;
-  format: FileFormat;
+  format: FileFormat | null;
   status: ReadingStatus;
   coverUrl: string | null;
   hasFile: boolean;
+  pageCount: number | null;
   percentage: number;
   currentPosition: number;
   totalPositions: number | null;
@@ -74,12 +75,20 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-/* Número aproximado de páginas, ou null se o livro nunca foi aberto. */
+/*
+ * Número de páginas: o informado pela pessoa ou, sem ele, uma
+ * aproximação pelo total de posições do leitor. Null se não há nenhum.
+ */
 export function estimatePages(
-  format: FileFormat,
+  format: FileFormat | null,
   totalPositions: number | null,
+  pageCount: number | null = null,
 ): number | null {
-  if (!totalPositions) {
+  if (pageCount) {
+    return pageCount;
+  }
+
+  if (!format || !totalPositions) {
     return null;
   }
 
@@ -125,7 +134,7 @@ export function getSpineLookForBook(book: SpineBook) {
   return getSpineLook(
     `book-${book.id}`,
     book.type,
-    estimatePages(book.format, book.totalPositions),
+    estimatePages(book.format, book.totalPositions, book.pageCount),
   );
 }
 
@@ -146,10 +155,11 @@ export function toSpineBook(book: {
   title: string;
   creator: string | null;
   type: ContentType;
-  format: FileFormat;
+  format: FileFormat | null;
   status: ReadingStatus;
   coverUrl: string | null;
   filePath: string | null;
+  pageCount: number | null;
   progress: {
     percentage: number;
     currentPosition: number;
@@ -165,6 +175,7 @@ export function toSpineBook(book: {
     status: book.status,
     coverUrl: book.coverUrl,
     hasFile: Boolean(book.filePath),
+    pageCount: book.pageCount,
     percentage: book.status === "READ" ? 100 : (book.progress?.percentage ?? 0),
     currentPosition: book.progress?.currentPosition ?? 0,
     totalPositions: book.progress?.totalPositions ?? null,

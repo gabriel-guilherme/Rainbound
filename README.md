@@ -45,6 +45,9 @@ The project was built as a full-stack application, combining a responsive fronte
   - Abandoned
 
 - Current page and total pages tracking
+- Books without a file (physical, Kindle, other apps): log the current page
+  (or a percentage) by hand on the book page; status moves to "Reading" on the
+  first entry and to "Read" on the last page
 - Reading progress indicator
 - Book ratings
 - Categories
@@ -298,7 +301,7 @@ lib/
 ├── cloudinary.ts        Cloudinary configuration
 ├── upload.ts            Cover and book file uploads
 ├── spine.ts             Bookshelf spine look (color, width, height)
-├── readingProgress.ts   Reading progress (forward-only) and bookmark validation
+├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
 ├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
 ├── comicCompression.ts  Browser-side CBZ page compression before upload
 ├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files

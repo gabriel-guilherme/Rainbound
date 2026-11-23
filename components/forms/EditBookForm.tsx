@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import Link from "next/link";
+import { BookOpen } from "lucide-react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 
 import { updateBook } from "@/app/(main)/library/[id]/actions";
 import {
+  statusColor,
   statusLabel,
   statusOptions,
+  typeLabel,
   typeOptions,
 } from "@/app/(main)/library/types";
 import type {
@@ -18,21 +22,42 @@ import InputBookFile from "./InputBookFile";
 import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
 import { fieldClass as stylePattern, labelClass } from "./fieldStyles";
 
+/*
+ * Página do livro em abas: cabeçalho (capa, título, autor, resumo e
+ * status) e as abas Leitura / Detalhes / Notas.
+ *
+ * Tudo fica num único <form> com salvamento automático; as abas só
+ * escondem os painéis (`hidden`), então todos os campos continuam no
+ * FormData. A aba Leitura recebe o conteúdo pronto em `readingPanel`
+ * (sem <form> próprio, já que formulários não podem ser aninhados) e
+ * seus campos não têm `name`, então não entram no salvamento daqui.
+ */
+
 type EditBookFormProps = {
   book: {
     id: number;
     title: string;
     creator: string | null;
     type: ContentType;
-    format: FileFormat;
+    format: FileFormat | null;
     status: ReadingStatus;
     rating: number | null;
     notes: string | null;
     coverUrl: string | null;
+    filePath: string | null;
   };
+  readingPanel: ReactNode;
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+
+const TABS = [
+  { id: "reading", label: "Leitura" },
+  { id: "details", label: "Detalhes" },
+  { id: "notes", label: "Notas" },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
 
 const DEFAULT_SAVE_ERROR = "Não foi possível salvar. Tente de novo.";
 
@@ -43,11 +68,27 @@ const saveStateLabel: Record<SaveState, string> = {
   error: DEFAULT_SAVE_ERROR,
 };
 
-export default function EditBookForm({ book }: EditBookFormProps) {
+function ratingStars(rating: number | null) {
+  if (!rating) {
+    return null;
+  }
+
+  const value = Math.min(Math.max(Math.round(rating), 0), 5);
+
+  return "★".repeat(value) + "☆".repeat(5 - value);
+}
+
+export default function EditBookForm({ book, readingPanel }: EditBookFormProps) {
+  const [tab, setTab] = useState<TabId>("reading");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveError, setSaveError] = useState(DEFAULT_SAVE_ERROR);
   const [savingLabel, setSavingLabel] = useState("");
   const [, startTransition] = useTransition();
+  const tabRefs = useRef<Record<TabId, HTMLButtonElement | null>>({
+    reading: null,
+    details: null,
+    notes: null,
+  });
 
   function save(form: HTMLFormElement | null) {
     if (!form) {
@@ -82,6 +123,48 @@ export default function EditBookForm({ book }: EditBookFormProps) {
     });
   }
 
+  /* Setas e Home/End movem entre as abas (padrão de tablist). */
+  function handleTabKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
+    const index = TABS.findIndex((item) => item.id === tab);
+    const last = TABS.length - 1;
+    const next =
+      event.key === "ArrowRight"
+        ? (index + 1) % TABS.length
+        : event.key === "ArrowLeft"
+          ? (index - 1 + TABS.length) % TABS.length
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? last
+              : null;
+
+    if (next === null) {
+      return;
+    }
+
+    event.preventDefault();
+    setTab(TABS[next].id);
+    tabRefs.current[TABS[next].id]?.focus();
+  }
+
+  const stars = ratingStars(book.rating);
+
+  const saveStatus = (
+    <p
+      role="status"
+      aria-live="polite"
+      className={`text-xs font-normal ${
+        saveState === "error" ? "text-danger" : "text-contrast/45"
+      }`}
+    >
+      {saveState === "error"
+        ? saveError
+        : saveState === "saving" && savingLabel
+          ? savingLabel
+          : saveStateLabel[saveState]}
+    </p>
+  );
+
   return (
     <form
       onSubmit={(e) => {
@@ -94,60 +177,139 @@ export default function EditBookForm({ book }: EditBookFormProps) {
 
         /*
          * Campos de texto salvam ao perder o foco. Selects e arquivos
-         * salvam no onChange (ver abaixo).
+         * salvam no onChange (ver abaixo). Campos sem `name` (registro
+         * de leitura) não fazem parte deste formulário.
          */
         if (
-          (target.tagName === "INPUT" && target.type !== "file") ||
-          target.tagName === "TEXTAREA"
+          target.name &&
+          ((target.tagName === "INPUT" && target.type !== "file") ||
+            target.tagName === "TEXTAREA")
         ) {
           save(e.currentTarget);
         }
       }}
-      className="grid w-full grid-cols-1 gap-8 md:grid-cols-[40%_minmax(0,1fr)] md:gap-16 lg:gap-24"
+      className="flex w-full flex-col gap-8"
     >
       <input type="hidden" name="id" value={book.id} />
 
-      {/* Coluna da esquerda */}
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
+      {/* Cabeçalho */}
+      <header className="grid grid-cols-[100px_minmax(0,1fr)] items-end gap-4 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-8">
+        <div className="relative flex aspect-[3/4] w-full flex-col shadow-[5px_5px_0_rgb(0_0_0/0.45)]">
+          <InputBookCover
+            src={book.coverUrl ?? ""}
+            alt={`Capa de ${book.title}`}
+            onFileSelected={(input) => save(input.form)}
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-2 sm:gap-3">
           <input
             type="text"
             name="title"
             defaultValue={book.title}
             aria-label="Título"
             required
-            className="title-shelf -mx-2 border border-transparent bg-transparent px-2 text-5xl text-contrast outline-none transition-colors hover:border-contrast/15 focus:border-interaction"
+            className="title-shelf -mx-2 min-w-0 border border-transparent bg-transparent px-2 text-4xl text-contrast outline-none transition-colors hover:border-contrast/15 focus:border-interaction sm:text-6xl lg:text-7xl"
           />
 
-          <input
-            type="text"
-            name="creator"
-            defaultValue={book.creator ?? ""}
-            aria-label="Autor"
-            placeholder="Autor"
-            required
-            className="-mx-2 border border-transparent bg-transparent px-2 text-base text-contrast/70 outline-none transition-colors placeholder:text-contrast/35 hover:border-contrast/15 focus:border-interaction"
-          />
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-contrast/70 sm:text-[15px]">
+            <input
+              type="text"
+              name="creator"
+              defaultValue={book.creator ?? ""}
+              aria-label="Autor"
+              placeholder="Autor"
+              required
+              size={Math.max((book.creator ?? "").length, 6)}
+              className="-mx-2 max-w-full border border-transparent bg-transparent px-2 py-0.5 text-contrast/70 outline-none transition-colors placeholder:text-contrast/35 hover:border-contrast/15 focus:border-interaction"
+            />
+
+            <span aria-hidden="true">·</span>
+            <span>{typeLabel[book.type]}</span>
+
+            {stars && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span aria-label={`Nota ${book.rating} de 5`}>{stars}</span>
+              </>
+            )}
+
+            <span className="inline-flex items-center gap-1.5 bg-secondary px-2 py-1 text-xs font-medium text-contrast">
+              <span
+                aria-hidden="true"
+                className={`size-2 rounded-full ${statusColor[book.status]}`}
+              />
+              {statusLabel[book.status]}
+            </span>
+
+            {book.filePath && (
+              <Link
+                href={`/read/${book.id}`}
+                className="btn-shelf ml-auto bg-danger text-primary hover:bg-contrast max-sm:w-full"
+              >
+                <BookOpen size={18} aria-hidden="true" />
+                Ler agora
+              </Link>
+            )}
+          </div>
         </div>
+      </header>
 
-        <div className="relative mx-auto flex aspect-[3/4] w-full max-w-64 flex-col gap-3 md:mx-0 md:max-w-none">
-          <InputBookCover
-            src={book.coverUrl ?? ""}
-            alt={`Capa de ${book.title}`}
-            onFileSelected={(input) => save(input.form)}
-          />
+      {/* Abas */}
+      <div
+        role="tablist"
+        aria-label="Seções do livro"
+        className="flex border-b border-contrast/15 sm:gap-1"
+      >
+        {TABS.map((item) => {
+          const selected = tab === item.id;
 
-          <InputBookFile
-            label={`Substituir arquivo (${book.format})`}
-            onFileSelected={(input) => save(input.form)}
-          />
-        </div>
-      </section>
+          return (
+            <button
+              key={item.id}
+              ref={(element) => {
+                tabRefs.current[item.id] = element;
+              }}
+              type="button"
+              role="tab"
+              id={`tab-${item.id}`}
+              aria-selected={selected}
+              aria-controls={`panel-${item.id}`}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setTab(item.id)}
+              onKeyDown={handleTabKeyDown}
+              className={`title-shelf -mb-px flex-1 border-b-[3px] px-0 py-3 text-xl transition-colors sm:flex-none sm:px-6 sm:text-2xl ${
+                selected
+                  ? "border-danger text-contrast"
+                  : "border-transparent text-contrast/55 hover:text-contrast"
+              }`}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Coluna da direita */}
-      <div className="flex w-full flex-col justify-center">
-        <div className="flex w-full flex-col gap-6 text-sm font-medium text-contrast">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Leitura */}
+      <div
+        role="tabpanel"
+        id="panel-reading"
+        aria-labelledby="tab-reading"
+        hidden={tab !== "reading"}
+      >
+        {readingPanel}
+      </div>
+
+      {/* Detalhes */}
+      <div
+        role="tabpanel"
+        id="panel-details"
+        aria-labelledby="tab-details"
+        hidden={tab !== "details"}
+        className="mx-auto w-full max-w-3xl"
+      >
+        <div className="flex flex-col gap-6 text-sm font-medium text-contrast">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="flex flex-col">
               <label htmlFor="type" className={labelClass}>
                 Tipo
@@ -167,15 +329,18 @@ export default function EditBookForm({ book }: EditBookFormProps) {
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_25%]">
             <div className="flex flex-col">
               <label htmlFor="status" className={labelClass}>
                 Status
               </label>
 
+              {/*
+                * A chave recria o select quando o status muda por fora
+                * (registro de leitura), para ele não regravar o antigo.
+                */}
               <select
+                key={book.status}
                 id="status"
                 name="status"
                 defaultValue={book.status}
@@ -208,33 +373,45 @@ export default function EditBookForm({ book }: EditBookFormProps) {
           </div>
 
           <div className="flex flex-col">
-            <label htmlFor="notes" className={labelClass}>
-              Notas
-            </label>
+            <span className={labelClass}>Arquivo</span>
 
-            <textarea
-              id="notes"
-              name="notes"
-              defaultValue={book.notes ?? ""}
-              rows={7}
-              placeholder="Impressões, trechos marcantes, lembretes..."
-              className={`${stylePattern} resize-y align-top font-reading text-lg italic`}
+            <InputBookFile
+              label={
+                book.format
+                  ? `Substituir arquivo (${book.format})`
+                  : "Adicionar arquivo para ler no site"
+              }
+              onFileSelected={(input) => save(input.form)}
             />
           </div>
 
-          <p
-            role="status"
-            aria-live="polite"
-            className={`text-xs font-normal ${
-              saveState === "error" ? "text-danger" : "text-contrast/45"
-            }`}
-          >
-            {saveState === "error"
-              ? saveError
-              : saveState === "saving" && savingLabel
-                ? savingLabel
-                : saveStateLabel[saveState]}
-          </p>
+          {saveStatus}
+        </div>
+      </div>
+
+      {/* Notas */}
+      <div
+        role="tabpanel"
+        id="panel-notes"
+        aria-labelledby="tab-notes"
+        hidden={tab !== "notes"}
+        className="mx-auto w-full max-w-3xl"
+      >
+        <div className="flex flex-col gap-3 text-sm font-medium text-contrast">
+          <label htmlFor="notes" className="sr-only">
+            Notas
+          </label>
+
+          <textarea
+            id="notes"
+            name="notes"
+            defaultValue={book.notes ?? ""}
+            rows={12}
+            placeholder="Impressões, trechos marcantes, lembretes..."
+            className={`${stylePattern} resize-y align-top font-reading text-lg italic`}
+          />
+
+          {saveStatus}
         </div>
       </div>
     </form>
