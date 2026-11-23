@@ -37,18 +37,15 @@ export default function BookPoster(book: BookPosterProps) {
       </div>
 
       <div className="group/cover relative aspect-[7/10] w-full flex-1">
-        {book.filePath ? (
-          <Link
-            href={`/read/${book.id}`}
-            aria-label={`Ler ${book.title}`}
-            title={`Ler ${book.title}`}
-            className="absolute inset-0"
-          >
-            {cover}
-          </Link>
-        ) : (
-          cover
-        )}
+        {/* Sem arquivo: abre a página do livro, onde se registra a leitura. */}
+        <Link
+          href={book.filePath ? `/read/${book.id}` : `/library/${book.id}`}
+          aria-label={book.filePath ? `Ler ${book.title}` : `Abrir ${book.title}`}
+          title={book.filePath ? `Ler ${book.title}` : `Abrir ${book.title}`}
+          className="absolute inset-0"
+        >
+          {cover}
+        </Link>
 
         <span className="pointer-events-none absolute right-2 top-2 z-10 inline-flex items-center gap-1.5 whitespace-nowrap bg-darkest/85 px-2 py-1 text-xs font-medium text-contrast">
           <span

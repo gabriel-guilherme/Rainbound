@@ -129,3 +129,19 @@ export function buildLibraryHref(params: LibraryParams) {
 
   return query ? `/library?${query}` : "/library";
 }
+
+/*
+ * Número de páginas da edição (registro manual de leitura). Vazio ou
+ * inválido vira null; o limite só barra valores absurdos.
+ */
+export const MAX_PAGE_COUNT = 100_000;
+
+export function parsePageCount(value: unknown): number | null {
+  const count = typeof value === "string" ? Number(value) : value;
+
+  return Number.isInteger(count) &&
+    (count as number) >= 1 &&
+    (count as number) <= MAX_PAGE_COUNT
+    ? (count as number)
+    : null;
+}

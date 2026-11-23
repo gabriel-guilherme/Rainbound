@@ -6,7 +6,13 @@ import { useState } from "react";
 import { createBook } from "../actions";
 import { SubmitButton } from "@/components/common/SubmitButton";
 
-import { statusLabel, statusOptions, typeOptions } from "../types";
+import {
+  MAX_PAGE_COUNT,
+  parsePageCount,
+  statusLabel,
+  statusOptions,
+  typeOptions,
+} from "../types";
 import BookSpine from "@/components/common/BookSpine";
 import type { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { getSpineLook } from "@/lib/spine";
@@ -29,6 +35,7 @@ type BookForm = {
   creator: string;
   type: string;
   format: string;
+  pageCount: string;
   status: string;
   rating: string;
   notes: string;
@@ -41,6 +48,7 @@ export default function NewBookPage() {
     creator: "",
     type: "BOOK",
     format: "",
+    pageCount: "",
     status: "WANT_TO_READ",
     rating: "0",
     notes: "",
@@ -53,6 +61,10 @@ export default function NewBookPage() {
       title: selectedBook.title,
       creator: selectedBook.author_name?.[0] ?? "",
       type: "BOOK",
+      /* Mediana das edições no Open Library: só uma sugestão, editável. */
+      pageCount: selectedBook.number_of_pages_median
+        ? String(selectedBook.number_of_pages_median)
+        : current.pageCount,
       coverUrl: selectedBook.cover_i
         ? `https://covers.openlibrary.org/b/id/${selectedBook.cover_i}-L.jpg`
         : "",
@@ -119,7 +131,12 @@ export default function NewBookPage() {
                 alt={`Capa de ${book.title}`}
               />
 
-              <InputBookFile required />
+              <InputBookFile label="Selecionar arquivo (opcional)" />
+
+              <p className="text-xs text-contrast/55">
+                Vai ler em outro lugar? Cadastre sem arquivo e registre as
+                páginas lidas na página do livro.
+              </p>
             </section>
 
             {/* Prévia de como o livro vai aparecer na estante. */}
@@ -143,7 +160,7 @@ export default function NewBookPage() {
                   look={getSpineLook(
                     book.title || "rascunho",
                     book.type as ContentType,
-                    null,
+                    parsePageCount(book.pageCount),
                   )}
                 />
                 <span className="h-[215px] w-[46px] border border-dashed border-contrast/15" />
@@ -198,6 +215,25 @@ export default function NewBookPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label htmlFor="pageCount" className={labelClass}>
+                  Número de páginas
+                </label>
+
+                <input
+                  type="number"
+                  id="pageCount"
+                  name="pageCount"
+                  min="1"
+                  max={MAX_PAGE_COUNT}
+                  inputMode="numeric"
+                  placeholder="Opcional"
+                  value={book.pageCount}
+                  onChange={(e) => updateField("pageCount", e.target.value)}
+                  className={`${stylePattern} text-center`}
+                />
               </div>
             </div>
 

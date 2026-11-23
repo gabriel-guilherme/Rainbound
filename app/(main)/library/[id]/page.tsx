@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { deleteBookAndRedirect } from "./actions";
 import BackButton from "@/components/common/BackButton";
 import ConfirmSubmitButton from "@/components/common/ConfirmSubmitButton";
+import ProgressBar from "@/components/common/ProgressBar";
 import EditBookForm from "@/components/forms/EditBookForm";
+import LogReadingForm from "@/components/forms/LogReadingForm";
 import { requireApprovedUser } from "@/lib/session";
 import { parseBookId } from "@/lib/utils";
 
@@ -22,20 +24,56 @@ export default async function BookDetailPage({
   }
 
   /* Livro de outra pessoa responde 404, como se não existisse. */
-  const book = await prisma.book.findFirst({ where: { id, userId } });
+  const book = await prisma.book.findFirst({
+    where: { id, userId },
+    include: { progress: true },
+  });
 
   if (!book) {
     notFound();
   }
+
+  /*
+   * Aba Leitura: sem arquivo, o livro é lido fora do site e o progresso
+   * é anotado à mão; com arquivo, o progresso vem do leitor.
+   */
+  const readingPanel = book.filePath ? (
+    <section
+      aria-label="Progresso de leitura"
+      className="mx-auto flex w-full max-w-2xl flex-col gap-5 pt-2"
+    >
+      <ProgressBar
+        percentage={book.status === "READ" ? 100 : (book.progress?.percentage ?? 0)}
+      />
+
+      <p className="text-sm text-contrast/60">
+        O progresso é salvo pelo leitor do site enquanto você lê.
+      </p>
+
+      <Link
+        href={`/read/${book.id}`}
+        className="btn-shelf self-start bg-danger text-primary hover:bg-contrast max-sm:w-full"
+      >
+        <BookOpen size={18} aria-hidden="true" />
+        Continuar lendo
+      </Link>
+    </section>
+  ) : (
+    <LogReadingForm
+      bookId={book.id}
+      pageCount={book.pageCount}
+      progress={book.progress}
+    />
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 pt-32">
       <BackButton />
 
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
-        <EditBookForm book={book} />
+        <EditBookForm book={book} readingPanel={readingPanel} />
 
-        <div className="mt-10 flex flex-col-reverse gap-3 border-t-[12px] border-primary pt-6 md:flex-row md:items-center md:justify-between">
+        <div className="mt-10 border-t-[12px] border-primary pt-6">
           <form action={deleteBookAndRedirect} className="w-full md:w-auto">
             <input type="hidden" name="id" value={book.id} />
             <ConfirmSubmitButton
@@ -45,16 +83,6 @@ export default async function BookDetailPage({
               Excluir livro
             </ConfirmSubmitButton>
           </form>
-
-          {book.filePath && (
-            <Link
-              href={`/read/${book.id}`}
-              className="btn-shelf bg-danger text-primary hover:bg-contrast"
-            >
-              <BookOpen size={18} aria-hidden="true" />
-              Ler agora
-            </Link>
-          )}
         </div>
       </div>
     </div>

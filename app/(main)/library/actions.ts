@@ -14,6 +14,8 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { parsePageCount } from "./types";
+
 /*
  * Gera a URL assinada para o navegador enviar o arquivo do livro
  * direto ao R2.
@@ -41,6 +43,8 @@ export async function createBook(formData: FormData) {
   const filePathRaw = formData.get("filePath");
   const cover = formData.get("cover");
 
+  const pageCount = parsePageCount(formData.get("pageCount"));
+
   if (!title || !creator) {
     throw new Error("Título e criador são obrigatórios");
   }
@@ -56,14 +60,15 @@ export async function createBook(formData: FormData) {
     : ContentType.BOOK;
 
   /*
-   * O arquivo já foi enviado pelo navegador; aqui só conferimos que ele
-   * existe no bucket. O formato vem da extensão do arquivo.
+   * Arquivo é opcional: sem ele, o livro é lido fora do site e o
+   * progresso é registrado à mão. Se veio, já foi enviado pelo navegador;
+   * aqui só conferimos que ele existe no bucket. O formato vem da
+   * extensão do arquivo.
    */
-  if (typeof filePathRaw !== "string" || !filePathRaw) {
-    throw new Error("Arquivo do livro é obrigatório");
-  }
-
-  const { filePath, format } = await verifyUploadedBookFile(filePathRaw, userId);
+  const { filePath, format } =
+    typeof filePathRaw === "string" && filePathRaw
+      ? await verifyUploadedBookFile(filePathRaw, userId)
+      : { filePath: null, format: null };
 
   let coverUrl: string | null = coverUrlFromOpenLibrary || null;
   let coverPublicId: string | null = null;
@@ -89,6 +94,7 @@ export async function createBook(formData: FormData) {
 
         type,
         format,
+        pageCount,
 
         status,
 
@@ -118,7 +124,7 @@ export async function createBook(formData: FormData) {
     const uploadedCoverPublicId = coverPublicId;
 
     await cleanupStorage([
-      deleteBookFile(filePath),
+      ...(filePath ? [deleteBookFile(filePath)] : []),
       ...(uploadedCoverPublicId ? [deleteBookCover(uploadedCoverPublicId)] : []),
     ]);
 

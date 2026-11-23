@@ -33,7 +33,8 @@ export default async function Read({
     },
   });
 
-  if (!book || !book.filePath) {
+  /* Sem arquivo (lido fora do site): não há o que abrir no leitor. */
+  if (!book || !book.filePath || !book.format) {
     notFound();
   }
 

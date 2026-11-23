@@ -160,8 +160,16 @@ model Book {
   creator     String?
   description String?
 
-  type   ContentType
-  format FileFormat
+  type ContentType
+
+  /** Vazio quando o livro não tem arquivo (lido fora do site). */
+  format FileFormat?
+
+  /**
+   * Total de páginas da edição que a pessoa lê (sugerido pelo Open
+   * Library). Usado no registro manual de leitura.
+   */
+  pageCount Int?
 
   rating Int?
   notes  String?
