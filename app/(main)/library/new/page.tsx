@@ -96,8 +96,12 @@ export default function NewBookPage() {
       <BackButton />
 
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
-        <div className="mb-8 flex items-center justify-between gap-6">
-          <h1 className="title-shelf text-5xl text-contrast sm:text-6xl">
+        {/*
+          * Celular: a busca aberta quebra para uma linha própria, com a
+          * largura toda (ao lado do título ela ficaria espremida).
+          */}
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+          <h1 className="title-shelf min-w-0 text-5xl text-contrast max-sm:flex-1 max-sm:basis-0 sm:text-6xl">
             Colocar na estante
           </h1>
 

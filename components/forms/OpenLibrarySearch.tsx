@@ -28,6 +28,33 @@ export default function OpenLibrarySearch({
   const [isLoading, setIsLoading] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * Fecha ao tocar/clicar fora ou com Esc. Não fecha no blur: no
+   * celular, esconder o teclado tira o foco e sumiria com os resultados.
+   */
+  useEffect(() => {
+    if (!searchOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSearchOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [searchOpen]);
 
   useEffect(() => {
     const normalizedQuery = query.trim();
@@ -90,7 +117,13 @@ export default function OpenLibrarySearch({
   }
 
   return (
-    <div className="relative flex min-w-0 flex-1 justify-end">
+    <div
+      ref={rootRef}
+      className={[
+        "relative flex min-w-0 justify-end",
+        searchOpen ? "flex-1 max-sm:basis-full" : "shrink-0",
+      ].join(" ")}
+    >
       {searchOpen ? (
         <div className="relative w-full sm:max-w-sm">
           <input
@@ -106,17 +139,17 @@ export default function OpenLibrarySearch({
                 setIsLoading(false);
               }
             }}
-            onBlur={() => setSearchOpen(false)}
             placeholder="Buscar na Open Library..."
             aria-label="Buscar livros na Open Library"
-            className={`${stylePattern} w-full`}
+            /* 16px no celular: abaixo disso o iPhone dá zoom ao focar. */
+            className={`${stylePattern} w-full max-sm:text-base`}
           />
 
           {(isLoading || books.length > 0) && (
             <div
               role="listbox"
               aria-label="Resultados da Open Library"
-              className="absolute left-0 top-full z-20 mt-2 w-full overflow-hidden bg-contrast shadow-[6px_6px_0_rgb(0_0_0/0.45)]"
+              className="absolute left-0 top-full z-20 mt-2 max-h-[60vh] w-full overflow-y-auto bg-contrast shadow-[6px_6px_0_rgb(0_0_0/0.45)]"
             >
               {isLoading ? (
                 <p className="px-3 py-2 text-sm text-primary/70">
