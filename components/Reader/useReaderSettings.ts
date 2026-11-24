@@ -12,7 +12,7 @@ export const READER_THEMES: { value: ReaderTheme; label: string }[] = [
   { value: "light", label: "Claro" },
 ];
 
-type ZoomLimits = { min: number; max: number; step: number; label: string };
+export type ZoomLimits = { min: number; max: number; step: number; label: string };
 
 /*
  * PDF/CBZ: 100% é a página ajustada à tela.
