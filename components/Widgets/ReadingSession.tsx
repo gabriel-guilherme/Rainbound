@@ -3,7 +3,7 @@
 import CurrentTime from "@/components/ReadingSession/CurrentTime";
 import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
 import SessionPanel from "@/components/ReadingSession/SessionPanel";
-import { useNow } from "@/components/ReadingSession/useNow";
+import { useNow } from "@/lib/useNow";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 
 import WidgetCard from "./WidgetCard";

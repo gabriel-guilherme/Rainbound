@@ -323,6 +323,7 @@ lib/
 ├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files
 ├── dashboardLayout.ts   Home widget layout (tabs, widgets, cookie parsing)
 ├── swipe.ts             Touch swipe gesture (reader and widget carousel)
+├── useNow.ts            Current time hook, one shared 1 s tick (clocks and reading session)
 └── utils.ts             Book file read URL and id parsing
 
 prisma/

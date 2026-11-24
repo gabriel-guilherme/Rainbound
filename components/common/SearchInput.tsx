@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useRef, useState } from "react";
-import { toolbarFieldClass as stylePattern } from "@/components/forms/fieldStyles";
+import { toolbarFieldClass as stylePattern } from "@/components/common/fieldStyles";
 
 
 export default function SearchInput({

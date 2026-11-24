@@ -1,7 +1,7 @@
 "use client";
 
 import { formatClock } from "./sessionTime";
-import { useNow } from "./useNow";
+import { useNow } from "@/lib/useNow";
 
 type CurrentTimeProps = {
   className?: string;

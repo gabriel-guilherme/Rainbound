@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
-import { fieldClass, labelClass } from "@/components/forms/fieldStyles";
+import { fieldClass, labelClass } from "@/components/common/fieldStyles";
 import { authClient, describeAuthError } from "@/lib/authClient";
 
 /*

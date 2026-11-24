@@ -146,3 +146,21 @@ export function parsePageCount(value: unknown): number | null {
     ? (count as number)
     : null;
 }
+
+/*
+ * Abas da página do livro (EditBookForm). `param` é o valor de `?aba=`
+ * na URL (ex.: /library/12?aba=notas); a página, no servidor, lê o
+ * parâmetro com bookTabFromParam.
+ */
+export const BOOK_TABS = [
+  { id: "reading", label: "Leitura", param: "leitura" },
+  { id: "details", label: "Detalhes", param: "detalhes" },
+  { id: "notes", label: "Notas", param: "notas" },
+] as const;
+
+export type BookTabId = (typeof BOOK_TABS)[number]["id"];
+
+/* Aba de `?aba=`; valor ausente ou desconhecido abre a Leitura. */
+export function bookTabFromParam(param: string | string[] | undefined): BookTabId {
+  return BOOK_TABS.find((item) => item.param === param)?.id ?? "reading";
+}

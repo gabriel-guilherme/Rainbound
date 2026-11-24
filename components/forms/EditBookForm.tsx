@@ -6,11 +6,13 @@ import { useRef, useState, useTransition, type ReactNode } from "react";
 
 import { removeBookFile, updateBook } from "@/app/(main)/library/[id]/actions";
 import {
+  BOOK_TABS as TABS,
   statusColor,
   statusLabel,
   statusOptions,
   typeLabel,
   typeOptions,
+  type BookTabId as TabId,
 } from "@/app/(main)/library/types";
 import type {
   ContentType,
@@ -21,8 +23,7 @@ import InputBookCover from "@/components/forms/InputBookCover";
 import InputBookFile from "./InputBookFile";
 import { formatStorageSize } from "@/lib/bookFiles";
 import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
-import { BOOK_TABS as TABS, type BookTabId as TabId } from "./bookTabs";
-import { fieldClass as stylePattern, labelClass } from "./fieldStyles";
+import { fieldClass as stylePattern, labelClass } from "@/components/common/fieldStyles";
 
 /*
  * Página do livro em abas: cabeçalho (capa, título, autor, resumo e

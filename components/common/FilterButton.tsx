@@ -4,7 +4,7 @@ import { ArrowDownUp, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { sortOptions } from "@/app/(main)/library/types";
-import { toolbarFieldClass as stylePattern } from "@/components/forms/fieldStyles";
+import { toolbarFieldClass as stylePattern } from "@/components/common/fieldStyles";
 
 
 export function FilterButton() {

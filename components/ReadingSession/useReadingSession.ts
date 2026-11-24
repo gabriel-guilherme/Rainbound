@@ -14,7 +14,7 @@ import {
   type SessionState,
 } from "./sessionState";
 import { getElapsedMs, getRemainingMs, isSessionActive } from "./sessionTime";
-import { useNow } from "./useNow";
+import { useNow } from "@/lib/useNow";
 
 /*
  * Sessão de leitura no React: o estado salvo (sessionState.ts), a hora do

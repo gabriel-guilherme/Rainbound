@@ -122,7 +122,7 @@ acima do rodapé. Quando o timer acaba, aparece um aviso no topo
 (`SessionFinishedNotice`, sem som) com "Mais 5 min" e "Fechar".
 
 O estado fica no `localStorage` (`sessionState.ts`; cálculo e formatação
-dos tempos em `sessionTime.ts`, tique de 1 s em `useNow.ts`, ações no hook
+dos tempos em `sessionTime.ts`, tique de 1 s em `lib/useNow.ts`, ações no hook
 `useReadingSession`), compartilhado com o
 widget "Sessão" da home: começou no leitor, continua contando lá. Guarda
 horários (quando começou / quando acaba), não contagens, então o tempo
