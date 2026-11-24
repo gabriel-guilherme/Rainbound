@@ -13,7 +13,6 @@ import {
 
 type StorageLimitSelectProps = {
   userId: string;
-  /* Nome para leitores de tela ("Limite de joao.p"). */
   label: string;
   /* null = padrão do app. */
   storageLimitMb: number | null;

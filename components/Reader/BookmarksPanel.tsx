@@ -1,7 +1,7 @@
 "use client";
 
-import { CornerDownRight, MapPinned, RefreshCw, Trash2 } from "lucide-react";
-import { useState, useTransition, type FormEvent } from "react";
+import { Check, CornerDownRight, MapPinned, Pencil, Trash2, X } from "lucide-react";
+import { useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
 
 import type { Bookmark, ReaderProgress } from "./readerTypes";
 
@@ -21,7 +21,7 @@ type BookmarksPanelProps = {
   onGo: (locator: string) => void;
   onSaveHere: () => Promise<void>;
   onCreate: (name: string) => Promise<void>;
-  onMove: (bookmarkId: number) => Promise<void>;
+  onRename: (bookmarkId: number, name: string) => Promise<void>;
   onDelete: (bookmarkId: number) => Promise<void>;
 };
 
@@ -46,10 +46,12 @@ export default function BookmarksPanel({
   onGo,
   onSaveHere,
   onCreate,
-  onMove,
+  onRename,
   onDelete,
 }: BookmarksPanelProps) {
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -79,6 +81,36 @@ export default function BookmarksPanel({
       await onCreate(finalName);
       setName("");
     }, "Não foi possível criar o marcador.");
+  }
+
+  function startEditing(bookmark: Bookmark) {
+    setError("");
+    setEditingId(bookmark.id);
+    setEditName(bookmark.name);
+  }
+
+  function handleRename(event: FormEvent<HTMLFormElement>, bookmark: Bookmark) {
+    event.preventDefault();
+
+    const finalName = editName.trim();
+
+    /* Vazio ou igual: só fecha a edição. */
+    if (!finalName || finalName === bookmark.name) {
+      setEditingId(null);
+      return;
+    }
+
+    run(async () => {
+      await onRename(bookmark.id, finalName);
+      setEditingId(null);
+    }, "Não foi possível renomear o marcador.");
+  }
+
+  function handleEditKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setEditingId(null);
+    }
   }
 
   return (
@@ -132,6 +164,49 @@ export default function BookmarksPanel({
           {bookmarks.map((bookmark) => {
             const isHere = current?.locator === bookmark.locator;
 
+            if (editingId === bookmark.id) {
+              return (
+                <li key={bookmark.id} className="px-1 py-1">
+                  <form
+                    onSubmit={(event) => handleRename(event, bookmark)}
+                    className="flex items-center gap-1"
+                  >
+                    <label htmlFor={`bookmark-name-${bookmark.id}`} className="sr-only">
+                      Novo nome de &quot;{bookmark.name}&quot;
+                    </label>
+                    <input
+                      id={`bookmark-name-${bookmark.id}`}
+                      value={editName}
+                      onChange={(event) => setEditName(event.target.value)}
+                      onKeyDown={handleEditKeyDown}
+                      onFocus={(event) => event.target.select()}
+                      maxLength={80}
+                      autoFocus
+                      className="min-w-0 flex-1 border border-interaction bg-darkest px-2 py-1.5 text-sm text-contrast outline-none max-sm:text-base"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isPending}
+                      aria-label="Salvar nome"
+                      title="Salvar (Enter)"
+                      className={`${iconButtonClass} text-interaction`}
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      aria-label="Cancelar"
+                      title="Cancelar (Esc)"
+                      className={iconButtonClass}
+                    >
+                      <X size={16} />
+                    </button>
+                  </form>
+                </li>
+              );
+            }
+
             return (
               <li
                 key={bookmark.id}
@@ -154,18 +229,13 @@ export default function BookmarksPanel({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    run(
-                      () => onMove(bookmark.id),
-                      "Não foi possível atualizar o marcador.",
-                    )
-                  }
-                  disabled={!current || isHere || isPending}
-                  aria-label={`Mover "${bookmark.name}" para a página atual`}
-                  title="Mover para a página atual"
+                  onClick={() => startEditing(bookmark)}
+                  disabled={isPending}
+                  aria-label={`Editar o nome de "${bookmark.name}"`}
+                  title="Editar nome"
                   className={iconButtonClass}
                 >
-                  <RefreshCw size={15} />
+                  <Pencil size={15} />
                 </button>
 
                 <button

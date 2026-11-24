@@ -5,14 +5,14 @@ import { useState } from "react";
 import {
   createBookmark,
   deleteBookmark,
-  moveBookmark,
+  renameBookmark as renameBookmarkAction,
 } from "@/app/read/actions";
 
 import type { Bookmark, ReaderProgress } from "./readerTypes";
 
 /*
  * Marcadores com nome do livro (modelo Bookmark): a lista na tela e as
- * ações de criar, mover para a posição atual e apagar. "Onde parei" (o
+ * ações de criar (na posição atual), renomear e apagar. "Onde parei" (o
  * progresso salvo) fica em useReaderProgress.
  */
 export function useBookmarks(
@@ -30,10 +30,8 @@ export function useBookmarks(
     setBookmarks((list) => [...list, bookmark]);
   }
 
-  async function moveBookmarkHere(bookmarkId: number) {
-    if (!current) return;
-
-    const bookmark = await moveBookmark(bookId, bookmarkId, current);
+  async function renameBookmark(bookmarkId: number, name: string) {
+    const bookmark = await renameBookmarkAction(bookId, bookmarkId, name);
 
     setBookmarks((list) =>
       list.map((item) => (item.id === bookmark.id ? bookmark : item)),
@@ -46,5 +44,5 @@ export function useBookmarks(
     setBookmarks((list) => list.filter((item) => item.id !== bookmarkId));
   }
 
-  return { bookmarks, addBookmark, moveBookmarkHere, removeBookmark };
+  return { bookmarks, addBookmark, renameBookmark, removeBookmark };
 }

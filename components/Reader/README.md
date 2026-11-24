@@ -20,7 +20,7 @@ Reader.tsx            junta as peças: cabeçalho, conteúdo, rodapé e modo ime
 ├── ReaderFooter      rodapé: hora | página atual | Sessão
 ├── usePageTurn       virar página com animação (turnPage estável para o motor)
 ├── useReaderKeyboard atalhos ← → + − 0 Esc
-├── useBookmarks      lista de marcadores e criar/mover/apagar
+├── useBookmarks      lista de marcadores e criar/renomear/apagar
 ├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
 ├── useReaderSettings zoom, tema e o que mostrar (localStorage, por navegador)
 ├── ReaderNavigation  setas laterais + arraste para o lado (lib/swipe.ts)
@@ -168,8 +168,9 @@ Botão de marcador no cabeçalho (`BookmarksPanel`):
   (`setBookProgress` → `setReadingProgress`, um upsert sem a regra de
   avançar).
 - **Marcadores com nome** (modelo `Bookmark`): criados na posição atual
-  (nome sugerido: página ou capítulo), com ir, mover para a página atual
-  (`moveBookmark`) e apagar. Guardam o mesmo locator do progresso.
+  (nome sugerido: página ou capítulo), com ir, editar o nome na própria
+  linha (`renameBookmark`; Enter salva, Esc cancela) e apagar. Guardam o
+  mesmo locator do progresso; para mudar a posição, crie outro.
 
 Para ir até um marcador, todo motor implementa `goToLocator` no
 `ReaderController`. O EPUB entrega ao Reader a posição restaurada ao
