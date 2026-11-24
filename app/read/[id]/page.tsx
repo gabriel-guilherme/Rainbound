@@ -28,7 +28,7 @@ export default async function Read({
       progress: true,
       bookmarks: {
         select: bookmarkSelect,
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ currentPosition: "asc" }, { id: "asc" }],
       },
     },
   });
