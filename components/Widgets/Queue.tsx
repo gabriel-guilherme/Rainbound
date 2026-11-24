@@ -101,7 +101,7 @@ function QueueShelf({ books, suggestion }: { books: QueueBook[]; suggestion: Que
         */}
       <ul
         aria-label="Livros na fila"
-        className="scrollbar-none flex items-end gap-[3px] overflow-x-auto border-b-[10px] border-darkest pt-4 [zoom:0.65]"
+        className="scrollbar-none flex items-end gap-[3px] overflow-x-auto border-b-[10px] border-darkest pt-5 [zoom:0.65]"
       >
         {books.map((book) => (
           <li key={book.id} className="flex shrink-0 items-end">

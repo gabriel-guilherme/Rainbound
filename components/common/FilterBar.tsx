@@ -9,16 +9,23 @@ import {
 } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import SearchInput from "./SearchInput";
+import SpineRibbon from "./SpineRibbon";
 import { FilterButton } from "./FilterButton";
 
 type FilterBarProps = {
   q?: string;
   status?: ReadingStatus;
+  marker?: "dot" | "ribbon";
   /* Controles extras à direita (ex.: alternar lombadas/capas). */
   children?: React.ReactNode;
 };
 
-export function FilterBar({ q, status, children }: FilterBarProps) {
+export function FilterBar({
+  q,
+  status,
+  marker = "dot",
+  children,
+}: FilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -89,10 +96,14 @@ export function FilterBar({ q, status, children }: FilterBarProps) {
             onClick={() => navigate({ status: option })}
             className={chipClass(status === option)}
           >
-            <span
-              aria-hidden="true"
-              className={`size-1.5 rounded-full ${statusColor[option]}`}
-            />
+            {marker === "ribbon" ? (
+              <SpineRibbon status={option} className="spine-mark-chip" />
+            ) : (
+              <span
+                aria-hidden="true"
+                className={`size-1.5 rounded-full ${statusColor[option]}`}
+              />
+            )}
             {statusLabel[option]}
           </button>
         ))}

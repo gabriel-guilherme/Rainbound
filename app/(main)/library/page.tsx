@@ -147,7 +147,11 @@ export default async function BooksPage({
         </div>
       </div>
 
-      <FilterBar q={q} status={statusFilter}>
+      <FilterBar
+        q={q}
+        status={statusFilter}
+        marker={view === "spines" ? "ribbon" : "dot"}
+      >
         <ViewToggle view={view} params={{ q, status: statusFilter, sort, page }} />
       </FilterBar>
 

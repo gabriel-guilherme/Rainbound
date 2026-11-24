@@ -32,6 +32,11 @@ The project was built as a full-stack application, combining a responsive fronte
 - Accounts with username or email login; open sign-up with manual approval
   (each approved user has their own shelf)
 - Book cards with cover images
+- Spine view: every spine has a bookmark ribbon whose color (the same status
+  colors as the cover view) and tip show the status (flat: want to read,
+  V: reading, round: read, torn: abandoned); spines avoid the status colors so
+  the ribbon always stands out, and the status filter buttons show the same
+  ribbons as a legend
 - Search by title or creator
 - Filter books by reading status
 - Reader bookmarks: forward-only "where I stopped" plus named bookmarks
@@ -51,6 +56,8 @@ The project was built as a full-stack application, combining a responsive fronte
 - Books without a file (physical, Kindle, other apps): log the current page
   (or a percentage) by hand on the book page; status moves to "Reading" on the
   first entry and to "Read" on the last page
+- Status follows the in-app reader too: the first page turned moves the book to
+  "Reading" and reaching 100% moves it to "Read"
 - Reading progress indicator
 - Book ratings
 - Categories
@@ -306,6 +313,7 @@ lib/
 ├── storage.ts           Per-user storage usage and limit checks
 ├── spine.ts             Bookshelf spine look (color, width, height)
 ├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
+├── readingPages.ts      Current/total pages from a progress locator ("pág. X de Y" on hover)
 ├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
 ├── comicCompression.ts  Browser-side CBZ page compression before upload
 ├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files

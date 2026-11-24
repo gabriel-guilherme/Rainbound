@@ -5,6 +5,8 @@ import { statusLabel } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import { getLastName, type SpineLook } from "@/lib/spine";
 
+import SpineRibbon from "./SpineRibbon";
+
 type BookSpineProps = {
   book: {
     title: string;
@@ -39,8 +41,8 @@ export default function BookSpine({
   onPointerLeave,
   height,
 }: BookSpineProps) {
-  const isReading = book.status === "READING";
-  const showProgress = isReading || book.status === "ABANDONED";
+  const showProgress =
+    book.status === "READING" || book.status === "ABANDONED";
   const progress = Math.min(Math.max(book.percentage, 0), 100);
 
   const style = {
@@ -58,7 +60,7 @@ export default function BookSpine({
   const content = (
     <>
       <span aria-hidden="true" className="spine-bands" />
-      {isReading && <span aria-hidden="true" className="spine-mark" />}
+      <SpineRibbon status={book.status} />
       <span aria-hidden="true" className="spine-title">
         {book.title}
       </span>

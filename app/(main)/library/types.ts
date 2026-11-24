@@ -19,11 +19,12 @@ export const statusLabel: Record<ReadingStatus, string> = {
 /*
  * Cor do marcador de status (bolinha) no selo sobre a capa.
  */
+/* Cores em app/globals.css (--color-status-*), as mesmas das fitas das lombadas. */
 export const statusColor: Record<ReadingStatus, string> = {
-  WANT_TO_READ: "bg-contrast/60",
-  READING: "bg-interaction",
-  READ: "bg-[#a8c4a0]",
-  ABANDONED: "bg-danger",
+  WANT_TO_READ: "bg-status-want",
+  READING: "bg-status-reading",
+  READ: "bg-status-read",
+  ABANDONED: "bg-status-abandoned",
 };
 
 export const statusOptions = Object.values(ReadingStatus);
