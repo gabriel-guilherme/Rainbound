@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
+import ProgressLabel from "@/components/common/ProgressLabel";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/session";
@@ -62,7 +63,7 @@ function ReadingRow({ books }: { books: SpineBook[] }) {
           <li key={book.id} className="w-60 shrink-0">
             <Link
               href={bookHref(book)}
-              className="group grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 bg-darkest/40 p-2 transition-colors hover:bg-secondary"
+              className="group group/progress grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 bg-darkest/40 p-2 transition-colors hover:bg-secondary"
             >
               <span className="relative aspect-[7/10] w-full">
                 <Image
@@ -78,8 +79,12 @@ function ReadingRow({ books }: { books: SpineBook[] }) {
                 <span className="block truncate font-medium text-contrast group-hover:text-danger">
                   {book.title}
                 </span>
-                <span className="block text-xs tabular-nums text-contrast/50">
-                  {progress}% lido
+                <span className="block text-xs text-contrast/50">
+                  <ProgressLabel
+                    percentage={progress}
+                    pages={book.readPages}
+                    suffix="lido"
+                  />
                 </span>
                 <span aria-hidden="true" className="mt-2 block h-0.5 bg-contrast/15">
                   <span
@@ -121,14 +126,14 @@ function ReadingStack({ books }: { books: SpineBook[] }) {
             <Link
               href={bookHref(book)}
               style={style}
-              className="relative flex max-w-full min-h-8 items-center justify-between gap-3 px-3.5 shadow-[inset_0_3px_0_rgb(255_255_255/0.07),inset_0_-5px_7px_rgb(0_0_0/0.35)] transition-transform hover:translate-x-2.5"
+              className="group/progress relative flex max-w-full min-h-8 items-center justify-between gap-3 px-3.5 shadow-[inset_0_3px_0_rgb(255_255_255/0.07),inset_0_-5px_7px_rgb(0_0_0/0.35)] transition-transform hover:translate-x-2.5"
             >
               <span className="min-w-0 truncate font-display text-lg font-bold uppercase tracking-wide">
                 {book.title}
               </span>
 
-              <span className="shrink-0 text-[11px] tabular-nums opacity-75">
-                {progress}%
+              <span className="shrink-0 text-[11px] opacity-75">
+                <ProgressLabel percentage={progress} pages={book.readPages} />
               </span>
 
               <span
