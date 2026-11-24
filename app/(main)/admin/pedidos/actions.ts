@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { AccountStatus } from "@/generated/prisma/enums";
-import { MAX_STORAGE_LIMIT_MB } from "@/lib/bookFiles";
+import { MAX_STORAGE_LIMIT_MB, MIN_STORAGE_LIMIT_MB } from "@/lib/bookFiles";
 import { prisma } from "@/lib/prisma";
 import { getAdminUserId } from "@/lib/session";
 
@@ -37,31 +37,42 @@ export async function rejectRequest(userId: string) {
 }
 
 /*
- * Limite de espaço de um usuário (o próprio admin incluído), em GB no
- * formulário (guardado em MB). Campo vazio volta ao padrão do app.
+ * Limite de espaço de um usuário (o próprio admin incluído), em MB.
+ * `null` volta ao padrão do app. Devolve `{ error }` em vez de lançar:
+ * em produção a mensagem de um erro lançado não chega ao navegador.
  */
-export async function setStorageLimit(userId: string, formData: FormData) {
+export async function updateStorageLimit(
+  userId: string,
+  limitMb: number | null,
+): Promise<{ error?: string }> {
   await getAdminUserId();
 
-  if (typeof userId !== "string") {
-    throw new Error("Usuário inválido.");
+  if (typeof userId !== "string" || !userId) {
+    return { error: "Usuário inválido." };
   }
-
-  const raw = String(formData.get("limitGb") ?? "").replace(",", ".").trim();
-  const limitMb = raw === "" ? null : Math.round(Number(raw) * 1000);
 
   if (
     limitMb !== null &&
-    (!Number.isInteger(limitMb) || limitMb < 0 || limitMb > MAX_STORAGE_LIMIT_MB)
+    (!Number.isInteger(limitMb) ||
+      limitMb < MIN_STORAGE_LIMIT_MB ||
+      limitMb > MAX_STORAGE_LIMIT_MB)
   ) {
-    throw new Error("Limite inválido.");
+    return {
+      error: `Use um valor entre ${MIN_STORAGE_LIMIT_MB / 1000} e ${MAX_STORAGE_LIMIT_MB / 1000} GB.`,
+    };
   }
 
-  await prisma.user.update({
+  const { count } = await prisma.user.updateMany({
     where: { id: userId },
     data: { storageLimitMb: limitMb },
   });
 
+  if (count === 0) {
+    return { error: "Usuário não encontrado." };
+  }
+
   revalidatePath("/admin/pedidos");
   revalidatePath("/library");
+
+  return {};
 }

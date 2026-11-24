@@ -127,8 +127,8 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
           {account?.isAdmin && (
             <Link
               href="/admin/pedidos"
-              aria-label={`Pedidos de acesso (${account.pendingRequests} esperando)`}
-              title="Pedidos de acesso"
+              aria-label={`Administração (${account.pendingRequests} pedidos esperando)`}
+              title="Administração"
               aria-current={isRequestsRoute ? "page" : undefined}
               className={`relative flex h-10 w-10 items-center justify-center transition-colors ${
                 isRequestsRoute

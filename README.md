@@ -48,7 +48,8 @@ The project was built as a full-stack application, combining a responsive fronte
   (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
 - Storage limit per user for book files (1 GB by default, adjustable per user
-  by the admin); deleting a book, replacing its file or removing only the file
+  by the admin in "Users and storage": presets or a custom value, plus the
+  total used against the 10 GB free R2 tier); deleting a book, replacing its file or removing only the file
   (the book stays on the shelf with its status and progress) frees the space in R2
 - Reading statuses:
   - Want to read
@@ -295,7 +296,7 @@ npm run start     # Start the production server
 app/
 ├── (auth)/             Login, sign-up (access request) and waiting screen
 ├── (main)/             Pages with Navbar and Footer
-│   ├── admin/pedidos/  Access requests (approve / reject), admin only
+│   ├── admin/pedidos/  Admin only: access requests (approve / reject) and users' storage (?aba=usuarios)
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
 ├── api/auth/[...all]/  Better Auth endpoints
