@@ -15,7 +15,8 @@
 Reader.tsx            cabeçalho, setas, teclado, rodapé, configurações
 ├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
 ├── BookmarksPanel    painel "Marcadores" ("Onde parei" + marcadores com nome)
-├── useReaderSettings zoom e tema (localStorage, por navegador)
+├── useReaderSettings zoom, tema e o que mostrar (localStorage, por navegador)
+├── SettingSwitch     chave liga/desliga das Configurações
 ├── ReaderNavigation  setas laterais + arraste para o lado (lib/swipe.ts)
 ├── PdfReader         ┐
 ├── EpubReader        ├─ motores: implementam ReaderEngineProps
@@ -62,9 +63,10 @@ entrada do sumário que começa até a última posição visível. Seções sem
 entrada própria herdam o capítulo anterior; entradas com âncora (`#id`,
 vários capítulos num arquivo) só contam depois que a âncora aparece. Antes
 do primeiro capítulo (capa), mostra o título do livro.
-- **Configurações**: zoom (PDF/CBZ) ou tamanho do texto (EPUB) e tema
-  (Noite, Sépia, Claro). Guardados no `localStorage` do navegador; o zoom
-  é separado por formato.
+- **Configurações**: zoom (PDF/CBZ) ou tamanho do texto (EPUB), tema
+  (Noite, Sépia, Claro) e "Mostrar no leitor" (relógio; cronômetro e
+  timer). Guardados no `localStorage` do navegador; o zoom é separado por
+  formato.
 - **Tela cheia**: a partir de `sm`, tela cheia do navegador
   (`FullScreenButton`). No celular, o mesmo ícone liga o **modo imersivo**:
   cabeçalho, rodapé e setas somem e o conteúdo ocupa a tela toda
@@ -100,6 +102,25 @@ guarda o pedido e só anima quando o motor avisa a nova posição em
 `onPageChange`; o EPUB pede a virada por `onTurnPage` para passar pelo
 mesmo caminho. Saltos pelo seletor de página/sumário não animam, e
 `prefers-reduced-motion` desliga a animação.
+
+## Rodapé: hora e sessão de leitura
+
+O rodapé tem três colunas: hora (`CurrentTime`) | página atual | botão
+**Sessão** (`SessionButton`). As duas laterais somem pelas Configurações.
+
+A sessão (`components/ReadingSession/`) é um cronômetro ou um timer
+(atalhos de 15/25/45/60 min, ou clicar no número grande do timer e digitar
+os minutos, de 1 a 180). O
+painel abre para cima a partir do botão; no celular, como uma folha logo
+acima do rodapé. Quando o timer acaba, aparece um aviso no topo
+(`SessionFinishedNotice`, sem som) com "Mais 5 min" e "Fechar".
+
+O estado fica no `localStorage` (`sessionState.ts`; cálculo e formatação
+dos tempos em `sessionTime.ts`, tique de 1 s em `useNow.ts`, ações no hook
+`useReadingSession`), compartilhado com o
+widget "Sessão" da home: começou no leitor, continua contando lá. Guarda
+horários (quando começou / quando acaba), não contagens, então o tempo
+segue certo com a aba fechada. Nada vai para o banco.
 
 ## Temas
 

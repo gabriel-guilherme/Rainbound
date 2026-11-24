@@ -40,6 +40,10 @@ The project was built as a full-stack application, combining a responsive fronte
 - Search by title or creator
 - Filter books by reading status
 - Reader bookmarks: forward-only "where I stopped" plus named bookmarks
+- Reading session: clock, stopwatch and timer (presets or a typed time) in the
+  reader footer and in a home widget, sharing the same session (stored in the
+  browser only); an on-screen notice when the timer ends; each part can be
+  hidden in the reader settings
 - Customizable home widgets: two carousels with tabs; each widget has a wide
   (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
@@ -299,7 +303,7 @@ app/
 ├── read/[id]/          In-app reader
 └── read/actions.ts     Reading progress and bookmark server actions
 
-components/             Reusable UI components (Reader, Home, Widgets, auth, admin, forms, common...)
+components/             Reusable UI components (Reader, ReadingSession, Home, Widgets, auth, admin, forms, common...)
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
