@@ -4,6 +4,10 @@ import BookmarksPanel from "@/components/Reader/BookmarksPanel";
 import FullscreenButton from "@/components/Reader/FullScreenButton";
 import HeaderActionWindow from "@/components/Reader/HeaderActionWindow";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
+import SettingSwitch from "@/components/Reader/SettingSwitch";
+import CurrentTime from "@/components/ReadingSession/CurrentTime";
+import SessionButton from "@/components/ReadingSession/SessionButton";
+import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
 import { useReaderProgress } from "@/components/Reader/useReaderProgress";
 import {
   READER_THEMES,
@@ -13,6 +17,7 @@ import {
 import {
   ArrowLeft,
   Bookmark as BookmarkIcon,
+  Clock,
   CloudRainWind,
   Expand,
   ListOrdered,
@@ -20,6 +25,7 @@ import {
   Minus,
   Plus,
   Settings,
+  Timer,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -109,7 +115,17 @@ export default function Reader({
    */
   const [isImmersive, setIsImmersive] = useState(false);
 
-  const { theme, zoom, limits, setTheme, setZoom } = useReaderSettings(format);
+  const {
+    theme,
+    zoom,
+    limits,
+    showClock,
+    showSession,
+    setTheme,
+    setZoom,
+    setShowClock,
+    setShowSession,
+  } = useReaderSettings(format);
   const canZoom = Boolean(Engine) && limits.max > limits.min;
   const zoomPercent = Math.round(zoom * 100);
 
@@ -466,6 +482,26 @@ export default function Reader({
             })}
           </div>
         </fieldset>
+
+        <fieldset className="space-y-0.5 border-t border-contrast/10 px-2 pt-3">
+          <legend className="sr-only">Mostrar no leitor</legend>
+          <p aria-hidden="true" className="pb-1 text-sm text-contrast/75">
+            Mostrar no leitor
+          </p>
+
+          <SettingSwitch
+            label="Relógio"
+            icon={<Clock size={16} />}
+            checked={showClock}
+            onChange={setShowClock}
+          />
+          <SettingSwitch
+            label="Cronômetro e timer"
+            icon={<Timer size={16} />}
+            checked={showSession}
+            onChange={setShowSession}
+          />
+        </fieldset>
       </div>
     );
   }
@@ -671,14 +707,34 @@ export default function Reader({
         )}
       </main>
 
+      {/*
+        * Rodapé em três colunas: hora | página atual | sessão. As laterais
+        * têm a mesma largura para a página ficar centralizada.
+        */}
       <footer
         className={[
-          "reader-footer flex shrink-0 flex-col justify-center gap-1.5 border-t border-contrast/10 px-4",
+          "reader-footer grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-2 border-t border-contrast/10 px-3 sm:px-4",
           isImmersive ? "max-sm:hidden" : "",
         ].join(" ")}
       >
-        {renderFooter()}
+        <div className="flex justify-start">
+          {showClock && (
+            <CurrentTime className="text-xs text-contrast/55 sm:text-sm" />
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-col justify-center gap-1.5">
+          {renderFooter()}
+        </div>
+
+        <div className="flex justify-end">
+          {showSession && <SessionButton />}
+        </div>
       </footer>
+
+      {showSession && (
+        <SessionFinishedNotice className="fixed left-1/2 top-[calc(4.5rem+env(safe-area-inset-top))] z-50 w-[min(28rem,calc(100vw-1rem))] -translate-x-1/2" />
+      )}
     </div>
   );
 }
