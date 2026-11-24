@@ -21,6 +21,7 @@ import InputBookCover from "@/components/forms/InputBookCover";
 import InputBookFile from "./InputBookFile";
 import { formatStorageSize } from "@/lib/bookFiles";
 import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
+import { BOOK_TABS as TABS, type BookTabId as TabId } from "./bookTabs";
 import { fieldClass as stylePattern, labelClass } from "./fieldStyles";
 
 /*
@@ -49,17 +50,11 @@ type EditBookFormProps = {
     fileSize: number | null;
   };
   readingPanel: ReactNode;
+  initialTab?: TabId;
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-const TABS = [
-  { id: "reading", label: "Leitura" },
-  { id: "details", label: "Detalhes" },
-  { id: "notes", label: "Notas" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
 
 const DEFAULT_SAVE_ERROR = "Não foi possível salvar. Tente de novo.";
 
@@ -80,8 +75,12 @@ function ratingStars(rating: number | null) {
   return "★".repeat(value) + "☆".repeat(5 - value);
 }
 
-export default function EditBookForm({ book, readingPanel }: EditBookFormProps) {
-  const [tab, setTab] = useState<TabId>("reading");
+export default function EditBookForm({
+  book,
+  readingPanel,
+  initialTab = "reading",
+}: EditBookFormProps) {
+  const [tab, setTabState] = useState<TabId>(initialTab);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveError, setSaveError] = useState(DEFAULT_SAVE_ERROR);
   const [savingLabel, setSavingLabel] = useState("");
@@ -125,6 +124,21 @@ export default function EditBookForm({ book, readingPanel }: EditBookFormProps) 
         setSaveState("error");
       }
     });
+  }
+
+  /*
+   * Troca a aba e grava em `?aba=` (sem nova navegação), para o recarregar
+   * e o voltar do navegador abrirem na mesma aba.
+   */
+  function setTab(next: TabId) {
+    setTabState(next);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set(
+      "aba",
+      TABS.find((item) => item.id === next)?.param ?? "leitura",
+    );
+    window.history.replaceState(null, "", url);
   }
 
   /* Setas e Home/End movem entre as abas (padrão de tablist). */
