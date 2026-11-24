@@ -12,7 +12,7 @@ export const READER_THEMES: { value: ReaderTheme; label: string }[] = [
   { value: "light", label: "Claro" },
 ];
 
-type ZoomLimits = { min: number; max: number; step: number; label: string };
+export type ZoomLimits = { min: number; max: number; step: number; label: string };
 
 /*
  * PDF/CBZ: 100% é a página ajustada à tela.
@@ -33,9 +33,18 @@ export function getZoomLimits(format: FileFormat) {
 type StoredSettings = {
   theme: ReaderTheme;
   zoom: Partial<Record<FileFormat, number>>;
+  /* Hora no rodapé. */
+  showClock: boolean;
+  /* Botão de cronômetro e timer no rodapé (components/ReadingSession). */
+  showSession: boolean;
 };
 
-const DEFAULT_SETTINGS: StoredSettings = { theme: "night", zoom: {} };
+const DEFAULT_SETTINGS: StoredSettings = {
+  theme: "night",
+  zoom: {},
+  showClock: true,
+  showSession: true,
+};
 
 /*
  * Preferência de cada navegador (não vai para o banco). Se o
@@ -97,7 +106,12 @@ function parseSettings(raw: string | null): StoredSettings {
     const zoom =
       typeof parsed.zoom === "object" && parsed.zoom !== null ? parsed.zoom : {};
 
-    return { theme, zoom };
+    return {
+      theme,
+      zoom,
+      showClock: parsed.showClock !== false,
+      showSession: parsed.showSession !== false,
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -126,6 +140,8 @@ export function useReaderSettings(format: FileFormat) {
       JSON.stringify({
         theme: next.theme ?? current.theme,
         zoom: { ...current.zoom, ...next.zoom },
+        showClock: next.showClock ?? current.showClock,
+        showSession: next.showSession ?? current.showSession,
       }),
     );
   }, []);
@@ -141,5 +157,25 @@ export function useReaderSettings(format: FileFormat) {
     [format, update],
   );
 
-  return { theme: settings.theme, zoom, limits, setTheme, setZoom };
+  const setShowClock = useCallback(
+    (showClock: boolean) => update({ showClock }),
+    [update],
+  );
+
+  const setShowSession = useCallback(
+    (showSession: boolean) => update({ showSession }),
+    [update],
+  );
+
+  return {
+    theme: settings.theme,
+    zoom,
+    limits,
+    showClock: settings.showClock,
+    showSession: settings.showSession,
+    setTheme,
+    setZoom,
+    setShowClock,
+    setShowSession,
+  };
 }

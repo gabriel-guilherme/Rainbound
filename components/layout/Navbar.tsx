@@ -55,7 +55,15 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
         duration: 0.3,
         ease: "easeInOut",
       }}
-      className="fixed left-0 top-0 z-50 h-20 w-full border-b border-contrast/10 bg-primary sm:h-24"
+      /*
+       * Sombra suave para destacar do conteúdo. Some quando o cabeçalho se
+       * esconde, senão ela apareceria como uma faixa no topo da tela.
+       */
+      className={`fixed left-0 top-0 z-50 h-20 w-full border-b border-contrast/10 bg-primary transition-shadow duration-300 sm:h-24 ${
+        isVisible
+          ? "shadow-[0_3px_0_-1px_rgb(0_0_0/0.35),0_12px_26px_-8px_rgb(0_0_0/0.8)]"
+          : "shadow-none"
+      }`}
     >
       <div className="font-sans mx-auto grid h-full grid-cols-[1fr_auto] items-center px-2 sm:grid-cols-[1fr_auto_1fr] sm:px-4">
         <div className="hidden sm:block" />
@@ -119,8 +127,8 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
           {account?.isAdmin && (
             <Link
               href="/admin/pedidos"
-              aria-label={`Pedidos de acesso (${account.pendingRequests} esperando)`}
-              title="Pedidos de acesso"
+              aria-label={`Administração (${account.pendingRequests} pedidos esperando)`}
+              title="Administração"
               aria-current={isRequestsRoute ? "page" : undefined}
               className={`relative flex h-10 w-10 items-center justify-center transition-colors ${
                 isRequestsRoute

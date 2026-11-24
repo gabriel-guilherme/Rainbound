@@ -11,6 +11,7 @@ import {
   parseReadingProgress,
   saveReadingProgress,
   setReadingProgress,
+  updateStatusFromProgress,
 } from "@/lib/readingProgress";
 import { getApprovedUserId } from "@/lib/session";
 
@@ -54,11 +55,31 @@ async function parsePositionOrThrow(bookId: number, data: ProgressData) {
   return { ...parsed, progress: { ...parsed.progress, locator } };
 }
 
-/* Salvamento automático do leitor: só avança (ver saveReadingProgress). */
+/* Estante, home e página do livro mostram o status. */
+function revalidateShelf(bookId: number) {
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/library");
+  revalidatePath(`/library/${bookId}`);
+}
+
+/*
+ * Salvamento automático do leitor: só avança (ver saveReadingProgress).
+ * Quando avança, ajusta o status ("Lendo" no começo, "Lido" no fim).
+ */
 export async function saveBookProgress(bookId: number, data: ProgressData) {
   const parsed = await parseOrThrow(bookId, data);
 
-  return saveReadingProgress(parsed.bookId, parsed.progress);
+  const saved = await saveReadingProgress(parsed.bookId, parsed.progress);
+
+  if (
+    saved &&
+    (await updateStatusFromProgress(parsed.bookId, parsed.progress.percentage))
+  ) {
+    revalidateShelf(parsed.bookId);
+  }
+
+  return saved;
 }
 
 /*
@@ -69,10 +90,9 @@ export async function setBookProgress(bookId: number, data: ProgressData) {
   const parsed = await parseOrThrow(bookId, data);
 
   await setReadingProgress(parsed.bookId, parsed.progress);
+  await updateStatusFromProgress(parsed.bookId, parsed.progress.percentage);
 
-  revalidatePath("/");
-  revalidatePath("/library");
-  revalidatePath(`/library/${parsed.bookId}`);
+  revalidateShelf(parsed.bookId);
 }
 
 export async function createBookmark(

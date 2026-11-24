@@ -27,7 +27,7 @@ import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
 import {
   fieldClass as stylePattern,
   labelClass,
-} from "@/components/forms/fieldStyles";
+} from "@/components/common/fieldStyles";
 
 
 

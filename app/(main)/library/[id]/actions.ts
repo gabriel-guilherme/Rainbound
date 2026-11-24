@@ -4,6 +4,7 @@ import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import {
   parseManualProgress,
+  statusChangeForProgress,
   type ManualProgressEntry,
 } from "@/lib/readingProgress";
 import { getApprovedUserId } from "@/lib/session";
@@ -258,9 +259,8 @@ export async function deleteBookAndRedirect(formData: FormData) {
 /*
  * Registro manual de leitura (livro lido fora do site, ex.: físico ou
  * Kindle). Grava o valor informado mesmo que seja menor que o salvo
- * (a pessoa pode corrigir) e ajusta o status:
- * - primeiro avanço: "Quero ler"/"Abandonado" → "Lendo" (marca o início);
- * - última página ou 100%: → "Lido" (marca o fim).
+ * (a pessoa pode corrigir) e ajusta o status como o leitor do site
+ * (ver `statusChangeForProgress`).
  */
 export async function logReadingProgress(id: number, entry: ManualProgressEntry) {
   const userId = await getApprovedUserId();
@@ -274,23 +274,10 @@ export async function logReadingProgress(id: number, entry: ManualProgressEntry)
 
   const { pageCount, ...readingProgress } = progress;
 
-  const data: Parameters<typeof prisma.book.update>[0]["data"] = { pageCount };
-  const now = new Date();
-
-  if (progress.percentage >= 100) {
-    if (book.status !== ReadingStatus.READ) {
-      data.status = ReadingStatus.READ;
-      data.finishedAt = now;
-      data.startedAt = book.startedAt ?? now;
-    }
-  } else if (
-    progress.percentage > 0 &&
-    (book.status === ReadingStatus.WANT_TO_READ ||
-      book.status === ReadingStatus.ABANDONED)
-  ) {
-    data.status = ReadingStatus.READING;
-    data.startedAt = book.startedAt ?? now;
-  }
+  const data: Parameters<typeof prisma.book.update>[0]["data"] = {
+    pageCount,
+    ...statusChangeForProgress(book, progress.percentage),
+  };
 
   await prisma.$transaction([
     prisma.book.update({ where: { id: book.id }, data }),

@@ -9,6 +9,24 @@
   --color-interaction: #6e9987;
   --color-contrast: #e0e4ce;
   --color-danger: #d4a09a;
+
+  /*
+   * Status de leitura: selos do modo capa, filtros e fitas das lombadas
+   * (library/types.ts → statusColor; components/common/SpineRibbon.tsx).
+   * "Quero ler" é o contraste a 60% sobre o fundo, em cor sólida.
+   */
+  --color-status-want: #8a8e81;
+  --color-status-reading: #6e9987;
+  --color-status-read: #a8c4a0;
+  --color-status-abandoned: #d4a09a;
+
+  /*
+   * Cores extras das lombadas, no lugar das que coincidem com os status
+   * (interaction, danger e contrast), para a fita não sumir no livro.
+   */
+  --color-spine-wine: #3e3034;
+  --color-spine-umber: #5b4a3e;
+  --color-spine-sand: #b9b3a0;
 }
 
 /*
@@ -239,15 +257,31 @@
     background: var(--spine-accent);
   }
 
-  /* Fita de marcador saindo por cima (livros em leitura). */
+  /*
+   * Fita de marcador saindo por cima, em todo livro; cor e ponta mostram
+   * o status (components/common/SpineRibbon.tsx). A sombra descola a fita
+   * da lombada.
+   */
   .spine-mark {
     position: absolute;
-    top: -16px;
+    top: -18px;
     left: 58%;
-    width: 9px;
-    height: 26px;
-    background: var(--spine-accent);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+    width: 11px;
+    height: 32px;
+    overflow: visible;
+    filter: drop-shadow(1.5px 1.5px 0 rgb(0 0 0 / 0.45));
+  }
+
+  /*
+   * Fita nos botões de filtro de status (modo lombada), servindo de
+   * legenda: mesma forma e cor das fitas das lombadas.
+   */
+  .spine-mark-chip {
+    display: block;
+    flex: none;
+    width: 7px;
+    height: 17px;
+    overflow: visible;
   }
 
   /*

@@ -14,11 +14,13 @@ const continueReadingSelect = {
   id: true,
   title: true,
   coverUrl: true,
+  filePath: true,
   progress: {
     select: {
       percentage: true,
       currentPosition: true,
       totalPositions: true,
+      locator: true,
     },
   },
 } satisfies Prisma.BookSelect;
@@ -27,12 +29,13 @@ const continueReadingSelect = {
  * Livro para continuar: o último LIDO (progresso salvo mais recente), e
  * não o último editado (ler só atualiza o ReadingProgress, não o Book).
  * Se nenhum livro "Lendo" foi aberto ainda, cai no editado por último.
+ * Entram também os livros sem arquivo (lidos fora do site, com registro
+ * manual): o cartão leva à página do livro em vez do leitor.
  */
 async function findContinueReading(userId: string) {
   const where = {
     userId,
     status: "READING",
-    filePath: { not: null },
   } satisfies Prisma.BookWhereInput;
 
   const lastRead = await prisma.book.findFirst({

@@ -63,7 +63,7 @@ export default async function DashBoardPage() {
   const bottomSections = buildSections(layout, "bottom");
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-8 px-4 py-10 pt-32">
+    <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-10 pt-32">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="title-shelf text-5xl text-contrast sm:text-6xl">Início</h1>

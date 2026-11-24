@@ -32,14 +32,24 @@ The project was built as a full-stack application, combining a responsive fronte
 - Accounts with username or email login; open sign-up with manual approval
   (each approved user has their own shelf)
 - Book cards with cover images
+- Spine view: every spine has a bookmark ribbon whose color (the same status
+  colors as the cover view) and tip show the status (flat: want to read,
+  V: reading, round: read, torn: abandoned); spines avoid the status colors so
+  the ribbon always stands out, and the status filter buttons show the same
+  ribbons as a legend
 - Search by title or creator
 - Filter books by reading status
 - Reader bookmarks: forward-only "where I stopped" plus named bookmarks
+- Reading session: clock, stopwatch and timer (presets or a typed time) in the
+  reader footer and in a home widget, sharing the same session (stored in the
+  browser only); an on-screen notice when the timer ends; each part can be
+  hidden in the reader settings
 - Customizable home widgets: two carousels with tabs; each widget has a wide
   (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
 - Storage limit per user for book files (1 GB by default, adjustable per user
-  by the admin); deleting a book, replacing its file or removing only the file
+  by the admin in "Users and storage": presets or a custom value, plus the
+  total used against the 10 GB free R2 tier); deleting a book, replacing its file or removing only the file
   (the book stays on the shelf with its status and progress) frees the space in R2
 - Reading statuses:
   - Want to read
@@ -51,6 +61,8 @@ The project was built as a full-stack application, combining a responsive fronte
 - Books without a file (physical, Kindle, other apps): log the current page
   (or a percentage) by hand on the book page; status moves to "Reading" on the
   first entry and to "Read" on the last page
+- Status follows the in-app reader too: the first page turned moves the book to
+  "Reading" and reaching 100% moves it to "Read"
 - Reading progress indicator
 - Book ratings
 - Categories
@@ -284,7 +296,7 @@ npm run start     # Start the production server
 app/
 ├── (auth)/             Login, sign-up (access request) and waiting screen
 ├── (main)/             Pages with Navbar and Footer
-│   ├── admin/pedidos/  Access requests (approve / reject), admin only
+│   ├── admin/pedidos/  Admin only: access requests (approve / reject) and users' storage (?aba=usuarios)
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
 ├── api/auth/[...all]/  Better Auth endpoints
@@ -292,7 +304,7 @@ app/
 ├── read/[id]/          In-app reader
 └── read/actions.ts     Reading progress and bookmark server actions
 
-components/             Reusable UI components (Reader, Home, Widgets, auth, admin, forms, common...)
+components/             Reusable UI components (Reader, ReadingSession, Home, Widgets, auth, admin, forms, common...)
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
@@ -306,11 +318,13 @@ lib/
 ├── storage.ts           Per-user storage usage and limit checks
 ├── spine.ts             Bookshelf spine look (color, width, height)
 ├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
+├── readingPages.ts      Current/total pages from a progress locator ("pág. X de Y" on hover)
 ├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
 ├── comicCompression.ts  Browser-side CBZ page compression before upload
 ├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files
 ├── dashboardLayout.ts   Home widget layout (tabs, widgets, cookie parsing)
 ├── swipe.ts             Touch swipe gesture (reader and widget carousel)
+├── useNow.ts            Current time hook, one shared 1 s tick (clocks and reading session)
 └── utils.ts             Book file read URL and id parsing
 
 prisma/

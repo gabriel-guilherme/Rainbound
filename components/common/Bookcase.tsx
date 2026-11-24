@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import {
@@ -11,6 +12,7 @@ import {
   typeLabel,
 } from "@/app/(main)/library/types";
 import BookSpine from "@/components/common/BookSpine";
+import ProgressLabel from "@/components/common/ProgressLabel";
 import { getSpineLookForBook, type SpineBook } from "@/lib/spine";
 
 type BookcaseProps = {
@@ -22,22 +24,49 @@ type BookcaseProps = {
  * resumo do livro embaixo, com os atalhos para ler e editar.
  */
 export default function Bookcase({ books }: BookcaseProps) {
-  const [selectedId, setSelectedId] = useState<number | null>(
-    () => books.find((book) => book.status === "READING")?.id ?? null,
-  );
+  /*
+   * Abre com o último livro selecionado, guardado em `?livro=`; sem ele,
+   * ou se o livro não está nesta página, nada vem selecionado. Lido no
+   * navegador (não na página do servidor): ao voltar, o Next reaproveita a
+   * página do cache, renderizada antes de o `?livro=` existir.
+   */
+  const searchParams = useSearchParams();
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    const remembered = searchParams.get("livro");
+
+    return books.find((book) => String(book.id) === remembered)?.id ?? null;
+  });
 
   /* Livro recém-desmarcado, que deve descer mesmo com o mouse em cima. */
   const [releasedId, setReleasedId] = useState<number | null>(null);
 
   const selected = books.find((book) => book.id === selectedId) ?? null;
 
+  /*
+   * Grava a seleção em `?livro=` (sem nova navegação), para voltar da
+   * página do livro (ou recarregar) com o mesmo livro selecionado.
+   */
+  function rememberSelection(bookId: number | null) {
+    const url = new URL(window.location.href);
+
+    if (bookId === null) {
+      url.searchParams.delete("livro");
+    } else {
+      url.searchParams.set("livro", String(bookId));
+    }
+
+    window.history.replaceState(null, "", url);
+  }
+
   function toggle(bookId: number) {
     if (selectedId === bookId) {
       setSelectedId(null);
       setReleasedId(bookId);
+      rememberSelection(null);
     } else {
       setSelectedId(bookId);
       setReleasedId(null);
+      rememberSelection(bookId);
     }
   }
 
@@ -136,7 +165,9 @@ function SelectedBook({ book }: { book: SpineBook }) {
             <dt className="text-[11px] uppercase tracking-widest text-contrast/40">
               Progresso
             </dt>
-            <dd className="tabular-nums">{progress}%</dd>
+            <dd>
+              <ProgressLabel percentage={progress} pages={book.readPages} />
+            </dd>
           </div>
         </dl>
       </div>

@@ -129,7 +129,7 @@ export default async function BooksPage({
   const isFiltered = Boolean(q || statusFilter);
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl px-4 py-10 pt-32">
+    <div className="mx-auto max-w-7xl px-4 py-10 pt-32">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <h1 className="title-shelf text-5xl text-contrast sm:text-6xl">
           Minha estante
@@ -147,7 +147,11 @@ export default async function BooksPage({
         </div>
       </div>
 
-      <FilterBar q={q} status={statusFilter}>
+      <FilterBar
+        q={q}
+        status={statusFilter}
+        marker={view === "spines" ? "ribbon" : "dot"}
+      >
         <ViewToggle view={view} params={{ q, status: statusFilter, sort, page }} />
       </FilterBar>
 

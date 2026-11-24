@@ -3,6 +3,7 @@ import type {
   FileFormat,
   ReadingStatus,
 } from "@/generated/prisma/enums";
+import { getReadPages, type ReadPages } from "@/lib/readingPages";
 
 /*
  * Aparência das lombadas na estante.
@@ -27,6 +28,7 @@ export type SpineBook = {
   percentage: number;
   currentPosition: number;
   totalPositions: number | null;
+  readPages: ReadPages | null;
 };
 
 export type SpineLook = {
@@ -40,19 +42,21 @@ export type SpineLook = {
 };
 
 /*
- * Cores da paleta usadas nas lombadas (sem `darkest`, que some no fundo).
- * `accent` é a cor da fita e da linha de progresso.
+ * Cores das lombadas (sem `darkest`, que some no fundo). Não usam as cores
+ * dos status (interaction, danger, contrast): a fita de status de cada
+ * lombada (SpineRibbon) precisa se destacar do livro. `accent` é a cor da
+ * linha de progresso.
  */
 const SPINE_COLORS = [
   { background: "var(--color-secondary)", foreground: "var(--color-contrast)" },
   { background: "var(--color-primary)", foreground: "var(--color-contrast)" },
-  { background: "var(--color-contrast)", foreground: "var(--color-primary)" },
+  { background: "var(--color-spine-sand)", foreground: "var(--color-primary)" },
   {
     background: "var(--color-interaction-contrast)",
     foreground: "var(--color-contrast)",
   },
-  { background: "var(--color-interaction)", foreground: "var(--color-darkest)" },
-  { background: "var(--color-danger)", foreground: "var(--color-primary)" },
+  { background: "var(--color-spine-wine)", foreground: "var(--color-contrast)" },
+  { background: "var(--color-spine-umber)", foreground: "var(--color-contrast)" },
 ] as const;
 
 /*
@@ -136,10 +140,7 @@ export function getSpineLook(
 
   return {
     ...color,
-    accent:
-      color.background === "var(--color-danger)"
-        ? "var(--color-primary)"
-        : "var(--color-danger)",
+    accent: "var(--color-danger)",
     width,
     height,
     fontSize: width < 34 ? 14 : width < 44 ? 16 : 18,
@@ -181,8 +182,11 @@ export function toSpineBook(book: {
     percentage: number;
     currentPosition: number;
     totalPositions: number | null;
+    locator: string | null;
   } | null;
 }): SpineBook {
+  const readPages = getReadPages(book.progress);
+
   return {
     id: book.id,
     title: book.title,
@@ -196,5 +200,9 @@ export function toSpineBook(book: {
     percentage: book.status === "READ" ? 100 : (book.progress?.percentage ?? 0),
     currentPosition: book.progress?.currentPosition ?? 0,
     totalPositions: book.progress?.totalPositions ?? null,
+    readPages:
+      readPages && book.status === "READ"
+        ? { current: readPages.total, total: readPages.total }
+        : readPages,
   };
 }

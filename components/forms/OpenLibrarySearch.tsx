@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { toolbarFieldClass as stylePattern } from "./fieldStyles";
+import { toolbarFieldClass as stylePattern } from "@/components/common/fieldStyles";
 
 export type OpenLibraryBook = {
   key: string;

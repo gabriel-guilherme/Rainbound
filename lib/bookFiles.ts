@@ -88,12 +88,25 @@ export const BYTES_PER_MB = 1000 * 1000;
 
 /*
  * Espaço padrão de cada usuário para arquivos de livro (1 GB). O admin
- * pode mudar o de cada pessoa em /admin/pedidos (User.storageLimitMb).
+ * pode mudar o de cada pessoa em /admin/pedidos?aba=usuarios
+ * (User.storageLimitMb).
  */
 export const DEFAULT_STORAGE_LIMIT_MB = 1000;
 
 /* Maior limite aceito no admin (100 GB), só para barrar erro de digitação. */
 export const MAX_STORAGE_LIMIT_MB = 100_000;
+
+/* Menor limite personalizado aceito (100 MB). */
+export const MIN_STORAGE_LIMIT_MB = 100;
+
+/* Opções prontas de limite no admin, além do padrão e do personalizado. */
+export const STORAGE_LIMIT_PRESETS_MB = [2000, 5000, 10_000, 20_000] as const;
+
+/*
+ * Espaço grátis do Cloudflare R2 (10 GB). É da conta inteira: os buckets
+ * de dev e de produção somam juntos.
+ */
+export const R2_FREE_STORAGE_MB = 10_000;
 
 /* "320 MB", "1,2 GB" (base decimal, como o limite). */
 export function formatStorageSize(bytes: number) {

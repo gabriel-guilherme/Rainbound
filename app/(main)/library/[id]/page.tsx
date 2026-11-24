@@ -6,6 +6,7 @@ import { deleteBookAndRedirect } from "./actions";
 import BackButton from "@/components/common/BackButton";
 import ConfirmSubmitButton from "@/components/common/ConfirmSubmitButton";
 import ProgressBar from "@/components/common/ProgressBar";
+import { bookTabFromParam } from "@/app/(main)/library/types";
 import EditBookForm from "@/components/forms/EditBookForm";
 import LogReadingForm from "@/components/forms/LogReadingForm";
 import { requireApprovedUser } from "@/lib/session";
@@ -13,11 +14,14 @@ import { parseBookId } from "@/lib/utils";
 
 export default async function BookDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ aba?: string | string[] }>;
 }) {
   const { id: userId } = await requireApprovedUser();
   const id = parseBookId((await params).id);
+  const initialTab = bookTabFromParam((await searchParams).aba);
 
   if (id === null) {
     notFound();
@@ -71,7 +75,11 @@ export default async function BookDetailPage({
       <BackButton />
 
       <div className="flex flex-col p-4 sm:p-6 md:p-10">
-        <EditBookForm book={book} readingPanel={readingPanel} />
+        <EditBookForm
+          book={book}
+          readingPanel={readingPanel}
+          initialTab={initialTab}
+        />
 
         <div className="mt-10 border-t-[12px] border-primary pt-6">
           <form action={deleteBookAndRedirect} className="w-full md:w-auto">

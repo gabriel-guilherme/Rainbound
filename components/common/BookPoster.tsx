@@ -10,7 +10,9 @@ import {
   DEFAULT_COVER,
 } from "@/app/(main)/library/types";
 import BookActionsMenu from "@/components/common/BookActionsMenu";
+import ProgressLabel from "@/components/common/ProgressLabel";
 import type { Book, ReadingProgress } from "@/generated/prisma/client";
+import { getReadPages } from "@/lib/readingPages";
 
 type BookPosterProps = Book & {
   progress: ReadingProgress | null;
@@ -18,6 +20,7 @@ type BookPosterProps = Book & {
 
 export default function BookPoster(book: BookPosterProps) {
   const percentage = book.progress?.percentage ?? 0;
+  const pages = getReadPages(book.progress);
 
   const cover = (
     <Image
@@ -31,7 +34,7 @@ export default function BookPoster(book: BookPosterProps) {
   );
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-1">
+    <div className="group/progress mx-auto flex w-full flex-col gap-1">
       <div className="flex justify-end">
         <BookActionsMenu bookId={book.id} bookTitle={book.title} />
       </div>
@@ -64,7 +67,7 @@ export default function BookPoster(book: BookPosterProps) {
         <div className="flex justify-between text-xs text-contrast/50">
           <span>{typeLabel[book.type]}</span>
 
-          <span>{Math.round(percentage)}%</span>
+          <ProgressLabel percentage={percentage} pages={pages} />
         </div>
       </div>
     </div>
