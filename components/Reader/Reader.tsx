@@ -121,7 +121,7 @@ export default function Reader({
     delay: 800,
   });
 
-  const { bookmarks, addBookmark, moveBookmarkHere, removeBookmark } =
+  const { bookmarks, addBookmark, renameBookmark, removeBookmark } =
     useBookmarks(bookId, initialBookmarks, readerProgress);
 
   const handleReady = useCallback((controller: ReaderController) => {
@@ -259,7 +259,7 @@ export default function Reader({
               onGo={goToLocator}
               onSaveHere={saveHere}
               onCreate={addBookmark}
-              onMove={moveBookmarkHere}
+              onRename={renameBookmark}
               onDelete={removeBookmark}
             />
           </HeaderActionWindow>

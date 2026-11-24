@@ -118,26 +118,32 @@ export async function createBookmark(
   return bookmark;
 }
 
-/* Move o marcador para a posição atual. */
-export async function moveBookmark(
+/* Troca o nome do marcador (a posição continua a mesma). */
+export async function renameBookmark(
   bookId: number,
   bookmarkId: number,
-  data: ProgressData,
+  name: string,
 ) {
-  if (!isBookmarkId(bookmarkId)) {
+  if (!isBookmarkId(bookmarkId) || !isBookmarkId(bookId)) {
     throw new Error("Marcador inválido.");
   }
 
-  const parsed = await parsePositionOrThrow(bookId, data);
+  const parsedName = parseBookmarkName(name);
+
+  if (!parsedName) {
+    throw new Error("Nome do marcador inválido.");
+  }
+
+  await assertOwnBook(bookId);
 
   /* `bookId` no filtro: o marcador precisa ser deste livro. */
   const bookmark = await prisma.bookmark.update({
-    where: { id: bookmarkId, bookId: parsed.bookId },
-    data: parsed.progress,
+    where: { id: bookmarkId, bookId },
+    data: { name: parsedName },
     select: bookmarkSelect,
   });
 
-  revalidatePath(`/read/${parsed.bookId}`);
+  revalidatePath(`/read/${bookId}`);
 
   return bookmark;
 }
