@@ -66,7 +66,7 @@ export default async function AccessRequestsPage() {
   );
 
   return (
-    <div className="mx-auto min-h-screen max-w-4xl px-4 py-10 pt-32">
+    <div className="mx-auto max-w-4xl px-4 py-10 pt-32">
       <h1 className="title-shelf text-5xl text-contrast sm:text-6xl">
         Pedidos de acesso
       </h1>

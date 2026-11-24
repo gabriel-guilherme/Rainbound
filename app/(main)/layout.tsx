@@ -27,10 +27,16 @@ export default async function MainLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-secondary">
+    <div className="flex flex-col bg-secondary">
       <Navbar account={account} />
 
-      <main className="flex-1">{children}</main>
+      {/*
+        * O conteúdo ocupa no mínimo uma tela: o footer começa onde a
+        * primeira tela termina, em toda página. `svh` (tela com a barra do
+        * navegador do celular visível) para o footer não pular quando a
+        * barra some ao rolar.
+        */}
+      <main className="min-h-svh">{children}</main>
 
       <Footer />
     </div>
