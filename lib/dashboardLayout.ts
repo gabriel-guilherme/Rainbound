@@ -17,7 +17,7 @@ export const DASHBOARD_LAYOUT_COOKIE = "rainbound-dashboard";
 /* Um ano. */
 export const DASHBOARD_LAYOUT_MAX_AGE = 60 * 60 * 24 * 365;
 
-export const WIDGET_IDS = ["status", "reading", "recent", "queue"] as const;
+export const WIDGET_IDS = ["status", "reading", "recent", "queue", "session"] as const;
 
 export type WidgetId = (typeof WIDGET_IDS)[number];
 
@@ -54,6 +54,10 @@ export const WIDGET_INFO: Record<WidgetId, { label: string; description: string 
     label: "Fila",
     description: "Livros em \"Quero ler\" e uma sugestão do dia.",
   },
+  session: {
+    label: "Sessão",
+    description: "Relógio, cronômetro e timer de leitura (os mesmos do leitor).",
+  },
 };
 
 export type DashboardTab = {
@@ -72,6 +76,7 @@ export const DEFAULT_DASHBOARD_LAYOUT: DashboardLayout = {
   top: [
     { id: "estante", label: "Estante", widgets: ["status"] },
     { id: "fila", label: "Fila", widgets: ["queue"] },
+    { id: "sessao", label: "Sessão", widgets: ["session"] },
   ],
   bottom: [
     { id: "leitura", label: "Leitura", widgets: ["reading", "recent"] },
