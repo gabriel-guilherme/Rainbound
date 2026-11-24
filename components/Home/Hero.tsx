@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
+import { getReadPages } from "@/lib/readingPages";
 
 import HomeHero from "./HomeHero";
 
@@ -11,18 +12,17 @@ type HeroProps = {
     id: number;
     title: string;
     coverUrl: string | null;
+    filePath: string | null;
     progress: {
       percentage: number;
       currentPosition: number;
       totalPositions: number | null;
+      locator: string | null;
     } | null;
   } | null;
 };
 
-/*
- * Linha de apoio do cartão "Continuar", no mesmo formato do leitor
- * ("Página X de Y · Z%"; no EPUB, a página é a posição de ~1024 caracteres).
- */
+
 function describeProgress(book: NonNullable<HeroProps["continueReading"]>) {
   const progress = book.progress;
 
@@ -31,12 +31,24 @@ function describeProgress(book: NonNullable<HeroProps["continueReading"]>) {
   }
 
   const percentage = `${Math.round(progress.percentage)}%`;
+  const pages =
+    getReadPages(progress) ??
+    (book.filePath && progress.totalPositions
+      ? { current: progress.currentPosition + 1, total: progress.totalPositions }
+      : null);
 
-  if (progress.totalPositions) {
-    return `Página ${progress.currentPosition + 1} de ${progress.totalPositions} · ${percentage}`;
+  if (pages) {
+    return `Página ${pages.current} de ${pages.total} · ${percentage}`;
   }
 
   return `${percentage} lido`;
+}
+
+/* Com arquivo, abre o leitor; sem, a aba Leitura (registro manual). */
+function continueHref(book: NonNullable<HeroProps["continueReading"]>) {
+  return book.filePath
+    ? `/read/${book.id}`
+    : `/library/${book.id}?aba=leitura`;
 }
 
 /* Hero da home logada: igual ao do visitante, com "Continuar" nas ações. */
@@ -46,7 +58,7 @@ export default function Hero({ continueReading }: HeroProps) {
       actions={
         continueReading ? (
           <Link
-            href={`/read/${continueReading.id}`}
+            href={continueHref(continueReading)}
             className="group grid w-full max-w-md grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-4 border-l-[6px] border-danger bg-primary py-2.5 pl-2.5 pr-4 text-left transition-colors hover:bg-secondary"
           >
             <span className="relative aspect-[7/10] w-full">
