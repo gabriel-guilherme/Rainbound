@@ -1,8 +1,11 @@
+import { revalidatePath } from "next/cache";
+
 import {
   isMissingBookError,
   isOwnBook,
   parseReadingProgress,
   saveReadingProgress,
+  updateStatusFromProgress,
 } from "@/lib/readingProgress";
 import { getCurrentUser, isApproved } from "@/lib/session";
 
@@ -44,7 +47,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    await saveReadingProgress(parsed.bookId, parsed.progress);
+    const saved = await saveReadingProgress(parsed.bookId, parsed.progress);
+
+    /* Mesmo ajuste de status da Server Action `saveBookProgress`. */
+    if (
+      saved &&
+      (await updateStatusFromProgress(parsed.bookId, parsed.progress.percentage))
+    ) {
+      revalidatePath("/");
+      revalidatePath("/dashboard");
+      revalidatePath("/library");
+      revalidatePath(`/library/${parsed.bookId}`);
+    }
   } catch (error) {
     if (isMissingBookError(error)) {
       return Response.json({ error: "Livro não encontrado." }, { status: 404 });

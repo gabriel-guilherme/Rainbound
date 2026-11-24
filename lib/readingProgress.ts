@@ -1,3 +1,4 @@
+import { ReadingStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 
 /* Maior valor de uma coluna Int do Postgres. */
@@ -134,6 +135,69 @@ export async function setReadingProgress(
     create: { bookId, ...progress },
     update: progress,
   });
+}
+
+/// Status pela leitura
+
+/*
+ * Status que o avanço da leitura implica (leitor do site e registro
+ * manual seguem a mesma regra):
+ * - chegou a 100%: → "Lido" (marca o fim e, se faltava, o início);
+ * - primeiro avanço: "Quero ler"/"Abandonado" → "Lendo" (marca o início).
+ * Nunca volta o status: reler um livro "Lido" não o tira de "Lido".
+ * Devolve null quando não há o que mudar.
+ */
+export function statusChangeForProgress(
+  book: { status: ReadingStatus; startedAt: Date | null },
+  percentage: number,
+  now = new Date(),
+) {
+  if (percentage >= 100) {
+    return book.status === ReadingStatus.READ
+      ? null
+      : {
+          status: ReadingStatus.READ,
+          startedAt: book.startedAt ?? now,
+          finishedAt: now,
+        };
+  }
+
+  if (
+    percentage > 0 &&
+    (book.status === ReadingStatus.WANT_TO_READ ||
+      book.status === ReadingStatus.ABANDONED)
+  ) {
+    return {
+      status: ReadingStatus.READING,
+      startedAt: book.startedAt ?? now,
+    };
+  }
+
+  return null;
+}
+
+/*
+ * Ajusta o status depois de gravar um progresso do leitor do site.
+ * Devolve true se mudou (quem chama revalida as páginas da estante).
+ */
+export async function updateStatusFromProgress(
+  bookId: number,
+  percentage: number,
+) {
+  const book = await prisma.book.findUnique({
+    where: { id: bookId },
+    select: { status: true, startedAt: true },
+  });
+
+  const change = book && statusChangeForProgress(book, percentage);
+
+  if (!change) {
+    return false;
+  }
+
+  await prisma.book.update({ where: { id: bookId }, data: change });
+
+  return true;
 }
 
 /// Registro manual (livro lido fora do site)

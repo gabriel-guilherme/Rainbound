@@ -125,6 +125,13 @@ mudou (arquivo trocado), grava normalmente.
 As duas entradas validam os dados com `parseReadingProgress`
 (`lib/readingProgress.ts`).
 
+Quando o progresso avança, o status do livro acompanha
+(`updateStatusFromProgress`, mesma regra do registro manual em
+`statusChangeForProgress`): o primeiro avanço leva "Quero ler" ou
+"Abandonado" para **Lendo**, e chegar a 100% leva a **Lido** (com
+`startedAt`/`finishedAt`). O status nunca volta: reler um livro lido, ou
+"Salvar aqui" mais para trás, não o tira de "Lido".
+
 ## Marcadores
 
 Botão de marcador no cabeçalho (`BookmarksPanel`):
