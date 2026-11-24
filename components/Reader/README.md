@@ -12,11 +12,17 @@
 ## Arquitetura
 
 ```
-Reader.tsx            cabeçalho, setas, teclado, rodapé, configurações
-├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
+Reader.tsx            junta as peças: cabeçalho, conteúdo, rodapé e modo imersivo
+├── NavigatorPanel    painel de navegação: seletor de página (PDF/CBZ) ou sumário (EPUB)
 ├── BookmarksPanel    painel "Marcadores" ("Onde parei" + marcadores com nome)
+├── SettingsPanel     painel "Configurações" (zoom, tema, mostrar hora/sessão)
+│   └── SettingSwitch chave liga/desliga das Configurações
+├── ReaderFooter      rodapé: hora | página atual | Sessão
+├── usePageTurn       virar página com animação (turnPage estável para o motor)
+├── useReaderKeyboard atalhos ← → + − 0 Esc
+├── useBookmarks      lista de marcadores e criar/mover/apagar
+├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
 ├── useReaderSettings zoom, tema e o que mostrar (localStorage, por navegador)
-├── SettingSwitch     chave liga/desliga das Configurações
 ├── ReaderNavigation  setas laterais + arraste para o lado (lib/swipe.ts)
 ├── PdfReader         ┐
 ├── EpubReader        ├─ motores: implementam ReaderEngineProps
