@@ -312,6 +312,7 @@ app/
 │   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
 │   ├── library/        Library list, new book, book details and server actions
+│   ├── notificacoes/   All notifications by day (loads more on scroll)
 │   ├── pessoas/        People: activity feed (you + who you follow, newest first) and search (name or @username)
 │   └── u/[username]/   Public profile (avatar, bio, follow, numbers, widgets chosen by the owner; private profiles show only the header), plus seguidores/ and seguindo/ lists (open as a modal over the profile via @modal intercepted routes; full page when opened directly)
 ├── api/auth/[...all]/  Better Auth endpoints
@@ -325,7 +326,7 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── reader/             In-app reader (see components/reader/README.md): engines/, panels/, hooks/
 ├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
 ├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
-├── notifications/      Notification bell (polls the unread count every minute) and the notification list
+├── notifications/      Notification bell (polls the unread count every minute), feed that loads more on scroll, list
 ├── profile/            Profile: avatar (color + letter), header, numbers and editors
 ├── widgets/            Home and profile widgets (registry.tsx, types.ts: owner + visitor mode), carousel and section builder
 │   ├── editor/         Layout editor: home map, widget options panel, catalog with previews, layout edits
@@ -366,7 +367,7 @@ lib/
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
 │   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
 ├── notifications/
-│   ├── server.ts         Notifications: follow notice (one per pair), unread count, mark read, grouping by type and day
+│   ├── server.ts         Notifications: follow notice (one per pair), unread count, mark read (+ 90-day cleanup), grouping by type and day (paged in SQL)
 │   └── format.ts         Notification texts ("há 12 min", "Marina, Caio e mais 2")
 ├── profile/
 │   ├── avatar.ts         Profile avatar: 12-color palette, letter, defaults from the account
