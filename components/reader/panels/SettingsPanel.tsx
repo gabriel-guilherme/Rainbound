@@ -30,7 +30,8 @@ const zoomButtonClass =
 /*
  * Painel "Configurações" do cabeçalho do leitor: zoom (PDF/CBZ) ou tamanho
  * do texto (EPUB), tema e o que mostrar no rodapé. Tudo vem de
- * useReaderSettings (salvo por navegador).
+ * useReaderSettings: segue a conta, menos o zoom do PDF e do CBZ, que fica
+ * no navegador.
  */
 export default function SettingsPanel({
   canZoom,

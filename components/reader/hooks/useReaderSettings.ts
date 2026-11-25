@@ -1,8 +1,15 @@
 "use client";
 
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+import { saveReaderPreferences } from "@/app/preferences/actions";
 import type { FileFormat } from "@/generated/prisma/enums";
+import {
+  DEFAULT_READER_PREFERENCES,
+  EPUB_TEXT_SIZE,
+  clampEpubTextSize,
+  type ReaderPreferences,
+} from "@/lib/preferences/rules";
 
 import type { ReaderTheme } from "../readerTypes";
 
@@ -21,7 +28,7 @@ export type ZoomLimits = { min: number; max: number; step: number; label: string
 const ZOOM_LIMITS: Partial<Record<FileFormat, ZoomLimits>> = {
   PDF: { min: 0.5, max: 3, step: 0.25, label: "Zoom" },
   CBZ: { min: 1, max: 3, step: 0.25, label: "Zoom" },
-  EPUB: { min: 0.75, max: 2, step: 0.125, label: "Tamanho do texto" },
+  EPUB: { ...EPUB_TEXT_SIZE, label: "Tamanho do texto" },
 };
 
 const DEFAULT_LIMITS: ZoomLimits = { min: 1, max: 1, step: 0, label: "Zoom" };
@@ -30,29 +37,22 @@ export function getZoomLimits(format: FileFormat) {
   return ZOOM_LIMITS[format] ?? DEFAULT_LIMITS;
 }
 
-type StoredSettings = {
+/* Espera antes de gravar na conta */
+const SAVE_DELAY_MS = 600;
+
+/*
+ * O que fica no navegador. Hoje só vale o zoom do PDF e do CBZ (depende
+ * da tela); o resto vai para a conta. Os outros campos ficam para quem
+ * ainda não salvou nada na conta (ver `fromLocal`).
+ */
+type LocalSettings = {
   theme: ReaderTheme;
   zoom: Partial<Record<FileFormat, number>>;
-  /* Hora no rodapé. */
   showClock: boolean;
-  /* Botão de cronômetro e timer no rodapé (components/reading-session). */
   showSession: boolean;
-  /* Sequência de leitura no rodapé (components/reading-streak). */
   showStreak: boolean;
 };
 
-const DEFAULT_SETTINGS: StoredSettings = {
-  theme: "night",
-  zoom: {},
-  showClock: true,
-  showSession: true,
-  showStreak: true,
-};
-
-/*
- * Preferência de cada navegador (não vai para o banco). Se o
- * localStorage estiver bloqueado, vale só enquanto a página estiver aberta.
- */
 const STORAGE_KEY = "rainbound:reader-settings";
 
 let memoryValue: string | null = null;
@@ -94,31 +94,45 @@ function subscribe(listener: () => void) {
   };
 }
 
-function parseSettings(raw: string | null): StoredSettings {
+function parseLocal(raw: string | null): LocalSettings {
+  const defaults: LocalSettings = { ...DEFAULT_READER_PREFERENCES, zoom: {} };
+
   if (!raw) {
-    return DEFAULT_SETTINGS;
+    return defaults;
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<StoredSettings>;
-
-    const theme = READER_THEMES.some(({ value }) => value === parsed.theme)
-      ? (parsed.theme as ReaderTheme)
-      : DEFAULT_SETTINGS.theme;
-
-    const zoom =
-      typeof parsed.zoom === "object" && parsed.zoom !== null ? parsed.zoom : {};
+    const parsed = JSON.parse(raw) as Partial<LocalSettings>;
 
     return {
-      theme,
-      zoom,
+      theme: READER_THEMES.some(({ value }) => value === parsed.theme)
+        ? (parsed.theme as ReaderTheme)
+        : defaults.theme,
+      zoom: typeof parsed.zoom === "object" && parsed.zoom !== null ? parsed.zoom : {},
       showClock: parsed.showClock !== false,
       showSession: parsed.showSession !== false,
       showStreak: parsed.showStreak !== false,
     };
   } catch {
-    return DEFAULT_SETTINGS;
+    return defaults;
   }
+}
+
+/* Configurações antigas do navegador, para quem ainda não tem na conta. */
+function fromLocal(local: LocalSettings): ReaderPreferences {
+  return {
+    theme: local.theme,
+    epubTextSize: clampEpubTextSize(local.zoom.EPUB ?? 1),
+    showClock: local.showClock,
+    showSession: local.showSession,
+    showStreak: local.showStreak,
+  };
+}
+
+function isDefault(preferences: ReaderPreferences) {
+  return (Object.keys(DEFAULT_READER_PREFERENCES) as (keyof ReaderPreferences)[]).every(
+    (key) => preferences[key] === DEFAULT_READER_PREFERENCES[key],
+  );
 }
 
 function clampZoom(value: number, limits: ZoomLimits) {
@@ -129,65 +143,94 @@ function clampZoom(value: number, limits: ZoomLimits) {
   return Math.min(Math.max(value, limits.min), limits.max);
 }
 
-export function useReaderSettings(format: FileFormat) {
+/*
+ * Configurações do leitor. Tema, tamanho do texto do EPUB e itens do
+ * rodapé seguem a conta (`account`, vindo do servidor; gravados com
+ * saveReaderPreferences). O zoom do PDF e do CBZ fica no navegador.
+ *
+ * Quem ainda não salvou nada na conta (`account` null) continua com o que
+ * estava no navegador, e isso sobe para a conta na primeira abertura.
+ */
+export function useReaderSettings(format: FileFormat, account: ReaderPreferences | null) {
   /* No servidor (e na hidratação) usa o padrão; depois, o salvo. */
   const raw = useSyncExternalStore(subscribe, readRaw, () => null);
-  const settings = useMemo(() => parseSettings(raw), [raw]);
+  const local = useMemo(() => parseLocal(raw), [raw]);
 
-  const limits = getZoomLimits(format);
-  const zoom = clampZoom(settings.zoom[format] ?? 1, limits);
+  /* Mudanças feitas nesta página (a conta só é relida ao abrir o leitor). */
+  const [changed, setChanged] = useState<ReaderPreferences | null>(null);
+  const synced = changed ?? account ?? fromLocal(local);
 
-  const update = useCallback((next: Partial<StoredSettings>) => {
-    const current = parseSettings(readRaw());
+  const pendingRef = useRef<ReaderPreferences | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    writeRaw(
-      JSON.stringify({
-        theme: next.theme ?? current.theme,
-        zoom: { ...current.zoom, ...next.zoom },
-        showClock: next.showClock ?? current.showClock,
-        showSession: next.showSession ?? current.showSession,
-        showStreak: next.showStreak ?? current.showStreak,
-      }),
-    );
+  const flush = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+
+    if (pending) saveReaderPreferences(pending).catch(console.error);
   }, []);
 
-  const setTheme = useCallback(
-    (theme: ReaderTheme) => update({ theme }),
-    [update],
+  /* Ao sair do leitor, grava o que ainda estava esperando. */
+  useEffect(() => flush, [flush]);
+
+  /* Primeira vez com conta vazia: sobe as configurações deste navegador. */
+  useEffect(() => {
+    if (account) return;
+
+    const legacy = fromLocal(parseLocal(readRaw()));
+
+    if (!isDefault(legacy)) saveReaderPreferences(legacy).catch(console.error);
+  }, [account]);
+
+  const update = useCallback(
+    (next: Partial<ReaderPreferences>) => {
+      const value = { ...synced, ...next };
+
+      setChanged(value);
+      pendingRef.current = value;
+
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(flush, SAVE_DELAY_MS);
+    },
+    [synced, flush],
   );
 
+  const limits = getZoomLimits(format);
+  const zoom =
+    format === "EPUB"
+      ? synced.epubTextSize
+      : clampZoom(local.zoom[format] ?? 1, limits);
+
   const setZoom = useCallback(
-    (value: number) =>
-      update({ zoom: { [format]: clampZoom(value, getZoomLimits(format)) } }),
+    (value: number) => {
+      const clamped = clampZoom(value, getZoomLimits(format));
+
+      if (format === "EPUB") {
+        update({ epubTextSize: clamped });
+        return;
+      }
+
+      const current = parseLocal(readRaw());
+
+      writeRaw(JSON.stringify({ ...current, zoom: { ...current.zoom, [format]: clamped } }));
+    },
     [format, update],
   );
 
-  const setShowClock = useCallback(
-    (showClock: boolean) => update({ showClock }),
-    [update],
-  );
-
-  const setShowSession = useCallback(
-    (showSession: boolean) => update({ showSession }),
-    [update],
-  );
-
-  const setShowStreak = useCallback(
-    (showStreak: boolean) => update({ showStreak }),
-    [update],
-  );
-
   return {
-    theme: settings.theme,
+    theme: synced.theme,
     zoom,
     limits,
-    showClock: settings.showClock,
-    showSession: settings.showSession,
-    showStreak: settings.showStreak,
-    setTheme,
+    showClock: synced.showClock,
+    showSession: synced.showSession,
+    showStreak: synced.showStreak,
+    setTheme: (theme: ReaderTheme) => update({ theme }),
     setZoom,
-    setShowClock,
-    setShowSession,
-    setShowStreak,
+    setShowClock: (showClock: boolean) => update({ showClock }),
+    setShowSession: (showSession: boolean) => update({ showSession }),
+    setShowStreak: (showStreak: boolean) => update({ showStreak }),
   };
 }

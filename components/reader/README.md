@@ -36,7 +36,7 @@ Reader.tsx               junta as peças: cabeçalho, conteúdo, rodapé e modo 
     ├── useReaderKeyboard atalhos ← → + − 0 Esc
     ├── useBookmarks      lista de marcadores e criar/renomear/apagar
     ├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
-    └── useReaderSettings zoom, tema e o que mostrar (localStorage, por navegador)
+    └── useReaderSettings zoom, tema e o que mostrar (na conta; zoom do PDF/CBZ no navegador)
 ```
 
 Cada motor recebe `ReaderEngineProps` (`readerTypes.ts`) e:
@@ -81,8 +81,11 @@ vários capítulos num arquivo) só contam depois que a âncora aparece. Antes
 do primeiro capítulo (capa), mostra o título do livro.
 - **Configurações**: zoom (PDF/CBZ) ou tamanho do texto (EPUB), tema
   (Noite, Sépia, Claro) e "Mostrar no leitor" (relógio; cronômetro e
-  timer). Guardados no `localStorage` do navegador; o zoom é separado por
-  formato.
+  timer; sequência). Tema, tamanho do texto do EPUB e o que mostrar seguem
+  a conta (`User.preferences`, `lib/preferences/`; gravados 600 ms depois
+  da última mudança). O zoom do PDF e do CBZ depende da tela e fica no
+  `localStorage` do navegador. Quem ainda não tinha nada na conta leva o
+  que estava no navegador na primeira abertura.
 - **Tela cheia**: a partir de `sm`, tela cheia do navegador
   (`FullScreenButton`). No celular, o mesmo ícone liga o **modo imersivo**:
   cabeçalho, rodapé e setas somem e o conteúdo ocupa a tela toda
