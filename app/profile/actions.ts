@@ -7,6 +7,7 @@ import { getApprovedUserId } from "@/lib/auth/session";
 import type { DashboardLayout } from "@/lib/dashboardLayout";
 import { findAvatarColor, parseAvatarLetter } from "@/lib/profile/avatar";
 import { findFollowTarget, follow, unfollow } from "@/lib/profile/follow";
+import { notifyFollow } from "@/lib/notifications/server";
 import { parseProfileLayout } from "@/lib/profile/layout";
 import { MAX_BIO_LENGTH, parseBio } from "@/lib/profile/rules";
 import { prisma } from "@/lib/services/prisma";
@@ -77,6 +78,7 @@ export async function setFollowing(value: { userId: unknown; follow: unknown }) 
 
   if (value.follow) {
     await follow(viewerId, target.id);
+    await notifyFollow(viewerId, target.id);
   } else {
     await unfollow(viewerId, target.id);
   }
