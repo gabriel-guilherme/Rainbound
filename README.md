@@ -311,7 +311,8 @@ app/
 ├── (main)/             Pages with Navbar and Footer
 │   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
-│   └── library/        Library list, new book, book details and server actions
+│   ├── library/        Library list, new book, book details and server actions
+│   └── u/[username]/   Public profile (avatar, bio, followers, numbers; private profiles show only the header)
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
 ├── api/reading-time/   Receives reading time for the streak (fetch every minute, sendBeacon on close)
@@ -323,7 +324,7 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── reader/             In-app reader (see components/reader/README.md): engines/, panels/, hooks/
 ├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
 ├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
-├── profile/            Profile avatar (color + letter) and its editor
+├── profile/            Profile: avatar (color + letter), header, numbers and editors
 ├── widgets/            Home widgets (registry.tsx) and carousel
 │   ├── editor/         Layout editor: home map, widget options panel, catalog with previews, layout edits
 │   └── parts/          Shared book pieces: card row, spine shelf, lying stack, featured book, list
@@ -362,7 +363,9 @@ lib/
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
 │   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
 ├── profile/
-│   └── avatar.ts         Profile avatar: 12-color palette, letter, defaults from the account
+│   ├── avatar.ts         Profile avatar: 12-color palette, letter, defaults from the account
+│   ├── rules.ts          Profile rules shared by server and browser (bio length, username)
+│   └── server.ts         Profile by username and the header numbers
 ├── preferences/
 │   ├── rules.ts          Account preferences (reader, library view and sort): shape and validation
 │   └── server.ts         Account preferences in the database (User.preferences)
