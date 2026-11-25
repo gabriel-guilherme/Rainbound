@@ -312,7 +312,7 @@ app/
 │   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
 │   ├── library/        Library list, new book, book details and server actions
-│   └── u/[username]/   Public profile (avatar, bio, followers, numbers; private profiles show only the header)
+│   └── u/[username]/   Public profile (avatar, bio, follow, numbers; private profiles show only the header), plus seguidores/ and seguindo/ lists (open as a modal over the profile via @modal intercepted routes; full page when opened directly)
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
 ├── api/reading-time/   Receives reading time for the streak (fetch every minute, sendBeacon on close)
@@ -365,7 +365,8 @@ lib/
 ├── profile/
 │   ├── avatar.ts         Profile avatar: 12-color palette, letter, defaults from the account
 │   ├── rules.ts          Profile rules shared by server and browser (bio length, username)
-│   └── server.ts         Profile by username and the header numbers
+│   ├── server.ts         Profile by username and the header numbers
+│   └── follow.ts         Follow / unfollow (free, no approval) and the followers / following lists
 ├── preferences/
 │   ├── rules.ts          Account preferences (reader, library view and sort): shape and validation
 │   └── server.ts         Account preferences in the database (User.preferences)
