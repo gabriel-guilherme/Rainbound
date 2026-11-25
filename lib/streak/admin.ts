@@ -1,17 +1,17 @@
-import { prisma } from "./prisma";
-import { getGoalMinutes } from "./readingStreak";
+import { prisma } from "../services/prisma";
+import { getGoalMinutes } from "./server";
 import {
   addDays,
   dateKeyToUtc,
   goalSeconds,
   SECONDS_PER_DAY,
   utcToDateKey,
-} from "./streak";
+} from "./rules";
 
 /*
  * Testes da sequência de leitura (aba "Sequência" em /admin/pedidos).
  * Mexem direto nos dias (ReadingDay), de jeitos que a leitura de verdade
- * (lib/readingStreak.ts) nunca faz, como tirar minutos de um dia batido.
+ * (lib/streak/server.ts) nunca faz, como tirar minutos de um dia batido.
  * Para tirar a aba de testes, basta apagar este arquivo e o que o usa.
  */
 

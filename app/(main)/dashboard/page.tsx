@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-import { requireApprovedUser } from "@/lib/session";
+import { requireApprovedUser } from "@/lib/auth/session";
 
 import DashboardEditor from "@/components/Widgets/DashboardEditor";
 import WidgetSection, {

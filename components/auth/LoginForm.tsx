@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { fieldClass, labelClass } from "@/components/common/fieldStyles";
-import { authClient, describeAuthError } from "@/lib/authClient";
+import { authClient, describeAuthError } from "@/lib/auth/client";
 
 /*
  * Entrar com usuário OU e-mail + senha. Com "@" vai como e-mail; sem,

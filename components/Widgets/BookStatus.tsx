@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { requireApprovedUser } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { requireApprovedUser } from "@/lib/auth/session";
 import { statusColor, statusLabel, statusOptions } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import type { WidgetVariant } from "@/lib/dashboardLayout";

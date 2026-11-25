@@ -1,5 +1,5 @@
 import { ReadingStatus } from "@/generated/prisma/enums";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 
 /* Maior valor de uma coluna Int do Postgres. */
 const MAX_INT = 2_147_483_647;

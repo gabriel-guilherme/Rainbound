@@ -1,6 +1,6 @@
 import StreakCard from "@/components/ReadingStreak/StreakCard";
-import { getStreakSummary, getTimeZone } from "@/lib/readingStreak";
-import { requireApprovedUser } from "@/lib/session";
+import { getStreakSummary, getTimeZone } from "@/lib/streak/server";
+import { requireApprovedUser } from "@/lib/auth/session";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 
 /*

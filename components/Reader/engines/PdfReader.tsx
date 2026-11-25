@@ -6,7 +6,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 
-import { fetchBookFile } from "@/lib/bookCache";
+import { fetchBookFile } from "@/lib/books/cache";
 
 import FileError from "../FileError";
 import { calculateProgress, getPdfPage } from "../readerUtils";
@@ -49,7 +49,7 @@ export default function PdfReader({
   const [retryKey, setRetryKey] = useState<number>(0);
 
   /*
-   * Arquivo pelo cache do navegador (lib/bookCache.ts), como EPUB e CBZ.
+   * Arquivo pelo cache do navegador (lib/books/cache.ts), como EPUB e CBZ.
    * O objeto fica em estado para o react-pdf não recarregar a cada
    * render. O pdf.js transfere o buffer para o worker (ele fica
    * inutilizável aqui), então cada tentativa busca uma cópia nova.

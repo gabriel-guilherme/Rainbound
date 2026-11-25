@@ -7,7 +7,7 @@ import type { ReadingStatus } from "@/generated/prisma/enums";
  * - Lido: arredondada;
  * - Abandonado: rasgada.
  * A cor é a do status (`--color-status-*`, a mesma dos selos do modo
- * capa); as lombadas não usam essas cores (lib/spine.ts) e o contorno
+ * capa); as lombadas não usam essas cores (lib/books/spine.ts) e o contorno
  * escuro separa a fita do livro. Estilos em app/globals.css (.spine-mark).
  */
 const RIBBON_PATHS: Record<ReadingStatus, string> = {

@@ -13,7 +13,7 @@ import {
 } from "@/app/(main)/library/types";
 import BookSpine from "@/components/books/BookSpine";
 import ProgressLabel from "@/components/books/ProgressLabel";
-import { getSpineLookForBook, type SpineBook } from "@/lib/spine";
+import { getSpineLookForBook, type SpineBook } from "@/lib/books/spine";
 
 type BookcaseProps = {
   books: SpineBook[];

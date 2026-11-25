@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Droplet } from "lucide-react";
 
-import { formatDays, toMinutes, type StreakSummary } from "@/lib/streak";
+import { formatDays, toMinutes, type StreakSummary } from "@/lib/streak/rules";
 
 import GoalButton from "./GoalButton";
 import GoalPicker from "./GoalPicker";

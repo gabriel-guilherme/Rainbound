@@ -123,7 +123,7 @@
 
 /*
  * Lombadas (components/common/BookSpine.tsx). Tamanho, cores e progresso
- * chegam por variáveis CSS calculadas em lib/spine.ts.
+ * chegam por variáveis CSS calculadas em lib/books/spine.ts.
  */
 @layer components {
   .spine {

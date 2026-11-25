@@ -10,12 +10,12 @@ import {
   DEFAULT_STORAGE_LIMIT_MB,
   formatStorageSize,
   R2_FREE_STORAGE_MB,
-} from "@/lib/bookFiles";
-import { prisma } from "@/lib/prisma";
-import { getStreakSummary, getTimeZone, todayIn } from "@/lib/readingStreak";
-import { listReadingDays } from "@/lib/readingStreakAdmin";
-import { requireAdmin } from "@/lib/session";
-import { addDays, dateKeyToUtc, formatDays, toMinutes } from "@/lib/streak";
+} from "@/lib/books/files";
+import { prisma } from "@/lib/services/prisma";
+import { getStreakSummary, getTimeZone, todayIn } from "@/lib/streak/server";
+import { listReadingDays } from "@/lib/streak/admin";
+import { requireAdmin } from "@/lib/auth/session";
+import { addDays, dateKeyToUtc, formatDays, toMinutes } from "@/lib/streak/rules";
 
 import {
   adjustReadingDay,

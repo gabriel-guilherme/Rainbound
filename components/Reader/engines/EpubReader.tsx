@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ePub, { EpubCFI } from "@likecoin/epub-ts";
 
-import { fetchBookFile } from "@/lib/bookCache";
+import { fetchBookFile } from "@/lib/books/cache";
 import { attachSwipe } from "@/lib/swipe";
 
 import {

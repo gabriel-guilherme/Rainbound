@@ -8,7 +8,7 @@ import {
   getBookFileExtension,
   getMaxSelectableSize,
   MAX_BOOK_FILE_SIZE,
-} from "./bookFiles";
+} from "./files";
 
 /*
  * Erro com mensagem pronta para mostrar ao usuário.
@@ -104,7 +104,7 @@ export async function compressCover(file: File) {
 }
 
 /*
- * CBZ: comprime as páginas antes de enviar (lib/comicCompression.ts,
+ * CBZ: comprime as páginas antes de enviar (lib/books/comicCompression.ts,
  * carregado só quando necessário). Os demais formatos vão como estão.
  */
 async function optimizeBookFile(

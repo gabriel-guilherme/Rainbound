@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Droplet } from "lucide-react";
 
-import { formatDays, type StreakSummary } from "@/lib/streak";
+import { formatDays, type StreakSummary } from "@/lib/streak/rules";
 
 import { useStreak } from "./useStreak";
 

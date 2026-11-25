@@ -3,7 +3,7 @@
 import CurrentTime from "@/components/ReadingSession/CurrentTime";
 import SessionButton from "@/components/ReadingSession/SessionButton";
 import StreakButton from "@/components/ReadingStreak/StreakButton";
-import type { StreakSummary } from "@/lib/streak";
+import type { StreakSummary } from "@/lib/streak/rules";
 
 import type { PageInfo } from "./readerTypes";
 

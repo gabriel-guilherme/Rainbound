@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-import { prisma } from "./prisma";
+import { prisma } from "../services/prisma";
 import {
   addDays,
   clampGoal,
@@ -16,12 +16,12 @@ import {
   TIME_ZONE_COOKIE,
   utcToDateKey,
   type StreakSummary,
-} from "./streak";
+} from "./rules";
 
 /*
  * Sequência de leitura no banco (ReadingDay): um registro por dia com os
- * segundos lidos. Regras e datas em lib/streak.ts; os testes do admin
- * ficam em lib/readingStreakAdmin.ts.
+ * segundos lidos. Regras e datas em lib/streak/rules.ts; os testes do admin
+ * ficam em lib/streak/admin.ts.
  */
 
 /* Fuso do aparelho (cookie gravado pelo ReadingTracker); padrão: Brasília. */

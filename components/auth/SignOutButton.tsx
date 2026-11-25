@@ -4,7 +4,7 @@ import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { authClient } from "@/lib/authClient";
+import { authClient } from "@/lib/auth/client";
 
 /* Encerra a sessão e volta para a home pública. */
 export default function SignOutButton({

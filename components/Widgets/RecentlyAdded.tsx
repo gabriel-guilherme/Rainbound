@@ -3,8 +3,8 @@ import Link from "next/link";
 
 import { DEFAULT_COVER, typeLabel } from "@/app/(main)/library/types";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
-import { prisma } from "@/lib/prisma";
-import { requireApprovedUser } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { requireApprovedUser } from "@/lib/auth/session";
 
 import WidgetCard from "./WidgetCard";
 

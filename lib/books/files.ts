@@ -25,7 +25,7 @@ export const MAX_BOOK_FILE_SIZE = 200 * 1000 * 1000;
 
 /*
  * CBZ escolhido no formulário (antes da compressão no navegador, ver
- * lib/comicCompression.ts). Depois de comprimido ainda precisa caber em
+ * lib/books/comicCompression.ts). Depois de comprimido ainda precisa caber em
  * MAX_BOOK_FILE_SIZE. O limite evita estourar a memória do navegador.
  */
 export const MAX_COMIC_SOURCE_SIZE = 400 * 1000 * 1000;

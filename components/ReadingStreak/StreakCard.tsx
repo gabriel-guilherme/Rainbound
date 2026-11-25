@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Droplet } from "lucide-react";
 
 import type { WidgetVariant } from "@/lib/dashboardLayout";
-import { goalSeconds, toMinutes, type StreakSummary } from "@/lib/streak";
+import { goalSeconds, toMinutes, type StreakSummary } from "@/lib/streak/rules";
 
 import GoalButton from "./GoalButton";
 import GoalPicker from "./GoalPicker";

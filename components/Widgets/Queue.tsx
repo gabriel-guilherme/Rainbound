@@ -4,14 +4,14 @@ import Link from "next/link";
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
 import BookSpine from "@/components/books/BookSpine";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
-import { prisma } from "@/lib/prisma";
-import { requireApprovedUser } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { requireApprovedUser } from "@/lib/auth/session";
 import {
   getLastName,
   getSpineLookForBook,
   toSpineBook,
   type SpineBook,
-} from "@/lib/spine";
+} from "@/lib/books/spine";
 
 import WidgetCard from "./WidgetCard";
 

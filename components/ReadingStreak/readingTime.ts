@@ -16,7 +16,7 @@
 
 import { readSessionState } from "@/components/ReadingSession/sessionState";
 import type { SessionState } from "@/components/ReadingSession/sessionState";
-import { addDays, localDateKey, nextLocalMidnight } from "@/lib/streak";
+import { addDays, localDateKey, nextLocalMidnight } from "@/lib/streak/rules";
 
 const STORAGE_KEY = "rainbound:reading-time";
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { requireApprovedUser } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { requireApprovedUser } from "@/lib/auth/session";
 import type { Prisma } from "@/generated/prisma/client";
 
 import { FilterBar } from "@/components/library/FilterBar";
@@ -10,8 +10,8 @@ import Bookcase from "@/components/books/Bookcase";
 import Pagination from "@/components/library/Pagination";
 import ViewToggle from "@/components/library/ViewToggle";
 import StorageMeter from "@/components/library/StorageMeter";
-import { getStorageUsage } from "@/lib/storage";
-import { toSpineBook } from "@/lib/spine";
+import { getStorageUsage } from "@/lib/books/quota";
+import { toSpineBook } from "@/lib/books/spine";
 import {
   buildLibraryHref,
   isLibraryView,

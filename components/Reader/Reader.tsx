@@ -15,7 +15,7 @@ import { useReaderSettings } from "@/components/Reader/hooks/useReaderSettings";
 import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
 import ReadingTracker from "@/components/ReadingStreak/ReadingTracker";
 import StreakNotice from "@/components/ReadingStreak/StreakNotice";
-import type { StreakSummary } from "@/lib/streak";
+import type { StreakSummary } from "@/lib/streak/rules";
 
 import {
   ArrowLeft,

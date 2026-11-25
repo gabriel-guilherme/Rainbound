@@ -21,8 +21,8 @@ import type {
 } from "@/generated/prisma/enums";
 import InputBookCover from "@/components/books/forms/InputBookCover";
 import InputBookFile from "./InputBookFile";
-import { formatStorageSize } from "@/lib/bookFiles";
-import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
+import { formatStorageSize } from "@/lib/books/files";
+import { prepareBookFormData, UploadError } from "@/lib/books/clientUpload";
 import { fieldClass as stylePattern, labelClass } from "@/components/common/fieldStyles";
 
 /*

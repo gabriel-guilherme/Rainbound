@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 import {
   bookmarkSelect,
   isBookmarkId,
@@ -12,8 +12,8 @@ import {
   saveReadingProgress,
   setReadingProgress,
   updateStatusFromProgress,
-} from "@/lib/readingProgress";
-import { getApprovedUserId } from "@/lib/session";
+} from "@/lib/reading/progress";
+import { getApprovedUserId } from "@/lib/auth/session";
 
 type ProgressData = {
   currentPosition: number;

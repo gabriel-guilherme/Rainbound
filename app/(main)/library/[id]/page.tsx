@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 import { notFound } from "next/navigation";
 import { deleteBookAndRedirect } from "./actions";
 import BackButton from "@/components/common/BackButton";
@@ -9,8 +9,8 @@ import ProgressBar from "@/components/books/ProgressBar";
 import { bookTabFromParam } from "@/app/(main)/library/types";
 import EditBookForm from "@/components/books/forms/EditBookForm";
 import LogReadingForm from "@/components/books/forms/LogReadingForm";
-import { requireApprovedUser } from "@/lib/session";
-import { parseBookId } from "@/lib/utils";
+import { requireApprovedUser } from "@/lib/auth/session";
+import { parseBookId } from "@/lib/books/utils";
 
 export default async function BookDetailPage({
   params,

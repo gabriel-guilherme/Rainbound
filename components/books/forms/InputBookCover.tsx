@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ImagePlus } from "lucide-react";
 import { useState } from "react";
 
-import { ALLOWED_COVER_TYPES, MAX_COVER_FILE_SIZE } from "@/lib/bookFiles";
+import { ALLOWED_COVER_TYPES, MAX_COVER_FILE_SIZE } from "@/lib/books/files";
 
 type InputCoverProps = {
   src?: string;

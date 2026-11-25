@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import { AccountStatus, Role } from "@/generated/prisma/enums";
 
-import { auth } from "./auth";
+import { auth } from "./server";
 
 /*
  * Sessão do usuário atual para Server Components, Server Actions e rotas.

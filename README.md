@@ -320,27 +320,34 @@ components/             Reusable UI components (Reader, ReadingSession, ReadingS
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
-├── prisma.ts            Prisma client configuration
-├── auth.ts              Better Auth configuration (username plugin, approval, rate limit)
-├── authClient.ts        Browser auth client and translated error messages
-├── session.ts           Current user helpers (requireApprovedUser, requireAdmin...)
-├── r2.ts                Cloudflare R2 client (presigned URLs, book file storage)
-├── cloudinary.ts        Cloudinary configuration
-├── upload.ts            Cover and book file uploads
-├── storage.ts           Per-user storage usage and limit checks
-├── spine.ts             Bookshelf spine look (color, width, height)
-├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
-├── readingPages.ts      Current/total pages from a progress locator ("pág. X de Y" on hover)
-├── streak.ts            Reading streak rules and dates (shared by server and browser)
-├── readingStreak.ts     Reading streak in the database (summary, recording time, goal)
-├── readingStreakAdmin.ts  Reading streak test helpers for the admin "Sequência" tab
-├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
-├── comicCompression.ts  Browser-side CBZ page compression before upload
-├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files
-├── dashboardLayout.ts   Home widget layout (tabs, widgets, cookie parsing)
-├── swipe.ts             Touch swipe gesture (reader and widget carousel)
-├── useNow.ts            Current time hook, one shared 1 s tick (clocks and reading session)
-└── utils.ts             Book file read URL and id parsing
+├── auth/
+│   ├── server.ts         Better Auth configuration (username plugin, approval, rate limit)
+│   ├── client.ts         Browser auth client and translated error messages
+│   └── session.ts        Current user helpers (requireApprovedUser, requireAdmin...)
+├── books/
+│   ├── files.ts          Book file formats and size limits
+│   ├── upload.ts         Cover and book file uploads (server)
+│   ├── clientUpload.ts   Browser upload straight to R2 (presigned URL)
+│   ├── quota.ts          Per-user storage usage and limit checks
+│   ├── cache.ts          Browser cache of downloaded PDF/CBZ/EPUB files
+│   ├── comicFiles.ts     CBZ page rules (image types, ordering, unzip)
+│   ├── comicCompression.ts  Browser-side CBZ page compression before upload
+│   ├── spine.ts          Bookshelf spine look (color, width, height)
+│   └── utils.ts          Book file read URL and id parsing
+├── reading/
+│   ├── progress.ts       Reading progress (forward-only), manual log and bookmark validation
+│   └── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
+├── streak/
+│   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
+│   ├── server.ts         Reading streak in the database (summary, recording time, goal)
+│   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
+├── services/
+│   ├── prisma.ts         Prisma client configuration
+│   ├── r2.ts             Cloudflare R2 client (presigned URLs, book file storage)
+│   └── cloudinary.ts     Cloudinary configuration
+├── dashboardLayout.ts    Home widget layout (tabs, widgets, cookie parsing)
+├── swipe.ts              Touch swipe gesture (reader and widget carousel)
+└── useNow.ts             Current time hook, one shared 1 s tick (clocks and reading session)
 
 prisma/
 ├── schema.prisma        Database schema

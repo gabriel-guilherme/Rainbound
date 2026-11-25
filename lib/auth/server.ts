@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 
 /*
  * Autenticação (Better Auth). Usuários, sessões e senhas ficam no próprio

@@ -9,7 +9,7 @@ import {
   MAX_STORAGE_LIMIT_MB,
   MIN_STORAGE_LIMIT_MB,
   STORAGE_LIMIT_PRESETS_MB,
-} from "@/lib/bookFiles";
+} from "@/lib/books/files";
 
 type StorageLimitSelectProps = {
   userId: string;

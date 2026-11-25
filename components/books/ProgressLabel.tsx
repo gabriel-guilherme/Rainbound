@@ -1,4 +1,4 @@
-import { formatReadPages, type ReadPages } from "@/lib/readingPages";
+import { formatReadPages, type ReadPages } from "@/lib/reading/pages";
 
 type ProgressLabelProps = {
   percentage: number;

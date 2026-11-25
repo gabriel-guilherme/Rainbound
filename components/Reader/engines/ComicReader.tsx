@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { fetchBookFile } from "@/lib/bookCache";
+import { fetchBookFile } from "@/lib/books/cache";
 import {
   getImageType,
   isComicPage,
   sortComicPages,
   unzipAsync,
-} from "@/lib/comicFiles";
+} from "@/lib/books/comicFiles";
 
 import FileError from "../FileError";
 import { calculateProgress, getComicPage } from "../readerUtils";
@@ -18,7 +18,7 @@ import type { ReaderEngineProps } from "../readerTypes";
  * Leitor de CBZ: o arquivo é um ZIP de imagens. Descompacta no navegador
  * (fflate, em worker) e mostra uma imagem por página, em ordem natural
  * de nome (página 2 antes da 10). O arquivo baixado fica em cache no
- * navegador (lib/bookCache.ts).
+ * navegador (lib/books/cache.ts).
  */
 
 export default function ComicReader({

@@ -5,7 +5,7 @@
  * Sem React aqui: o hook está em useStreak.ts.
  */
 
-import type { StreakSummary } from "@/lib/streak";
+import type { StreakSummary } from "@/lib/streak/rules";
 
 import { readReadingTimeRaw, subscribeReadingTime } from "./readingTime";
 

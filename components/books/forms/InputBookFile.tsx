@@ -10,7 +10,7 @@ import {
   getMaxSelectableSize,
   MAX_BOOK_FILE_SIZE,
   MAX_COMIC_SOURCE_SIZE,
-} from "@/lib/bookFiles";
+} from "@/lib/books/files";
 
 type InputBookFileProps = {
   label?: string;

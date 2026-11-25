@@ -16,14 +16,14 @@ import {
 } from "../types";
 import BookSpine from "@/components/books/BookSpine";
 import type { ContentType, ReadingStatus } from "@/generated/prisma/enums";
-import { getSpineLook } from "@/lib/spine";
+import { getSpineLook } from "@/lib/books/spine";
 import InputBookCover from "@/components/books/forms/InputBookCover";
 import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
   OpenLibraryBook,
 } from "@/components/books/forms/OpenLibrarySearch";
 import InputBookFile from "@/components/books/forms/InputBookFile";
-import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
+import { prepareBookFormData, UploadError } from "@/lib/books/clientUpload";
 import {
   fieldClass as stylePattern,
   labelClass,

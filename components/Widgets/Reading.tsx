@@ -5,9 +5,9 @@ import type { CSSProperties } from "react";
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
 import ProgressLabel from "@/components/books/ProgressLabel";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
-import { prisma } from "@/lib/prisma";
-import { requireApprovedUser } from "@/lib/session";
-import { getSpineLookForBook, toSpineBook, type SpineBook } from "@/lib/spine";
+import { prisma } from "@/lib/services/prisma";
+import { requireApprovedUser } from "@/lib/auth/session";
+import { getSpineLookForBook, toSpineBook, type SpineBook } from "@/lib/books/spine";
 
 import WidgetCard from "./WidgetCard";
 

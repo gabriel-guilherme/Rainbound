@@ -2,9 +2,9 @@ import {
   BYTES_PER_MB,
   DEFAULT_STORAGE_LIMIT_MB,
   formatStorageSize,
-} from "@/lib/bookFiles";
-import { prisma } from "@/lib/prisma";
-import { getObjectSize } from "@/lib/r2";
+} from "@/lib/books/files";
+import { prisma } from "@/lib/services/prisma";
+import { getObjectSize } from "@/lib/services/r2";
 
 /*
  * Limite de espaço por usuário: soma de Book.fileSize dos livros dele

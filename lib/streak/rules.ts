@@ -1,6 +1,6 @@
 /*
  * Sequência de leitura: regras e datas. Funções puras, usadas no servidor
- * (lib/readingStreak.ts) e no navegador (components/ReadingStreak).
+ * (lib/streak/server.ts) e no navegador (components/ReadingStreak).
  *
  * Um dia conta quando a pessoa lê a meta diária (leitor em uso ou
  * cronômetro/timer da Sessão). O dia é o do calendário, no fuso do

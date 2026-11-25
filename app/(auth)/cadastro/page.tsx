@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import AuthShell from "@/components/auth/AuthShell";
 import SignupForm from "@/components/auth/SignupForm";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Pedir acesso — Rainbound" };
 

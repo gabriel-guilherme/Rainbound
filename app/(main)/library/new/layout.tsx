@@ -1,4 +1,4 @@
-import { requireApprovedUser } from "@/lib/session";
+import { requireApprovedUser } from "@/lib/auth/session";
 
 /*
  * A página de cadastro é um componente de cliente e não confere a sessão;

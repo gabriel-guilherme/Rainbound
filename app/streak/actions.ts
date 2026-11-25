@@ -2,13 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 
-import { getStreakSummary, getTimeZone, setDailyGoal } from "@/lib/readingStreak";
-import { getApprovedUserId } from "@/lib/session";
+import { getStreakSummary, getTimeZone, setDailyGoal } from "@/lib/streak/server";
+import { getApprovedUserId } from "@/lib/auth/session";
 import {
   MAX_DAILY_GOAL_MIN,
   MIN_DAILY_GOAL_MIN,
   type StreakSummary,
-} from "@/lib/streak";
+} from "@/lib/streak/rules";
 
 /*
  * Meta diária da sequência (painel do leitor e widget da home). Devolve

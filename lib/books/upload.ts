@@ -8,10 +8,10 @@ import {
   getBookFileExtension,
   isUploadedBookPath,
   MAX_BOOK_FILE_SIZE,
-} from "./bookFiles";
-import cloudinary from "./cloudinary";
-import { deleteObject, getObjectSize, presignObjectUrl } from "./r2";
-import { assertStorageAvailable } from "./storage";
+} from "./files";
+import cloudinary from "../services/cloudinary";
+import { deleteObject, getObjectSize, presignObjectUrl } from "../services/r2";
+import { assertStorageAvailable } from "./quota";
 
 export async function uploadBookCover(file: File) {
   const bytes = await file.arrayBuffer();

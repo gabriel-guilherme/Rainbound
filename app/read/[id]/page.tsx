@@ -1,11 +1,11 @@
 import Reader from "@/components/Reader/Reader";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 import { notFound } from "next/navigation";
 
-import { bookmarkSelect } from "@/lib/readingProgress";
-import { getStreakSummary, getTimeZone } from "@/lib/readingStreak";
-import { requireApprovedUser } from "@/lib/session";
-import { getBookFileUrl, parseBookId } from "@/lib/utils";
+import { bookmarkSelect } from "@/lib/reading/progress";
+import { getStreakSummary, getTimeZone } from "@/lib/streak/server";
+import { requireApprovedUser } from "@/lib/auth/session";
+import { getBookFileUrl, parseBookId } from "@/lib/books/utils";
 
 export default async function Read({
   params,

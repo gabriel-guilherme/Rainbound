@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
-import { getReadPages } from "@/lib/readingPages";
+import { getReadPages } from "@/lib/reading/pages";
 
 import HomeHero from "./HomeHero";
 

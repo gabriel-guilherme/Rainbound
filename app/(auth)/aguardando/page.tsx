@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import AuthShell from "@/components/auth/AuthShell";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { AccountStatus } from "@/generated/prisma/enums";
-import { requireUser } from "@/lib/session";
+import { requireUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Pedido de acesso — Rainbound" };
 

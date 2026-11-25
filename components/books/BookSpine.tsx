@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 
 import { statusLabel } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
-import { getLastName, type SpineLook } from "@/lib/spine";
+import { getLastName, type SpineLook } from "@/lib/books/spine";
 
 import SpineRibbon from "./SpineRibbon";
 

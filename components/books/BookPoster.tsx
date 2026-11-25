@@ -12,7 +12,7 @@ import {
 import BookActionsMenu from "@/components/books/BookActionsMenu";
 import ProgressLabel from "@/components/books/ProgressLabel";
 import type { Book, ReadingProgress } from "@/generated/prisma/client";
-import { getReadPages } from "@/lib/readingPages";
+import { getReadPages } from "@/lib/reading/pages";
 
 type BookPosterProps = Book & {
   progress: ReadingProgress | null;

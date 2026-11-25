@@ -5,9 +5,9 @@ import Hero from "@/components/Home/Hero";
 import Landing from "@/components/Home/Landing";
 import Thoughts from "@/components/Home/Thoughts";
 import type { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser, isApproved } from "@/lib/session";
-import { toSpineBook } from "@/lib/spine";
+import { prisma } from "@/lib/services/prisma";
+import { getCurrentUser, isApproved } from "@/lib/auth/session";
+import { toSpineBook } from "@/lib/books/spine";
 
 /* Campos do cartão "Continuar" no Hero. */
 const continueReadingSelect = {

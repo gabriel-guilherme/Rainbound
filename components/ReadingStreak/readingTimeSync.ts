@@ -10,7 +10,7 @@ import {
   localDateKey,
   TIME_ZONE_COOKIE,
   type StreakSummary,
-} from "@/lib/streak";
+} from "@/lib/streak/rules";
 
 import { readReadingTime, writeReadingTime } from "./readingTime";
 import { getSummary, setSummary } from "./streakStore";

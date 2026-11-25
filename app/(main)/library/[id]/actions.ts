@@ -1,20 +1,20 @@
 "use server";
 
 import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 import {
   parseManualProgress,
   statusChangeForProgress,
   type ManualProgressEntry,
-} from "@/lib/readingProgress";
-import { getApprovedUserId } from "@/lib/session";
+} from "@/lib/reading/progress";
+import { getApprovedUserId } from "@/lib/auth/session";
 import {
   cleanupStorage,
   deleteBookCover,
   deleteBookFile,
   uploadBookCover,
   verifyUploadedBookFile,
-} from "@/lib/upload";
+} from "@/lib/books/upload";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 

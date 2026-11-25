@@ -1,4 +1,4 @@
-import { formatStorageSize } from "@/lib/bookFiles";
+import { formatStorageSize } from "@/lib/books/files";
 
 /*
  * Espaço usado pelos arquivos de livro: "320 MB de 1 GB" e uma régua.

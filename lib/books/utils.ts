@@ -1,9 +1,9 @@
-import { presignObjectUrl } from "./r2";
+import { presignObjectUrl } from "../services/r2";
 
 /*
  * URL de leitura do arquivo do livro (R2), válida por 1 hora. O caminho
  * da URL não muda entre aberturas, então o cache do navegador
- * (lib/bookCache.ts) reconhece o mesmo arquivo.
+ * (lib/books/cache.ts) reconhece o mesmo arquivo.
  */
 export async function getBookFileUrl(filePath: string) {
   return presignObjectUrl(filePath, "GET", 60 * 60);

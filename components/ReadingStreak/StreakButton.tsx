@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { formatDays, toMinutes, type StreakSummary } from "@/lib/streak";
+import { formatDays, toMinutes, type StreakSummary } from "@/lib/streak/rules";
 
 import StreakPanel from "./StreakPanel";
 import StreakRing from "./StreakRing";

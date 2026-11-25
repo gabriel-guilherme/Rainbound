@@ -13,7 +13,7 @@ import {
   BOOK_FILE_TYPES,
   COMIC_PAGE_MAX_DIMENSION,
   COMIC_PAGE_QUALITY,
-} from "./bookFiles";
+} from "./files";
 import { getImageType, isJunkEntry, unzipAsync } from "./comicFiles";
 
 /* Quantas páginas são processadas ao mesmo tempo. */

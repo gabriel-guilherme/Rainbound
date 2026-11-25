@@ -141,8 +141,8 @@ segue certo com a aba fechada. Nada vai para o banco.
 
 ## Sequência de leitura
 
-`components/ReadingStreak/` (regras e datas em `lib/streak.ts`, banco em
-`lib/readingStreak.ts`). O `Reader` monta um `ReadingTracker` que conta o
+`components/ReadingStreak/` (regras e datas em `lib/streak/rules.ts`, banco em
+`lib/streak/server.ts`). O `Reader` monta um `ReadingTracker` que conta o
 tempo com a página visível e em uso (algum toque, tecla, rolagem ou página
 virada nos últimos 5 min) e o tempo com o cronômetro/timer da Sessão
 rodando, sem contar em dobro. O layout das outras páginas também tem um
@@ -178,7 +178,7 @@ mudou (arquivo trocado), grava normalmente.
 - ao sair do leitor pela navegação do app, pela Server Action.
 
 As duas entradas validam os dados com `parseReadingProgress`
-(`lib/readingProgress.ts`).
+(`lib/reading/progress.ts`).
 
 Quando o progresso avança, o status do livro acompanha
 (`updateStatusFromProgress`, mesma regra do registro manual em
@@ -211,17 +211,17 @@ antes da primeira virada de página.
   guardadas no `localStorage` por arquivo.
 - CBZ: imagens ordenadas por nome em ordem natural (2 antes de 10);
   arquivos de `__MACOSX/` e ocultos são ignorados (regras em
-  `lib/comicFiles.ts`, compartilhadas com o upload).
+  `lib/books/comicFiles.ts`, compartilhadas com o upload).
 - CBZ e EPUB: o arquivo baixado fica no Cache API do navegador
-  (`lib/bookCache.ts`), até 8 livros / 400 MB, saindo os menos usados.
+  (`lib/books/cache.ts`), até 8 livros / 400 MB, saindo os menos usados.
   A chave é o caminho no storage, então trocar o arquivo baixa de novo.
   O PDF não usa esse cache (o `react-pdf` carrega por partes).
 
 ## Upload de CBZ
 
 No formulário, o CBZ pode ter até 400 MB. Antes do envio,
-`lib/comicCompression.ts` reduz cada página a no máximo 2400 px no lado
+`lib/books/comicCompression.ts` reduz cada página a no máximo 2400 px no lado
 maior e converte para WEBP (JPEG no Safari), com qualidade 0,8. Páginas
 que não ficam menores mantêm o original. O resultado precisa caber em
 50 MB (limite do bucket); senão o formulário pede para dividir o volume.
-Valores em `lib/bookFiles.ts`.
+Valores em `lib/books/files.ts`.

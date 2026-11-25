@@ -2,9 +2,9 @@ import {
   getStreakSummary,
   parseReadingTimeEntries,
   recordReadingTime,
-} from "@/lib/readingStreak";
-import { getCurrentUser, isApproved } from "@/lib/session";
-import { isValidTimeZone } from "@/lib/streak";
+} from "@/lib/streak/server";
+import { getCurrentUser, isApproved } from "@/lib/auth/session";
+import { isValidTimeZone } from "@/lib/streak/rules";
 
 /*
  * Recebe o tempo de leitura contado no navegador (ReadingTracker) e

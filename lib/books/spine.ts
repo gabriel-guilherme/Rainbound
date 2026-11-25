@@ -3,7 +3,7 @@ import type {
   FileFormat,
   ReadingStatus,
 } from "@/generated/prisma/enums";
-import { getReadPages, type ReadPages } from "@/lib/readingPages";
+import { getReadPages, type ReadPages } from "@/lib/reading/pages";
 
 /*
  * Aparência das lombadas na estante.

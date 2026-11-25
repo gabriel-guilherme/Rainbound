@@ -1,6 +1,6 @@
 import { Droplet } from "lucide-react";
 
-import { dateKeyToUtc, toMinutes, type StreakDay } from "@/lib/streak";
+import { dateKeyToUtc, toMinutes, type StreakDay } from "@/lib/streak/rules";
 
 const weekdayFormat = new Intl.DateTimeFormat("pt-BR", {
   weekday: "narrow",

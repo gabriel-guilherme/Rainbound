@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 
-import { goalSeconds, type StreakSummary } from "@/lib/streak";
+import { goalSeconds, type StreakSummary } from "@/lib/streak/rules";
 
 import { getUnsyncedMs } from "./readingTimeSync";
 import {

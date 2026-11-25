@@ -3,17 +3,17 @@
 import { revalidatePath } from "next/cache";
 
 import { AccountStatus } from "@/generated/prisma/enums";
-import { MAX_STORAGE_LIMIT_MB, MIN_STORAGE_LIMIT_MB } from "@/lib/bookFiles";
-import { prisma } from "@/lib/prisma";
-import { getGoalMinutes, getTimeZone, todayIn } from "@/lib/readingStreak";
+import { MAX_STORAGE_LIMIT_MB, MIN_STORAGE_LIMIT_MB } from "@/lib/books/files";
+import { prisma } from "@/lib/services/prisma";
+import { getGoalMinutes, getTimeZone, todayIn } from "@/lib/streak/server";
 import {
   clearReadingDays,
   getReadingDaySeconds,
   seedReadingStreak,
   setReadingDaySeconds,
-} from "@/lib/readingStreakAdmin";
-import { getAdminUserId } from "@/lib/session";
-import { addDays, isDateKey } from "@/lib/streak";
+} from "@/lib/streak/admin";
+import { getAdminUserId } from "@/lib/auth/session";
+import { addDays, isDateKey } from "@/lib/streak/rules";
 
 /*
  * Aprovar ou recusar um pedido de acesso. Só o admin; ele não muda o

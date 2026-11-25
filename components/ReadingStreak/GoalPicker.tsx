@@ -8,7 +8,7 @@ import {
   MAX_DAILY_GOAL_MIN,
   MIN_DAILY_GOAL_MIN,
   clampGoal,
-} from "@/lib/streak";
+} from "@/lib/streak/rules";
 
 import { setSummary } from "./streakStore";
 
