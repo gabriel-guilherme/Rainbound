@@ -4,7 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { logReadingProgress } from "@/app/(main)/library/[id]/actions";
-import { MAX_PAGE_COUNT } from "@/app/(main)/library/types";
+import { MAX_PAGE_COUNT } from "@/lib/books/labels";
 
 /*
  * "Registrar leitura": progresso anotado à mão, para livros lidos fora do

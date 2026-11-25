@@ -3,7 +3,7 @@
 import { ArrowDownUp, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { sortOptions } from "@/app/(main)/library/types";
+import { sortOptions } from "@/lib/books/library";
 import { toolbarFieldClass as stylePattern } from "@/components/common/fieldStyles";
 
 

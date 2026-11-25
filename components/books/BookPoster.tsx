@@ -8,7 +8,7 @@ import {
   statusLabel,
   typeLabel,
   DEFAULT_COVER,
-} from "@/app/(main)/library/types";
+} from "@/lib/books/labels";
 import BookActionsMenu from "@/components/books/BookActionsMenu";
 import ProgressLabel from "@/components/books/ProgressLabel";
 import type { Book, ReadingProgress } from "@/generated/prisma/client";

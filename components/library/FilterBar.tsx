@@ -2,11 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useTransition } from "react";
-import {
-  statusColor,
-  statusLabel,
-  statusOptions,
-} from "@/app/(main)/library/types";
+import { statusColor, statusLabel, statusOptions } from "@/lib/books/labels";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import SearchInput from "./SearchInput";
 import SpineRibbon from "../books/SpineRibbon";

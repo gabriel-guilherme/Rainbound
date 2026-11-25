@@ -15,7 +15,7 @@ import { getStorageUsage, StorageLimitError } from "@/lib/books/quota";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { parsePageCount } from "./types";
+import { parsePageCount } from "@/lib/books/labels";
 
 /*
  * Gera a URL assinada para o navegador enviar o arquivo do livro

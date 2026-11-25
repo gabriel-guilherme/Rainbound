@@ -6,7 +6,7 @@ import { deleteBookAndRedirect } from "./actions";
 import BackButton from "@/components/common/BackButton";
 import ConfirmSubmitButton from "@/components/common/ConfirmSubmitButton";
 import ProgressBar from "@/components/books/ProgressBar";
-import { bookTabFromParam } from "@/app/(main)/library/types";
+import { bookTabFromParam } from "@/lib/books/labels";
 import EditBookForm from "@/components/books/forms/EditBookForm";
 import LogReadingForm from "@/components/books/forms/LogReadingForm";
 import { requireApprovedUser } from "@/lib/auth/session";

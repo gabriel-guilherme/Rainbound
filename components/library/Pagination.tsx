@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-import {
-  buildLibraryHref,
-  type LibraryParams,
-} from "@/app/(main)/library/types";
+import { buildLibraryHref, type LibraryParams } from "@/lib/books/library";
 
 type PaginationProps = {
   page: number;

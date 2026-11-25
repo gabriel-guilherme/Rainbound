@@ -5,7 +5,7 @@ import {
   libraryViewOptions,
   type LibraryParams,
   type LibraryView,
-} from "@/app/(main)/library/types";
+} from "@/lib/books/library";
 
 type ViewToggleProps = {
   view: LibraryView;

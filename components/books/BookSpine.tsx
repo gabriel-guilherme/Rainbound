@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { statusLabel } from "@/app/(main)/library/types";
+import { statusLabel } from "@/lib/books/labels";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import { getLastName, type SpineLook } from "@/lib/books/spine";
 

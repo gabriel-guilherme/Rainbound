@@ -13,7 +13,7 @@ import {
   typeLabel,
   typeOptions,
   type BookTabId as TabId,
-} from "@/app/(main)/library/types";
+} from "@/lib/books/labels";
 import type {
   ContentType,
   FileFormat,

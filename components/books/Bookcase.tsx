@@ -10,7 +10,7 @@ import {
   statusColor,
   statusLabel,
   typeLabel,
-} from "@/app/(main)/library/types";
+} from "@/lib/books/labels";
 import BookSpine from "@/components/books/BookSpine";
 import ProgressLabel from "@/components/books/ProgressLabel";
 import { getSpineLookForBook, type SpineBook } from "@/lib/books/spine";

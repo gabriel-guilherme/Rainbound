@@ -13,7 +13,7 @@ import {
   statusLabel,
   statusOptions,
   typeOptions,
-} from "../types";
+} from "@/lib/books/labels";
 import BookSpine from "@/components/books/BookSpine";
 import type { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { getSpineLook } from "@/lib/books/spine";

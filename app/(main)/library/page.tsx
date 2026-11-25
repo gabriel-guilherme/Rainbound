@@ -12,14 +12,14 @@ import ViewToggle from "@/components/library/ViewToggle";
 import StorageMeter from "@/components/library/StorageMeter";
 import { getStorageUsage } from "@/lib/books/quota";
 import { toSpineBook } from "@/lib/books/spine";
+import { isReadingStatus } from "@/lib/books/labels";
 import {
   buildLibraryHref,
   isLibraryView,
-  isReadingStatus,
   LIBRARY_PAGE_SIZE,
   orderByOptions,
   parsePageParam,
-} from "./types";
+} from "@/lib/books/library";
 
 export default async function BooksPage({
   searchParams,

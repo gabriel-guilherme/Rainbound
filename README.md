@@ -326,6 +326,8 @@ lib/
 │   └── session.ts        Current user helpers (requireApprovedUser, requireAdmin...)
 ├── books/
 │   ├── files.ts          Book file formats and size limits
+│   ├── labels.ts         Status/type labels and colors, default cover, page count, book page tabs
+│   ├── library.ts        Library listing: sort, view, pagination and filter links
 │   ├── upload.ts         Cover and book file uploads (server)
 │   ├── clientUpload.ts   Browser upload straight to R2 (presigned URL)
 │   ├── quota.ts          Per-user storage usage and limit checks

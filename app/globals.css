@@ -12,7 +12,7 @@
 
   /*
    * Status de leitura: selos do modo capa, filtros e fitas das lombadas
-   * (library/types.ts → statusColor; components/common/SpineRibbon.tsx).
+   * (lib/books/labels.ts → statusColor; components/books/SpineRibbon.tsx).
    * "Quero ler" é o contraste a 60% sobre o fundo, em cor sólida.
    */
   --color-status-want: #8a8e81;

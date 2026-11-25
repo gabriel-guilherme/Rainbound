@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { DEFAULT_COVER, typeLabel } from "@/app/(main)/library/types";
+import { DEFAULT_COVER, typeLabel } from "@/lib/books/labels";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/services/prisma";
 import { requireApprovedUser } from "@/lib/auth/session";

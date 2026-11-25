@@ -18,7 +18,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { MAX_PAGE_COUNT } from "../types";
+import { MAX_PAGE_COUNT } from "@/lib/books/labels";
 
 /* Livro do usuário atual; de outra pessoa (ou inexistente) é erro. */
 async function findOwnBook(id: number, userId: string) {

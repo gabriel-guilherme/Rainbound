@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react-motion";
 
-import { DEFAULT_COVER } from "@/app/(main)/library/types";
+import { DEFAULT_COVER } from "@/lib/books/labels";
 import BookSpine from "@/components/books/BookSpine";
 import ScrollReveal from "@/components/common/ScrollReveal";
 import { getSpineLookForBook, type SpineBook } from "@/lib/books/spine";

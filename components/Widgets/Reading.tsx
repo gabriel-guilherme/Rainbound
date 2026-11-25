@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { DEFAULT_COVER } from "@/app/(main)/library/types";
+import { DEFAULT_COVER } from "@/lib/books/labels";
 import ProgressLabel from "@/components/books/ProgressLabel";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/services/prisma";
