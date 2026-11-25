@@ -7,11 +7,15 @@ import { Inbox, Plus } from "lucide-react";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useState } from "react";
 
-import SignOutButton from "@/components/auth/SignOutButton";
+import type { Avatar } from "@/lib/profile/avatar";
+
+import AccountMenu from "./AccountMenu";
 
 /* Usuário aprovado logado (null: visitante, vê só a marca e "Entrar"). */
 export type NavbarAccount = {
   username: string;
+  profileUsername: string | null;
+  avatar: Avatar;
   isAdmin: boolean;
   pendingRequests: number;
 };
@@ -164,7 +168,13 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
             </Link>
           )}
 
-          {account && <SignOutButton label={`Sair (${account.username})`} />}
+          {account && (
+            <AccountMenu
+              displayName={account.username}
+              profileUsername={account.profileUsername}
+              avatar={account.avatar}
+            />
+          )}
         </div>
       </div>
     </motion.nav>
