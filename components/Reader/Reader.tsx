@@ -191,7 +191,7 @@ export default function Reader({
     >
       <header
         className={[
-          "reader-header relative flex shrink-0 items-center justify-between border-b border-contrast/10 px-3 sm:px-5",
+          "reader-header relative z-10 flex shrink-0 items-center justify-between border-b border-contrast/10 px-3 sm:px-5",
           isImmersive ? "max-sm:hidden" : "",
         ].join(" ")}
       >

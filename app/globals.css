@@ -339,6 +339,12 @@
 .reader-header {
    padding-top: env(safe-area-inset-top);
    height: calc(4rem + env(safe-area-inset-top));
+   /* Mesma sombra do cabeçalho do site; mais fraca nos temas claros. */
+   box-shadow: var(
+      --reader-header-shadow,
+      0 3px 0 -1px rgb(0 0 0 / 0.35),
+      0 12px 26px -8px rgb(0 0 0 / 0.8)
+   );
 }
 
 .reader-footer {
@@ -402,6 +408,12 @@
    --color-interaction: #3f6b5c;
    --color-contrast: #1f2424;
    --color-danger: #a24a3e;
+}
+
+[data-reader-theme="sepia"],
+[data-reader-theme="light"] {
+   --reader-header-shadow: 0 2px 0 -1px rgb(0 0 0 / 0.08),
+      0 10px 22px -10px rgb(0 0 0 / 0.25);
 }
 
 /* Amostra do tema: fundo da página com uma faixa da cor do texto. */
