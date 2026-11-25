@@ -5,7 +5,15 @@ import { revalidatePath } from "next/cache";
 import { AccountStatus } from "@/generated/prisma/enums";
 import { MAX_STORAGE_LIMIT_MB, MIN_STORAGE_LIMIT_MB } from "@/lib/bookFiles";
 import { prisma } from "@/lib/prisma";
+import { getGoalMinutes, getTimeZone, todayIn } from "@/lib/readingStreak";
+import {
+  clearReadingDays,
+  getReadingDaySeconds,
+  seedReadingStreak,
+  setReadingDaySeconds,
+} from "@/lib/readingStreakAdmin";
 import { getAdminUserId } from "@/lib/session";
+import { addDays, isDateKey } from "@/lib/streak";
 
 /*
  * Aprovar ou recusar um pedido de acesso. Só o admin; ele não muda o
@@ -75,4 +83,93 @@ export async function updateStorageLimit(
   revalidatePath("/library");
 
   return {};
+}
+
+/*
+ * Aba "Sequência": testes da sequência de leitura na conta do próprio
+ * admin. Mexem direto nos dias (ReadingDay), sem passar pelo leitor.
+ */
+
+/* Até quantos dias para trás os testes mexem. */
+const STREAK_TEST_MAX_DAYS = 400;
+
+function revalidateStreak() {
+  revalidatePath("/admin/pedidos");
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+}
+
+async function assertTestDate(date: string) {
+  const today = todayIn(await getTimeZone());
+
+  if (!isDateKey(date) || date > today || date < addDays(today, -STREAK_TEST_MAX_DAYS)) {
+    throw new Error("Dia inválido.");
+  }
+}
+
+/* Soma (ou tira, com negativo) minutos de um dia. */
+export async function adjustReadingDay(date: string, minutes: number) {
+  const adminId = await getAdminUserId();
+
+  await assertTestDate(date);
+
+  if (!Number.isInteger(minutes) || Math.abs(minutes) > 24 * 60) {
+    throw new Error("Minutos inválidos.");
+  }
+
+  const seconds = await getReadingDaySeconds(adminId, date);
+
+  await setReadingDaySeconds(adminId, date, seconds + minutes * 60);
+
+  revalidateStreak();
+}
+
+/* Dia batido: exatamente a meta. */
+export async function completeReadingDay(date: string) {
+  const adminId = await getAdminUserId();
+
+  await assertTestDate(date);
+
+  await setReadingDaySeconds(adminId, date, (await getGoalMinutes(adminId)) * 60);
+
+  revalidateStreak();
+}
+
+/* Dia sem leitura (apaga o registro). */
+export async function clearReadingDay(date: string) {
+  const adminId = await getAdminUserId();
+
+  await assertTestDate(date);
+  await setReadingDaySeconds(adminId, date, 0);
+
+  revalidateStreak();
+}
+
+/*
+ * Cria uma sequência de N dias terminando ontem (ou hoje, se marcado).
+ * Os dias antes dela ficam como estão.
+ */
+export async function seedTestStreak(formData: FormData) {
+  const adminId = await getAdminUserId();
+  const days = Number(formData.get("days"));
+  const includeToday = formData.get("includeToday") === "on";
+
+  if (!Number.isInteger(days) || days < 1 || days > STREAK_TEST_MAX_DAYS) {
+    throw new Error("Número de dias inválido.");
+  }
+
+  const today = todayIn(await getTimeZone());
+
+  await seedReadingStreak(adminId, includeToday ? today : addDays(today, -1), days);
+
+  revalidateStreak();
+}
+
+/* Apaga todo o histórico de leitura do admin (sequência e recorde zeram). */
+export async function clearTestStreak() {
+  const adminId = await getAdminUserId();
+
+  await clearReadingDays(adminId);
+
+  revalidateStreak();
 }
