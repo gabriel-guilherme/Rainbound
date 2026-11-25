@@ -3,18 +3,10 @@ import { cookies } from "next/headers";
 import { requireApprovedUser } from "@/lib/auth/session";
 
 import DashboardEditor from "@/components/widgets/editor/DashboardEditor";
-import WidgetSection, {
-  type WidgetSectionItem,
-} from "@/components/widgets/WidgetSection";
-import { WIDGETS } from "@/components/widgets/registry";
-import {
-  AREA_VARIANT,
-  DASHBOARD_LAYOUT_COOKIE,
-  getWidgetLook,
-  readDashboardLayout,
-  type DashboardArea,
-  type DashboardLayout,
-} from "@/lib/dashboardLayout";
+import WidgetSection from "@/components/widgets/WidgetSection";
+import { buildWidgetSections } from "@/components/widgets/buildWidgetSections";
+import { DASHBOARD_LAYOUT_COOKIE, readDashboardLayout } from "@/lib/dashboardLayout";
+import { getTimeZone } from "@/lib/streak/server";
 
 const todayFormatter = new Intl.DateTimeFormat("pt-BR", {
   weekday: "long",
@@ -22,52 +14,18 @@ const todayFormatter = new Intl.DateTimeFormat("pt-BR", {
   month: "long",
 });
 
-/*
- * Colunas de cada carrossel: em cima um widget por linha (versão larga);
- * embaixo dois lado a lado a partir de md.
- */
-const AREA_COLUMNS: Record<DashboardArea, (count: number) => string> = {
-  top: () => "",
-  bottom: (count) => (count > 1 ? "md:grid-cols-2" : ""),
-};
-
-/* Abas de um carrossel, já com os widgets na versão dele. */
-function buildSections(
-  layout: DashboardLayout,
-  area: DashboardArea,
-): WidgetSectionItem[] {
-  return layout[area]
-    .filter((tab) => tab.widgets.length > 0)
-    .map((tab) => ({
-      id: tab.id,
-      label: tab.label,
-      columnsClassName: AREA_COLUMNS[area](tab.widgets.length),
-      /* Embaixo: no celular, os dois deslizam lado a lado. */
-      mobileSlides: area === "bottom",
-      content: tab.widgets.map((widgetId) => {
-        const Widget = WIDGETS[widgetId];
-
-        return (
-          <Widget
-            key={widgetId}
-            variant={AREA_VARIANT[area]}
-            look={getWidgetLook(tab, widgetId, AREA_VARIANT[area])}
-          />
-        );
-      }),
-    }));
-}
-
 export default async function DashBoardPage() {
-  await requireApprovedUser();
+  const { id: userId } = await requireApprovedUser();
 
   /* Arrumação deste aparelho (cookie); sem cookie, a padrão. */
   const layout = readDashboardLayout(
     (await cookies()).get(DASHBOARD_LAYOUT_COOKIE)?.value,
   );
 
-  const topSections = buildSections(layout, "top");
-  const bottomSections = buildSections(layout, "bottom");
+  /* Na home, os widgets mostram os dados de quem está logado (fuso do aparelho). */
+  const owner = { id: userId, timeZone: await getTimeZone() };
+  const topSections = buildWidgetSections(layout, "top", owner, true);
+  const bottomSections = buildWidgetSections(layout, "bottom", owner, true);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-10 pt-32">

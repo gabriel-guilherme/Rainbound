@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 
 import { ReadingStatus } from "@/generated/prisma/enums";
 import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 import { prisma } from "@/lib/services/prisma";
-import { requireApprovedUser } from "@/lib/auth/session";
 import { toSpineBook, type SpineBook } from "@/lib/books/spine";
 
 import AbandonButton from "./parts/AbandonButton";
@@ -57,8 +57,6 @@ async function getStalledBooks(userId: string) {
     .sort((a, b) => b.days - a.days);
 }
 
-type StalledProps = { variant: WidgetVariant; look: WidgetLook };
-
 /*
  * "Parados": livros em leitura esquecidos, com atalho para retomar ou
  * abandonar. Capas e lombadas esmaecidas, para diferenciar do "Quase lá".
@@ -66,8 +64,8 @@ type StalledProps = { variant: WidgetVariant; look: WidgetLook };
  * - cover: cartões com capa (larga) ou destaque com capa (lado a lado);
  * - spine: prateleira de lombadas (larga) ou pilha deitada (lado a lado).
  */
-export default async function Stalled({ variant, look }: StalledProps) {
-  const { id: userId } = await requireApprovedUser();
+export default async function Stalled({ variant, look, owner, isOwner }: WidgetProps) {
+  const userId = owner.id;
 
   const stalled = await getStalledBooks(userId);
   const shown = stalled.slice(0, variant === "wide" ? 12 : 5);
@@ -75,18 +73,18 @@ export default async function Stalled({ variant, look }: StalledProps) {
   return (
     <WidgetCard
       title="Parados"
-      action={{ href: "/library?status=READING", label: "Ver todos" }}
+      action={isOwner ? { href: "/library?status=READING", label: "Ver todos" } : undefined}
     >
       {shown.length === 0 ? (
         <p className="text-sm text-contrast/60">Nada parado. Tudo em dia.</p>
       ) : (
-        CONTENT[look][variant]({ books: shown })
+        CONTENT[look][variant]({ books: shown, isOwner })
       )}
     </WidgetCard>
   );
 }
 
-type ContentProps = { books: StalledBook[] };
+type ContentProps = { books: StalledBook[]; isOwner: boolean };
 
 const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
   cover: { wide: CoverRow, tall: CoverCard },
@@ -109,7 +107,7 @@ function StalledActions({ book }: { book: StalledBook }) {
 }
 
 /* Destaque ao lado da fileira (versão larga). */
-function OldestAside({ book }: { book: StalledBook }) {
+function OldestAside({ book, isOwner }: { book: StalledBook; isOwner: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <FeaturedBookHeading
@@ -117,29 +115,29 @@ function OldestAside({ book }: { book: StalledBook }) {
         title={book.title}
         subtitle={detailOf(book)}
       />
-      <StalledActions book={book} />
+      {isOwner && <StalledActions book={book} />}
     </div>
   );
 }
 
-function CoverRow({ books }: ContentProps) {
+function CoverRow({ books, isOwner }: ContentProps) {
   return (
     <div className="grid grid-cols-1 items-center gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
       <BookCardRow
         muted
         items={books.map((book) => ({
           book,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           progress: clampProgress(book),
           detail: detailOf(book),
         }))}
       />
-      <OldestAside book={books[0]} />
+      <OldestAside book={books[0]} isOwner={isOwner} />
     </div>
   );
 }
 
-function CoverCard({ books }: ContentProps) {
+function CoverCard({ books, isOwner }: ContentProps) {
   const [oldest, ...rest] = books;
   const progress = clampProgress(oldest);
 
@@ -158,14 +156,14 @@ function CoverCard({ books }: ContentProps) {
         </div>
       </FeaturedBook>
 
-      <StalledActions book={oldest} />
+      {isOwner && <StalledActions book={oldest} />}
 
       <BookLinkList
         label="Também parados"
         items={rest.slice(0, 3).map((book) => ({
           id: book.id,
           title: book.title,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           meta: formatDaysAgo(book.days),
         }))}
       />
@@ -173,7 +171,7 @@ function CoverCard({ books }: ContentProps) {
   );
 }
 
-function SpineRow({ books }: ContentProps) {
+function SpineRow({ books, isOwner }: ContentProps) {
   return (
     <div className="grid grid-cols-1 items-end gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
       <SpineShelf
@@ -181,22 +179,22 @@ function SpineRow({ books }: ContentProps) {
         label="Livros parados"
         items={books.map((book) => ({
           book,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           caption: `${book.days} d`,
         }))}
       />
-      <OldestAside book={books[0]} />
+      <OldestAside book={books[0]} isOwner={isOwner} />
     </div>
   );
 }
 
-function SpineStack({ books }: ContentProps) {
+function SpineStack({ books, isOwner }: ContentProps) {
   return (
     <BookStack
       muted
       items={books.map((book) => ({
         book,
-        href: continueHref(book),
+        href: isOwner ? continueHref(book) : undefined,
         progress: clampProgress(book),
         detail: formatDaysAgo(book.days),
       }))}

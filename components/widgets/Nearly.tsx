@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 import { ReadingStatus } from "@/generated/prisma/enums";
 import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 import { prisma } from "@/lib/services/prisma";
-import { requireApprovedUser } from "@/lib/auth/session";
 import { toSpineBook, type SpineBook } from "@/lib/books/spine";
 
 import BookCardRow from "./parts/BookCardRow";
@@ -20,16 +20,14 @@ const NEARLY_FROM_PERCENT = 70;
 
 const EYEBROW = "Mais perto do fim";
 
-type NearlyProps = { variant: WidgetVariant; look: WidgetLook };
-
 /*
  * "Quase lá": livros em leitura acima de 70%, do mais perto do fim para
  * o mais longe. Duas versões (`look`, escolhida no editor):
  * - cover: cartões com capa (larga) ou destaque com capa (lado a lado);
  * - spine: prateleira de lombadas (larga) ou pilha deitada (lado a lado).
  */
-export default async function Nearly({ variant, look }: NearlyProps) {
-  const { id: userId } = await requireApprovedUser();
+export default async function Nearly({ variant, look, owner, isOwner }: WidgetProps) {
+  const userId = owner.id;
 
   const books = await prisma.book.findMany({
     where: {
@@ -47,32 +45,32 @@ export default async function Nearly({ variant, look }: NearlyProps) {
   return (
     <WidgetCard
       title="Quase lá"
-      action={{ href: "/library?status=READING", label: "Ver todos" }}
+      action={isOwner ? { href: "/library?status=READING", label: "Ver todos" } : undefined}
     >
       {nearly.length === 0 ? (
         <p className="text-sm text-contrast/60">
           Nenhum livro em leitura passou de {NEARLY_FROM_PERCENT}% ainda.
         </p>
       ) : (
-        CONTENT[look][variant]({ books: nearly })
+        CONTENT[look][variant]({ books: nearly, isOwner })
       )}
     </WidgetCard>
   );
 }
 
-type ContentProps = { books: SpineBook[] };
+type ContentProps = { books: SpineBook[]; isOwner: boolean };
 
 const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
   cover: { wide: CoverRow, tall: CoverCard },
   spine: { wide: SpineRow, tall: SpineStack },
 };
 
-function CoverRow({ books }: ContentProps) {
+function CoverRow({ books, isOwner }: ContentProps) {
   return (
     <BookCardRow
       items={books.map((book) => ({
         book,
-        href: continueHref(book),
+        href: isOwner ? continueHref(book) : undefined,
         progress: clampProgress(book),
         detail: `${clampProgress(book)}% · ${remainingLabel(book)}`,
       }))}
@@ -80,7 +78,7 @@ function CoverRow({ books }: ContentProps) {
   );
 }
 
-function CoverCard({ books }: ContentProps) {
+function CoverCard({ books, isOwner }: ContentProps) {
   const [first, ...rest] = books;
   const progress = clampProgress(first);
 
@@ -95,14 +93,14 @@ function CoverCard({ books }: ContentProps) {
         </div>
       </FeaturedBook>
 
-      <ContinueActions book={first} label="Terminar" />
+      {isOwner && <ContinueActions book={first} label="Terminar" />}
 
       <BookLinkList
         label="Depois"
         items={rest.slice(0, 3).map((book) => ({
           id: book.id,
           title: book.title,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           meta: `${clampProgress(book)}%`,
         }))}
       />
@@ -110,7 +108,7 @@ function CoverCard({ books }: ContentProps) {
   );
 }
 
-function SpineRow({ books }: ContentProps) {
+function SpineRow({ books, isOwner }: ContentProps) {
   const [first] = books;
 
   return (
@@ -119,7 +117,7 @@ function SpineRow({ books }: ContentProps) {
         label="Livros quase no fim"
         items={books.map((book) => ({
           book,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           caption: `${clampProgress(book)}%`,
         }))}
       />
@@ -130,18 +128,18 @@ function SpineRow({ books }: ContentProps) {
           title={first.title}
           subtitle={remainingLabel(first)}
         />
-        <ContinueActions book={first} label="Terminar" />
+        {isOwner && <ContinueActions book={first} label="Terminar" />}
       </div>
     </div>
   );
 }
 
-function SpineStack({ books }: ContentProps) {
+function SpineStack({ books, isOwner }: ContentProps) {
   return (
     <BookStack
       items={books.map((book) => ({
         book,
-        href: continueHref(book),
+        href: isOwner ? continueHref(book) : undefined,
         progress: clampProgress(book),
         detail: remainingLabel(book),
       }))}

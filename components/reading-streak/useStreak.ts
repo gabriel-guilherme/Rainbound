@@ -17,8 +17,12 @@ import {
  * Sequência no React: o resumo do servidor (o da página até o primeiro
  * envio) mais o tempo contado e ainda não enviado. Atualiza a cada tique
  * do ReadingTracker.
+ *
+ * `live: false` (sequência de outra pessoa, no perfil): só o resumo do
+ * servidor, sem misturar com o tempo de quem está vendo nem gravar no
+ * resumo guardado deste navegador.
  */
-export function useStreak(initial: StreakSummary) {
+export function useStreak(initial: StreakSummary, live = true) {
   const snapshot = useSyncExternalStore(
     subscribeStreak,
     getStreakSnapshot,
@@ -26,8 +30,20 @@ export function useStreak(initial: StreakSummary) {
   );
 
   useEffect(() => {
-    seedSummary(initial);
-  }, [initial]);
+    if (live) seedSummary(initial);
+  }, [initial, live]);
+
+  if (!live) {
+    return {
+      summary: initial,
+      todaySeconds: initial.todaySeconds,
+      todayProgress: initial.metToday
+        ? 1
+        : Math.min(initial.todaySeconds / goalSeconds(initial.goalMinutes), 1),
+      justMet: false,
+      dismissJustMet,
+    };
+  }
 
   const summary = snapshot.summary ?? initial;
   const pendingSeconds =

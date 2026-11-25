@@ -1,16 +1,15 @@
 import StreakCard from "@/components/reading-streak/StreakCard";
-import { getStreakSummary, getTimeZone } from "@/lib/streak/server";
-import { requireApprovedUser } from "@/lib/auth/session";
-import type { WidgetVariant } from "@/lib/dashboardLayout";
+import { getStreakSummary } from "@/lib/streak/server";
+
+import type { WidgetProps } from "./types";
 
 /*
  * "Sequência": dias seguidos lendo a meta diária. O servidor monta o
- * resumo (no fuso do aparelho, pelo cookie); o navegador soma o tempo
+ * resumo no fuso do dono; para o próprio dono, o navegador soma o tempo
  * contado e ainda não enviado (components/reading-streak).
  */
-export default async function StreakWidget({ variant }: { variant: WidgetVariant }) {
-  const { id: userId } = await requireApprovedUser();
-  const summary = await getStreakSummary(userId, await getTimeZone());
+export default async function StreakWidget({ variant, owner, isOwner }: WidgetProps) {
+  const summary = await getStreakSummary(owner.id, owner.timeZone);
 
-  return <StreakCard variant={variant} initial={summary} />;
+  return <StreakCard variant={variant} initial={summary} isOwner={isOwner} />;
 }

@@ -4,7 +4,7 @@ import CurrentTime from "@/components/reading-session/CurrentTime";
 import SessionFinishedNotice from "@/components/reading-session/SessionFinishedNotice";
 import SessionPanel from "@/components/reading-session/SessionPanel";
 import { useNow } from "@/lib/useNow";
-import type { WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 
 import WidgetCard from "./WidgetCard";
 
@@ -28,7 +28,8 @@ const shortDate = new Intl.DateTimeFormat("pt-BR", {
  * - wide: relógio à esquerda, controles à direita;
  * - tall: tudo empilhado.
  */
-export default function SessionWidget({ variant }: { variant: WidgetVariant }) {
+/* Só na home: o cronômetro é de quem está usando. */
+export default function SessionWidget({ variant }: Pick<WidgetProps, "variant">) {
   const now = useNow();
   const isWide = variant === "wide";
 
