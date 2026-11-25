@@ -1,8 +1,7 @@
-import { AccountStatus, NotificationType } from "@/generated/prisma/enums";
+import { NotificationType } from "@/generated/prisma/enums";
 
 import { getAvatar } from "../profile/avatar";
 import { prisma } from "../services/prisma";
-import { dateKeyIn } from "../streak/rules";
 
 /*
  * Notificações no banco (tabela Notification). As de seguir: no máximo
@@ -25,7 +24,14 @@ export async function notifyFollow(followerId: string, followedId: string) {
   });
 }
 
-export const PANEL_LIMIT = 30;
+export const NOTIFICATION_PAGE_SIZE = 20;
+
+/* Avatares mostrados por grupo (o resto vira "e mais N"). */
+const ACTORS_PER_GROUP = 2;
+
+const READ_RETENTION_DAYS = 90;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function countUnread(userId: string) {
   return prisma.notification.count({ where: { userId, readAt: null } });
@@ -35,6 +41,10 @@ export async function markAllRead(userId: string) {
   await prisma.notification.updateMany({
     where: { userId, readAt: null },
     data: { readAt: new Date() },
+  });
+
+  await prisma.notification.deleteMany({
+    where: { userId, readAt: { lt: new Date(Date.now() - READ_RETENTION_DAYS * DAY_MS) } },
   });
 }
 
@@ -46,74 +56,133 @@ export type NotificationActor = {
   followedBack: boolean;
 };
 
-/* Uma linha do painel: uma notificação ou várias do mesmo tipo e dia. */
+/* Uma linha: as notificações do mesmo tipo e do mesmo dia. */
 export type NotificationGroup = {
   key: string;
   type: NotificationType;
+  /* "AAAA-MM-DD", no fuso de quem vê. */
+  day: string;
   actors: NotificationActor[];
-  createdAt: Date;
+  total: number;
+  latestAt: Date;
   unread: boolean;
 };
 
+export type NotificationPage = {
+  groups: NotificationGroup[];
+  nextCursor: string | null;
+};
+
+type GroupRow = {
+  type: NotificationType;
+  day: string;
+  latest: Date;
+  total: number;
+  unread: boolean;
+  actorId: string;
+};
+
 /*
- * Notificações recentes, agrupadas por tipo e dia (no fuso de quem vê):
- * "Marina, Caio e mais 2 começaram a seguir você". Por enquanto só FOLLOW.
+ * Notificações agrupadas por tipo e dia (no fuso de quem vê), da mais
+ * recente para a mais antiga: "Marina, Caio e mais 2 começaram a seguir
+ * você". Paginada pelos grupos: `cursor` é a data da mais recente do
+ * último grupo já mostrado. Agrupamento e contagem saem do banco, para o
+ * "e mais N" ficar certo.
  */
 export async function listNotificationGroups(
   userId: string,
   timeZone: string,
-  limit = PANEL_LIMIT,
-): Promise<NotificationGroup[]> {
-  const rows = await prisma.notification.findMany({
-    where: { userId, actor: { status: AccountStatus.APPROVED, username: { not: null } } },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: {
-      id: true,
-      type: true,
-      readAt: true,
-      createdAt: true,
-      actor: {
-        select: { id: true, name: true, username: true, avatarColor: true, avatarLetter: true },
-      },
-    },
-  });
+  cursor: Date | null = null,
+  limit = NOTIFICATION_PAGE_SIZE,
+): Promise<NotificationPage> {
+  const before = cursor ?? new Date("9999-12-31T00:00:00Z");
 
-  const followedBack = new Set(
-    (
-      await prisma.follow.findMany({
-        where: { followerId: userId, followedId: { in: rows.map((row) => row.actor.id) } },
-        select: { followedId: true },
-      })
-    ).map((row) => row.followedId),
-  );
+  const rows = await prisma.$queryRaw<GroupRow[]>`
+    WITH base AS (
+      SELECT n."actorId", n."type", n."createdAt", n."readAt",
+             ((n."createdAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timeZone})::date AS day
+      FROM "Notification" n
+      JOIN "User" u ON u."id" = n."actorId"
+      WHERE n."userId" = ${userId} AND u."status" = 'APPROVED' AND u."username" IS NOT NULL
+    ),
+    groups AS (
+      SELECT "type", day, max("createdAt") AS latest,
+             count(DISTINCT "actorId")::int AS total,
+             bool_or("readAt" IS NULL) AS unread
+      FROM base
+      GROUP BY "type", day
+      HAVING max("createdAt") < ${before}
+      ORDER BY latest DESC
+      LIMIT ${limit + 1}
+    ),
+    actors AS (
+      SELECT b."type", b.day, b."actorId", max(b."createdAt") AS at
+      FROM base b
+      JOIN groups g ON g."type" = b."type" AND g.day = b.day
+      GROUP BY b."type", b.day, b."actorId"
+    ),
+    ranked AS (
+      SELECT *, row_number() OVER (PARTITION BY "type", day ORDER BY at DESC) AS rn
+      FROM actors
+    )
+    SELECT g."type", g.day::text AS day, g.latest, g.total, g.unread, r."actorId"
+    FROM groups g
+    JOIN ranked r ON r."type" = g."type" AND r.day = g.day AND r.rn <= ${ACTORS_PER_GROUP}
+    ORDER BY g.latest DESC, r.rn
+  `;
 
+  const actorIds = [...new Set(rows.map((row) => row.actorId))];
+
+  const [users, follows] = await Promise.all([
+    prisma.user.findMany({
+      where: { id: { in: actorIds } },
+      select: { id: true, name: true, username: true, avatarColor: true, avatarLetter: true },
+    }),
+    prisma.follow.findMany({
+      where: { followerId: userId, followedId: { in: actorIds } },
+      select: { followedId: true },
+    }),
+  ]);
+
+  const people = new Map(users.map((user) => [user.id, user]));
+  const followedBack = new Set(follows.map((row) => row.followedId));
   const groups = new Map<string, NotificationGroup>();
 
   for (const row of rows) {
-    const key = `${row.type}:${dateKeyIn(row.createdAt, timeZone)}`;
-    const actor: NotificationActor = {
-      id: row.actor.id,
-      name: row.actor.name,
-      username: row.actor.username!,
-      avatar: getAvatar(row.actor),
-      followedBack: followedBack.has(row.actor.id),
-    };
-    const group = groups.get(key);
+    const person = people.get(row.actorId);
 
-    if (group) {
-      if (!group.actors.some((item) => item.id === actor.id)) group.actors.push(actor);
-      group.unread ||= row.readAt === null;
-    } else {
-      groups.set(key, {
+    if (!person?.username) continue;
+
+    const key = `${row.type}:${row.day}`;
+    let group = groups.get(key);
+
+    if (!group) {
+      group = {
         key,
         type: row.type,
-        actors: [actor],
-        createdAt: row.createdAt,
-        unread: row.readAt === null,
-      });
+        day: row.day,
+        actors: [],
+        total: row.total,
+        latestAt: new Date(row.latest),
+        unread: row.unread,
+      };
+      groups.set(key, group);
     }
+
+    group.actors.push({
+      id: person.id,
+      name: person.name,
+      username: person.username,
+      avatar: getAvatar(person),
+      followedBack: followedBack.has(person.id),
+    });
   }
 
-  return [...groups.values()];
+  const all = [...groups.values()];
+  const page = all.slice(0, limit);
+
+  return {
+    groups: page,
+    nextCursor: all.length > limit ? page[page.length - 1].latestAt.toISOString() : null,
+  };
 }

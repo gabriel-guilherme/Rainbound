@@ -14,11 +14,14 @@ type NotificationListProps = {
 };
 
 function describe(group: NotificationGroup) {
-  const names = formatActorNames(group.actors.map((actor) => actor.name));
+  const names = formatActorNames(
+    group.actors.map((actor) => actor.name),
+    group.total,
+  );
 
   switch (group.type) {
     case "FOLLOW":
-      return `${names} ${group.actors.length === 1 ? "começou" : "começaram"} a seguir você`;
+      return `${names} ${group.total === 1 ? "começou" : "começaram"} a seguir você`;
     case "LIKE":
       return `${names} curtiu sua atividade`;
     case "COMMENT":
@@ -36,7 +39,7 @@ export default function NotificationList({ groups, now, onNavigate }: Notificati
     <ul className="flex flex-col">
       {groups.map((group) => {
         const [first, second] = group.actors;
-        const single = group.actors.length === 1;
+        const single = group.total === 1;
 
         return (
           <li
@@ -71,7 +74,7 @@ export default function NotificationList({ groups, now, onNavigate }: Notificati
                   describe(group)
                 )}
               </p>
-              <p className="text-xs text-contrast/65">{formatNotificationWhen(group.createdAt, now)}</p>
+              <p className="text-xs text-contrast/65">{formatNotificationWhen(group.latestAt, now)}</p>
             </div>
 
             {group.type === "FOLLOW" && single && !first.followedBack && (

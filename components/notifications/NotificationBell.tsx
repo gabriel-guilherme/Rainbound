@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import { loadNotifications, markNotificationsRead } from "@/app/notifications/actions";
-import type { NotificationGroup } from "@/lib/notifications/server";
+import type { NotificationPage } from "@/lib/notifications/server";
 
-import NotificationList from "./NotificationList";
+import NotificationFeed from "./NotificationFeed";
 
 const POLL_INTERVAL_MS = 60_000;
 
@@ -23,9 +23,11 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
   const rootRef = useRef<HTMLDivElement>(null);
   const [unread, setUnread] = useState(initialUnread);
   const [isOpen, setIsOpen] = useState(false);
-  const [groups, setGroups] = useState<NotificationGroup[] | null>(null);
+  const [page, setPage] = useState<NotificationPage | null>(null);
+  const [openCount, setOpenCount] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState(0);
-  const [isLoading, startLoading] = useTransition();
+  const [, startLoading] = useTransition();
 
   const refreshCount = useCallback(async () => {
     try {
@@ -86,14 +88,16 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
   function open() {
     setIsOpen(true);
     setNow(Date.now());
+    setPage(null);
+    setOpenCount((count) => count + 1);
 
     startLoading(async () => {
       const loaded = await loadNotifications();
 
-      setGroups(loaded);
+      setPage(loaded);
       setUnread(0);
 
-      if (loaded.some((group) => group.unread)) await markNotificationsRead();
+      if (loaded.groups.some((group) => group.unread)) await markNotificationsRead();
     });
   }
 
@@ -150,15 +154,17 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {groups === null || (isLoading && groups.length === 0) ? (
+          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+            {page === null ? (
               <p className="px-4 py-8 text-center text-sm text-contrast/70">Carregando…</p>
-            ) : groups.length === 0 ? (
-              <p className="px-4 py-8 text-center text-sm text-contrast/70">
-                Nenhuma notificação ainda.
-              </p>
             ) : (
-              <NotificationList groups={groups} now={now} onNavigate={() => setIsOpen(false)} />
+              <NotificationFeed
+                key={openCount}
+                initial={page}
+                now={now}
+                scrollRoot={scrollRef}
+                onNavigate={() => setIsOpen(false)}
+              />
             )}
           </div>
         </section>

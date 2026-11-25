@@ -25,10 +25,15 @@ export function formatNotificationWhen(at: Date | string, now: number) {
   return dateFormatter.format(new Date(time));
 }
 
-/* "Marina", "Marina e Caio", "Marina, Caio e mais 2". */
-export function formatActorNames(names: string[]) {
-  if (names.length <= 1) return names[0] ?? "";
-  if (names.length === 2) return `${names[0]} e ${names[1]}`;
+/*
+ * "Marina", "Marina e Caio", "Marina, Caio e mais 2". `names` são os
+ * mostrados (os mais recentes); `total`, quantas pessoas há no grupo.
+ */
+export function formatActorNames(names: string[], total = names.length) {
+  const others = total - names.length;
 
-  return `${names[0]}, ${names[1]} e mais ${names.length - 2}`;
+  if (names.length <= 1) return others > 0 ? `${names[0]} e mais ${others}` : (names[0] ?? "");
+  if (others <= 0) return `${names[0]} e ${names[1]}`;
+
+  return `${names[0]}, ${names[1]} e mais ${others}`;
 }
