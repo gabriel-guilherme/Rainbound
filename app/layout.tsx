@@ -31,6 +31,11 @@ export const metadata: Metadata = {
   description: "Acompanhe suas leituras",
   icons: {
     icon: "/favicon.svg",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Rainbound",
   },
 };
 
