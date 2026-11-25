@@ -1,5 +1,7 @@
 import {
+  AREA_VARIANT,
   MAX_WIDGETS_PER_TAB,
+  getWidgetLook,
   hasLooks,
   type DashboardArea,
   type DashboardLayout,
@@ -20,12 +22,24 @@ export const AREA_SHORT_LABEL: Record<DashboardArea, string> = {
   bottom: "Embaixo",
 };
 
+/* Um widget no editor: carrossel, aba e posição dentro da aba. */
+export type WidgetSlot = { area: DashboardArea; tabId: string; index: number };
+
 function cloneTab(tab: DashboardTab): DashboardTab {
   return { ...tab, widgets: [...tab.widgets], looks: { ...tab.looks } };
 }
 
 export function cloneLayout(layout: DashboardLayout): DashboardLayout {
   return { top: layout.top.map(cloneTab), bottom: layout.bottom.map(cloneTab) };
+}
+
+export function findTab(layout: DashboardLayout, area: DashboardArea, tabId: string) {
+  return layout[area].find((tab) => tab.id === tabId) ?? null;
+}
+
+/* Widget de uma posição; null se a posição não existe mais. */
+export function widgetAt(layout: DashboardLayout, slot: WidgetSlot) {
+  return findTab(layout, slot.area, slot.tabId)?.widgets[slot.index] ?? null;
 }
 
 /* Troca o item de lugar com o vizinho (delta -1: antes; 1: depois). */
@@ -43,6 +57,19 @@ export function swap<T>(items: T[], index: number, delta: number) {
 /* Aba nova, vazia (o id vai em atributos do HTML: só letras, números e hífen). */
 export function createTab(): DashboardTab {
   return { id: `aba-${crypto.randomUUID().slice(0, 8)}`, label: "Nova aba", widgets: [] };
+}
+
+/* Muda uma aba de um carrossel. */
+export function updateTab(
+  layout: DashboardLayout,
+  area: DashboardArea,
+  tabId: string,
+  update: (tab: DashboardTab) => DashboardTab,
+): DashboardLayout {
+  return {
+    ...layout,
+    [area]: layout[area].map((tab) => (tab.id === tabId ? update(tab) : tab)),
+  };
 }
 
 /* Aba com o visual de um widget trocado; sem `look`, volta ao padrão. */
@@ -71,61 +98,58 @@ export function addWidget(tab: DashboardTab, widget: WidgetId): DashboardTab {
   return { ...tab, widgets: [...tab.widgets, widget] };
 }
 
-function canReceive(tab: DashboardTab, widget: WidgetId) {
+export function canReceive(tab: DashboardTab, widget: WidgetId) {
   return tab.widgets.length < MAX_WIDGETS_PER_TAB && !tab.widgets.includes(widget);
 }
 
-/*
- * Destino de "Mover…": "<area>:<id da aba>". Abas com espaço para o
- * widget, nos dois carrosséis, menos a de origem.
- */
-export function destinationsFor(
+/* "Em cima › Fila" de cada aba que tem o widget (menos a de `except`). */
+export function placesOf(
   layout: DashboardLayout,
-  area: DashboardArea,
-  tabId: string,
   widget: WidgetId,
+  except?: { area: DashboardArea; tabId: string },
 ) {
-  return AREAS.flatMap((targetArea) =>
-    layout[targetArea]
+  return AREAS.flatMap((area) =>
+    layout[area]
       .filter(
-        (tab) => !(targetArea === area && tab.id === tabId) && canReceive(tab, widget),
+        (tab) =>
+          tab.widgets.includes(widget) &&
+          !(except && except.area === area && except.tabId === tab.id),
       )
-      .map((tab) => ({
-        value: `${targetArea}:${tab.id}`,
-        label: `${AREA_SHORT_LABEL[targetArea]} › ${tab.label || "sem nome"}`,
-      })),
+      .map((tab) => `${AREA_SHORT_LABEL[area]} › ${tab.label || "sem nome"}`),
   );
 }
 
 /*
- * Move um widget para outra aba (inclusive do outro carrossel), levando
- * o visual escolhido. Destino cheio ou inválido: nada muda.
+ * Move um widget para o fim de outra aba (inclusive do outro carrossel).
+ * Leva o visual que ele mostra agora, para não mudar sozinho ao trocar
+ * de carrossel. Destino cheio ou inválido: null.
  */
 export function moveWidget(
   layout: DashboardLayout,
-  fromArea: DashboardArea,
-  fromTabId: string,
-  index: number,
-  target: string,
-): DashboardLayout {
-  const [toArea, toTabId] = target.split(":") as [DashboardArea, string];
-  const origin = layout[fromArea].find((tab) => tab.id === fromTabId);
-  const destination = layout[toArea]?.find((tab) => tab.id === toTabId);
-  const widget = origin?.widgets[index];
+  from: WidgetSlot,
+  to: { area: DashboardArea; tabId: string },
+): { layout: DashboardLayout; slot: WidgetSlot } | null {
+  const origin = findTab(layout, from.area, from.tabId);
+  const destination = findTab(layout, to.area, to.tabId);
+  const widget = origin?.widgets[from.index];
 
   if (!origin || !widget || !destination || !canReceive(destination, widget)) {
-    return layout;
+    return null;
   }
 
-  const look = origin.looks?.[widget];
-  const next = cloneLayout(layout);
+  const look = hasLooks(widget)
+    ? getWidgetLook(origin, widget, AREA_VARIANT[from.area])
+    : undefined;
 
-  next[fromArea] = next[fromArea].map((tab) =>
-    tab.id === fromTabId ? removeWidget(tab, index) : tab,
+  const removed = updateTab(layout, from.area, from.tabId, (tab) =>
+    removeWidget(tab, from.index),
   );
-  next[toArea] = next[toArea].map((tab) =>
-    tab.id === toTabId ? withLook(addWidget(tab, widget), widget, look) : tab,
+  const next = updateTab(removed, to.area, to.tabId, (tab) =>
+    withLook(addWidget(tab, widget), widget, look),
   );
 
-  return next;
+  return {
+    layout: next,
+    slot: { ...to, index: destination.widgets.length },
+  };
 }

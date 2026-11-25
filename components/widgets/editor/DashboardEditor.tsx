@@ -1,82 +1,46 @@
 "use client";
 
-import { LayoutGrid, Plus, X } from "lucide-react";
+import { LayoutGrid, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 
 import {
   resetDashboardLayout,
   saveDashboardLayout,
 } from "@/app/(main)/dashboard/actions";
-import {
-  AREA_LABEL,
-  AREA_VARIANT,
-  MAX_TABS_PER_AREA,
-  MAX_WIDGETS_PER_TAB,
-  parseDashboardLayout,
-  type DashboardArea,
-  type DashboardLayout,
-  type DashboardTab,
-} from "@/lib/dashboardLayout";
+import type { DashboardLayout } from "@/lib/dashboardLayout";
 
-import EditorTab from "./EditorTab";
+import EditorArea from "./EditorArea";
+import EditorFooter from "./EditorFooter";
 import { iconButtonClass } from "./editorStyles";
-import {
-  AREAS,
-  cloneLayout,
-  createTab,
-  destinationsFor,
-  moveWidget,
-  swap,
-} from "./layoutEdits";
-
-const AREA_HINT: Record<DashboardArea, string> = {
-  top: `Até ${MAX_WIDGETS_PER_TAB} por aba, um embaixo do outro.`,
-  bottom: `Até ${MAX_WIDGETS_PER_TAB} por aba, lado a lado.`,
-};
+import { AREAS } from "./layoutEdits";
+import { useLayoutDraft } from "./useLayoutDraft";
+import WidgetCatalog from "./WidgetCatalog";
+import WidgetPanel from "./WidgetPanel";
 
 /*
- * Editor da arrumação do Início: abas de cada carrossel, quais widgets
- * ficam em cada aba e em que ordem. A versão do widget segue o
- * carrossel (em cima: larga; embaixo: lado a lado); os widgets de
- * WIDGETS_WITH_LOOKS também escolhem capa ou lombada. Salva num cookie
- * deste aparelho (saveDashboardLayout).
- *
- * Peças: EditorTab (uma aba) → EditorWidgetRow (um widget); as mudanças
- * na arrumação ficam em layoutEdits.ts.
+ * Editor da arrumação do Início. À esquerda, um mapa da home (EditorArea:
+ * os dois carrosséis, com as abas e os widgets no formato que terão); à
+ * direita, as opções do widget escolhido (WidgetPanel; no celular, uma
+ * folha que sobe de baixo). "Adicionar widget" abre o catálogo
+ * (WidgetCatalog). O rascunho e as ações ficam em useLayoutDraft; as
+ * mudanças na arrumação, em layoutEdits.ts. Salva num cookie deste
+ * aparelho (saveDashboardLayout).
  */
 export default function DashboardEditor({ layout }: { layout: DashboardLayout }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [draft, setDraft] = useState(layout);
+  const editor = useLayoutDraft(layout);
+  const { draft, selection, catalogTarget } = editor;
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const isValid = parseDashboardLayout(draft) !== null;
-
   function open() {
-    setDraft(cloneLayout(layout));
+    editor.reset(layout);
     setError("");
     dialogRef.current?.showModal();
   }
 
   function close() {
     dialogRef.current?.close();
-  }
-
-  function updateTabs(
-    area: DashboardArea,
-    update: (tabs: DashboardTab[]) => DashboardTab[],
-  ) {
-    setDraft((current) => ({ ...current, [area]: update(current[area]) }));
-  }
-
-  function updateTab(
-    area: DashboardArea,
-    tabId: string,
-    update: (tab: DashboardTab) => DashboardTab,
-  ) {
-    updateTabs(area, (tabs) =>
-      tabs.map((tab) => (tab.id === tabId ? update(tab) : tab)),
-    );
   }
 
   function run(action: () => Promise<void>, message: string) {
@@ -107,119 +71,106 @@ export default function DashboardEditor({ layout }: { layout: DashboardLayout })
       <dialog
         ref={dialogRef}
         aria-labelledby="dashboard-editor-title"
-        className="m-auto max-h-[88dvh] w-[min(56rem,calc(100vw-2rem))] overflow-y-auto bg-primary p-0 text-contrast shadow-[8px_8px_0_rgb(0_0_0/0.5)] backdrop:bg-darkest/80"
+        onCancel={(event) => {
+          /* Esc fecha primeiro o catálogo ou a folha do widget. */
+          if (catalogTarget) {
+            event.preventDefault();
+            editor.closeCatalog();
+          } else if (selection) {
+            event.preventDefault();
+            editor.clearSelection();
+          }
+        }}
+        className="m-auto w-[min(72rem,calc(100vw-2rem))] bg-primary p-0 text-contrast shadow-[8px_8px_0_rgb(0_0_0/0.5)] backdrop:bg-darkest/80 max-md:h-dvh max-md:max-h-none max-md:w-screen max-md:max-w-none md:max-h-[90dvh]"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-contrast/10 px-5 py-4">
-          <h2 id="dashboard-editor-title" className="title-shelf text-3xl">
-            Widgets do Início
-          </h2>
+        <div className="flex h-full flex-col md:max-h-[90dvh]">
+          <div className="flex items-center justify-between gap-3 border-b border-contrast/10 px-5 py-3.5">
+            <div className="flex flex-wrap items-baseline gap-x-3">
+              <h2 id="dashboard-editor-title" className="title-shelf text-3xl">
+                Widgets do Início
+              </h2>
+              <p className="text-xs text-contrast/70">Vale só para este aparelho</p>
+            </div>
 
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Fechar"
-            className={iconButtonClass}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <p className="px-5 pt-4 text-sm text-contrast/55">
-          Cada widget tem uma versão para cada carrossel: em cima ele aparece
-          largo e baixo; embaixo, mais estreito, ao lado de outro. Alguns
-          também mudam entre capas e lombadas. Vale só para este aparelho.
-        </p>
-
-        <div className="grid grid-cols-1 gap-6 p-5 md:grid-cols-2">
-          {AREAS.map((area) => (
-            <section key={area} aria-labelledby={`editor-area-${area}`} className="flex flex-col gap-3">
-              <div>
-                <h3 id={`editor-area-${area}`} className="font-display text-xl font-bold uppercase tracking-wide">
-                  {AREA_LABEL[area]}
-                </h3>
-                <p className="text-xs text-contrast/45">{AREA_HINT[area]}</p>
-              </div>
-
-              {draft[area].length === 0 && (
-                <p className="border border-dashed border-contrast/15 px-3 py-4 text-center text-sm text-contrast/45">
-                  Sem abas: este carrossel não aparece.
-                </p>
-              )}
-
-              {draft[area].map((tab, tabIndex) => (
-                <EditorTab
-                  key={tab.id}
-                  tab={tab}
-                  variant={AREA_VARIANT[area]}
-                  tabIndex={tabIndex}
-                  tabCount={draft[area].length}
-                  destinationsFor={(widget) => destinationsFor(draft, area, tab.id, widget)}
-                  onChange={(update) => updateTab(area, tab.id, update)}
-                  onMoveTab={(delta) => updateTabs(area, (tabs) => swap(tabs, tabIndex, delta))}
-                  onDelete={() =>
-                    updateTabs(area, (tabs) => tabs.filter((item) => item.id !== tab.id))
-                  }
-                  onRelocateWidget={(index, target) =>
-                    setDraft((current) => moveWidget(current, area, tab.id, index, target))
-                  }
-                />
-              ))}
-
-              <button
-                type="button"
-                onClick={() => updateTabs(area, (tabs) => [...tabs, createTab()])}
-                disabled={draft[area].length >= MAX_TABS_PER_AREA}
-                className="flex cursor-pointer items-center justify-center gap-1.5 border border-dashed border-contrast/20 px-3 py-2 text-xs uppercase tracking-widest text-contrast/60 transition-colors hover:border-contrast/40 hover:text-contrast disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Plus size={14} aria-hidden="true" />
-                Nova aba
-              </button>
-            </section>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-contrast/10 px-5 py-4">
-          <button
-            type="button"
-            onClick={() => run(resetDashboardLayout, "Não foi possível restaurar o padrão.")}
-            disabled={isPending}
-            className="cursor-pointer text-sm text-contrast/55 underline-offset-4 hover:text-danger hover:underline disabled:opacity-40"
-          >
-            Restaurar padrão
-          </button>
-
-          <div className="flex items-center gap-2">
-            {error && (
-              <p role="alert" className="text-sm text-danger">
-                {error}
-              </p>
-            )}
-            {!isValid && !error && (
-              <p className="text-sm text-danger">Toda aba precisa de um nome.</p>
-            )}
-
-            <button
-              type="button"
-              onClick={close}
-              className="btn-shelf text-contrast ring-2 ring-inset ring-secondary hover:bg-secondary"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                run(
-                  () => saveDashboardLayout(draft),
-                  "Não foi possível salvar. Confira os nomes das abas.",
-                )
-              }
-              disabled={!isValid || isPending}
-              className="btn-shelf bg-danger text-primary hover:bg-contrast disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {isPending ? "Salvando..." : "Salvar"}
+            <button type="button" onClick={close} aria-label="Fechar" className={iconButtonClass}>
+              <X size={18} />
             </button>
           </div>
+
+          <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="flex min-h-0 flex-col gap-6 overflow-y-auto p-5 md:border-r md:border-contrast/10">
+              <p className="text-sm text-contrast/70">
+                Assim fica a sua home. Clique num widget para mudar o visual, mover ou tirar.
+              </p>
+
+              {AREAS.map((area) => (
+                <EditorArea
+                  key={area}
+                  area={area}
+                  tabs={draft[area]}
+                  currentTab={editor.currentTabOf(area)}
+                  selected={selection}
+                  onPickTab={(tabId) => editor.pickTab(area, tabId)}
+                  onAddTab={() => editor.addTab(area)}
+                  onRenameTab={(label) => editor.renameTab(area, label)}
+                  onMoveTab={(delta) => editor.moveTab(area, delta)}
+                  onDeleteTab={() => editor.deleteTab(area)}
+                  onSelectWidget={(index) => editor.selectWidget(area, index)}
+                  onOpenCatalog={() => editor.openCatalog(area)}
+                />
+              ))}
+            </div>
+
+            <aside
+              aria-label="Opções do widget"
+              className={[
+                "overflow-y-auto p-5 md:bg-darkest/25",
+                selection
+                  ? "max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-10 max-md:max-h-[78dvh] max-md:border-t max-md:border-contrast/15 max-md:bg-primary max-md:shadow-[0_-8px_0_rgb(0_0_0/0.35)]"
+                  : "max-md:hidden",
+              ].join(" ")}
+            >
+              {selection ? (
+                <WidgetPanel
+                  layout={draft}
+                  slot={selection}
+                  onLookChange={editor.setLook}
+                  onMove={editor.moveWithinTab}
+                  onMoveTo={editor.moveToTab}
+                  onRemove={editor.removeSelected}
+                  onClose={editor.clearSelection}
+                />
+              ) : (
+                <p className="text-sm text-contrast/70">
+                  Escolha um widget no mapa para ver as opções dele.
+                </p>
+              )}
+            </aside>
+          </div>
+
+          <EditorFooter
+            error={error}
+            isValid={editor.isValid}
+            isPending={isPending}
+            onReset={() => run(resetDashboardLayout, "Não foi possível restaurar o padrão.")}
+            onCancel={close}
+            onSave={() =>
+              run(
+                () => saveDashboardLayout(draft),
+                "Não foi possível salvar. Confira os nomes das abas.",
+              )
+            }
+          />
         </div>
+
+        {catalogTarget && (
+          <WidgetCatalog
+            layout={draft}
+            target={catalogTarget}
+            onAdd={editor.addFromCatalog}
+            onClose={editor.closeCatalog}
+          />
+        )}
       </dialog>
     </>
   );
