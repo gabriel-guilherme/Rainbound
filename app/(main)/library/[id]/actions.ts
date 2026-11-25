@@ -293,3 +293,25 @@ export async function logReadingProgress(id: number, entry: ManualProgressEntry)
   revalidatePath("/library");
   revalidatePath(`/library/${book.id}`);
 }
+
+/*
+ * Marca o livro como "Abandonado" (atalho do widget "Parados"). O
+ * progresso fica salvo: se a pessoa voltar a ler, o leitor o põe de novo
+ * em "Lendo" (ver `statusChangeForProgress`).
+ */
+export async function abandonBook(id: number) {
+  const userId = await getApprovedUserId();
+  const book = await findOwnBook(id, userId);
+
+  if (book.status === ReadingStatus.ABANDONED) return;
+
+  await prisma.book.update({
+    where: { id: book.id },
+    data: { status: ReadingStatus.ABANDONED },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/library");
+  revalidatePath(`/library/${book.id}`);
+}
