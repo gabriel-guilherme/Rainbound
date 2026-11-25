@@ -73,9 +73,16 @@ model User {
    */
   storageLimitMb Int?
 
-  sessions Session[]
-  accounts Account[]
-  books    Book[]
+  /**
+   * Sequência de leitura: minutos por dia para o dia contar
+   * (lib/streak.ts → MIN/MAX_DAILY_GOAL_MIN).
+   */
+  dailyGoalMinutes Int @default(10)
+
+  sessions    Session[]
+  accounts    Account[]
+  books       Book[]
+  readingDays ReadingDay[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -248,4 +255,31 @@ model Bookmark {
   updatedAt DateTime @updatedAt
 
   @@index([bookId])
+}
+
+/**
+ * Tempo de leitura de um dia, para a sequência (lib/readingStreak.ts).
+ * `date` é o dia no fuso do aparelho de quem leu. Conta o leitor em uso e
+ * o cronômetro/timer da Sessão.
+ */
+model ReadingDay {
+  id Int @id @default(autoincrement())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date    DateTime @db.Date
+  seconds Int      @default(0)
+
+  /**
+   * Bateu a meta neste dia. Fica marcado mesmo que a meta suba depois:
+   * dias já garantidos continuam contando.
+   */
+  goalMet Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, goalMet])
 }
