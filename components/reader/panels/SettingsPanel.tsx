@@ -3,7 +3,7 @@
 import { Clock, Droplet, Minus, Plus, Timer } from "lucide-react";
 
 import type { ReaderTheme } from "../readerTypes";
-import SettingSwitch from "./SettingSwitch";
+import SettingSwitch from "@/components/common/SettingSwitch";
 import { READER_THEMES, type ZoomLimits } from "../hooks/useReaderSettings";
 
 type SettingsPanelProps = {

@@ -29,8 +29,7 @@ Reader.tsx               junta as peças: cabeçalho, conteúdo, rodapé e modo 
 │   ├── HeaderActionWindow  moldura comum dos painéis
 │   ├── NavigatorPanel   seletor de página (PDF/CBZ) ou sumário (EPUB)
 │   ├── BookmarksPanel   "Marcadores" ("Onde parei" + marcadores com nome)
-│   ├── SettingsPanel    "Configurações" (zoom, tema, mostrar hora/sequência/sessão)
-│   └── SettingSwitch    chave liga/desliga das Configurações
+│   └── SettingsPanel    "Configurações" (zoom, tema, mostrar hora/sequência/sessão; chaves em components/common/SettingSwitch)
 └── hooks/
     ├── usePageTurn       virar página com animação (turnPage estável para o motor)
     ├── useReaderKeyboard atalhos ← → + − 0 Esc
