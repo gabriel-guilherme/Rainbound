@@ -3,16 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { DEFAULT_COVER } from "@/lib/books/labels";
-import { formatActivityWhen, type ActivityEvent } from "@/lib/reading/activity";
+import { formatActivityWhen, type ActivityEvent } from "@/lib/reading/activityFormat";
 import type { Avatar as AvatarData } from "@/lib/profile/avatar";
 
 import Avatar from "./Avatar";
 
 type ActivityItemProps = {
   event: ActivityEvent;
-  /* O evento é de quem está vendo ("Você terminou…"). */
   isMine: boolean;
-  /* Quem fez (aba Atividade de /pessoas); sem ele, a linha do widget de uma pessoa só. */
   person?: { name: string; username: string; avatar: AvatarData };
   now: number;
 };

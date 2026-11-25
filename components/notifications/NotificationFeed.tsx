@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type RefObject } from "react";
+import { useState, useTransition, type RefObject } from "react";
 
 import { loadNotifications } from "@/app/notifications/actions";
+import { useLoadMore } from "@/components/common/useLoadMore";
 import type { NotificationPage } from "@/lib/notifications/server";
 
 import NotificationList from "./NotificationList";
@@ -38,7 +39,7 @@ function dayTitle(day: string, today: string) {
 
 /*
  * Lista de notificações que carrega mais sozinha ao chegar no fim
- * (IntersectionObserver num marcador depois do último item).
+ * (useLoadMore).
  */
 export default function NotificationFeed({
   initial,
@@ -52,38 +53,25 @@ export default function NotificationFeed({
   const [cursor, setCursor] = useState(initial.nextCursor);
   const [error, setError] = useState(false);
   const [isLoading, startLoading] = useTransition();
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useLoadMore({
+    hasMore: Boolean(cursor) && !error,
+    isLoading,
+    root: scrollRoot,
+    onLoadMore: () =>
+      startLoading(async () => {
+        try {
+          const next = await loadNotifications(cursor);
 
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-
-    if (!sentinel || !cursor || error) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting || isLoading) return;
-
-        startLoading(async () => {
-          try {
-            const next = await loadNotifications(cursor);
-
-            setGroups((current) => [
-              ...current,
-              ...next.groups.filter((group) => !current.some((item) => item.key === group.key)),
-            ]);
-            setCursor(next.nextCursor);
-          } catch {
-            setError(true);
-          }
-        });
-      },
-      { root: scrollRoot?.current ?? null, rootMargin: "200px" },
-    );
-
-    observer.observe(sentinel);
-
-    return () => observer.disconnect();
-  }, [cursor, error, isLoading, scrollRoot]);
+          setGroups((current) => [
+            ...current,
+            ...next.groups.filter((group) => !current.some((item) => item.key === group.key)),
+          ]);
+          setCursor(next.nextCursor);
+        } catch {
+          setError(true);
+        }
+      }),
+  });
 
   if (groups.length === 0) {
     return <p className="px-4 py-8 text-center text-sm text-contrast/70">Nenhuma notificação ainda.</p>;

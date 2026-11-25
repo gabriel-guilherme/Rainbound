@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import ActivityItem from "@/components/profile/ActivityItem";
-import FollowList from "@/components/profile/FollowList";
+import ActivityFeed from "@/components/profile/ActivityFeed";
+import PeopleResults from "@/components/profile/PeopleResults";
 import PeopleSearchInput from "@/components/profile/PeopleSearchInput";
 import { requireApprovedUser } from "@/lib/auth/session";
 import { ACTIVITY_WINDOW_DAYS } from "@/lib/reading/activity";
-import { FEED_LIMIT, getFollowingFeed } from "@/lib/profile/feed";
+import { getFollowingFeed } from "@/lib/profile/feed";
 import { normalizePeopleQuery } from "@/lib/profile/rules";
 import { searchPeople } from "@/lib/profile/search";
 import { getTimeZone, todayIn } from "@/lib/streak/server";
@@ -79,7 +79,7 @@ export default async function PeoplePage({
 }
 
 async function SearchTab({ query, viewerId }: { query: string; viewerId: string }) {
-  const people = await searchPeople(query, viewerId);
+  const initial = await searchPeople(query, viewerId);
 
   return (
     <>
@@ -90,8 +90,10 @@ async function SearchTab({ query, viewerId }: { query: string; viewerId: string 
           {query ? `Resultados para “${query}”` : "Chegaram por último"}
         </h2>
 
-        <FollowList
-          people={people}
+        <PeopleResults
+          key={query}
+          query={query}
+          initial={initial}
           viewerId={viewerId}
           emptyText={query ? "Ninguém encontrado com esse nome ou usuário." : "Ainda não há ninguém por aqui."}
         />
@@ -120,23 +122,7 @@ async function ActivityTab({ viewerId }: { viewerId: string }) {
         </p>
       )}
 
-      {feed.items.length === 0 ? (
-        <p className="bg-primary px-5 py-10 text-center text-sm text-contrast/75">
-          Nenhuma atividade por enquanto.
-        </p>
-      ) : (
-        <ol className="flex flex-col bg-primary px-4 sm:px-5">
-          {feed.items.map(({ event, person }, index) => (
-            <li key={`${event.userId}-${event.kind}-${index}`} className="border-t border-contrast/10 first:border-t-0">
-              <ActivityItem event={event} isMine={event.userId === viewerId} person={person} now={now} />
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {feed.items.length >= FEED_LIMIT && (
-        <p className="text-center text-xs text-contrast/60">Mostrando as {FEED_LIMIT} mais recentes.</p>
-      )}
+      <ActivityFeed initial={feed} viewerId={viewerId} now={now} />
     </section>
   );
 }

@@ -1,6 +1,9 @@
 import { prisma } from "../services/prisma";
 import { addDays, dateKeyToUtc, utcToDateKey } from "../streak/rules";
 import { todayIn } from "../streak/server";
+import type { ActivityEvent } from "./activityFormat";
+
+export type { ActivityEvent } from "./activityFormat";
 
 /*
  * Atividade recente (widget "Atividade recente" e aba Atividade de
@@ -15,19 +18,6 @@ import { todayIn } from "../streak/server";
 export const ACTIVITY_WINDOW_DAYS = 120;
 
 const STREAK_MILESTONES = [7, 30, 50, 100, 200, 365];
-
-type EventBase = { userId: string; at: Date };
-
-export type ActivityEvent =
-  | (EventBase & { kind: "started"; bookId: number; title: string; coverUrl: string | null })
-  | (EventBase & {
-      kind: "finished";
-      bookId: number;
-      title: string;
-      coverUrl: string | null;
-      rating: number | null;
-    })
-  | (EventBase & { kind: "streak"; days: number });
 
 function streakMilestones(metDates: string[]) {
   const events: { date: string; days: number }[] = [];
@@ -52,6 +42,8 @@ export async function getActivity(
   userIds: string[],
   today: string,
   limit: number,
+  /* Só eventos antes deste instante (página seguinte da aba Atividade). */
+  before: Date | null = null,
 ): Promise<ActivityEvent[]> {
   if (userIds.length === 0) return [];
 
@@ -59,16 +51,17 @@ export async function getActivity(
   /* A sequência precisa de dias antes da janela para contar os marcos. */
   const streakSince = dateKeyToUtc(addDays(today, -ACTIVITY_WINDOW_DAYS - 365));
   const userId = { in: userIds };
+  const range = { gte: since, ...(before ? { lt: before } : {}) };
 
   const [started, finished, metDays] = await Promise.all([
     prisma.book.findMany({
-      where: { userId, startedAt: { gte: since } },
+      where: { userId, startedAt: range },
       orderBy: { startedAt: "desc" },
       take: limit,
       select: { id: true, userId: true, title: true, coverUrl: true, startedAt: true },
     }),
     prisma.book.findMany({
-      where: { userId, finishedAt: { gte: since } },
+      where: { userId, finishedAt: range },
       orderBy: { finishedAt: "desc" },
       take: limit,
       select: { id: true, userId: true, title: true, coverUrl: true, finishedAt: true, rating: true },
@@ -108,6 +101,7 @@ export async function getActivity(
     ...[...metByUser].flatMap(([owner, dates]) =>
       streakMilestones(dates)
         .filter(({ date }) => dateKeyToUtc(date) >= since)
+        .filter(({ date }) => !before || new Date(`${date}T12:00:00Z`) < before)
         .map(({ date, days }) => ({
           kind: "streak" as const,
           userId: owner,
@@ -123,24 +117,4 @@ export async function getActivity(
 
 export function getRecentActivity(userId: string, timeZone: string, limit: number) {
   return getActivity([userId], todayIn(timeZone), limit);
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short" });
-
-/* "hoje", "ontem", "há 3 dias", "há 2 semanas" ou a data. */
-export function formatActivityWhen(at: Date, now: number) {
-  const days = Math.floor((now - at.getTime()) / DAY_MS);
-
-  if (days <= 0) return "hoje";
-  if (days === 1) return "ontem";
-  if (days < 7) return `há ${days} dias`;
-  if (days < 35) {
-    const weeks = Math.floor(days / 7);
-
-    return `há ${weeks} ${weeks === 1 ? "semana" : "semanas"}`;
-  }
-
-  return shortDateFormatter.format(at);
 }

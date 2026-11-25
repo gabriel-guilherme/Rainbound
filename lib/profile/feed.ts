@@ -10,9 +10,13 @@ import { getAvatar } from "./avatar";
  * de fora (os outros só veem o cabeçalho deles).
  */
 
-export const FEED_LIMIT = 50;
+export const FEED_PAGE_SIZE = 20;
 
-export async function getFollowingFeed(viewerId: string, today: string) {
+/*
+ * Uma página da aba Atividade. `before`: data do último item já mostrado
+ * (sem ela, as mais recentes); `nextCursor` é null quando acabou.
+ */
+export async function getFollowingFeed(viewerId: string, today: string, before: Date | null = null) {
   const followed = await prisma.follow.findMany({
     where: {
       followerId: viewerId,
@@ -24,7 +28,7 @@ export async function getFollowingFeed(viewerId: string, today: string) {
   const userIds = [viewerId, ...followed.map((row) => row.followedId)];
 
   const [events, users] = await Promise.all([
-    getActivity(userIds, today, FEED_LIMIT),
+    getActivity(userIds, today, FEED_PAGE_SIZE + 1, before),
     prisma.user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, name: true, username: true, avatarColor: true, avatarLetter: true },
@@ -38,8 +42,13 @@ export async function getFollowingFeed(viewerId: string, today: string) {
     ]),
   );
 
+  const page = events.slice(0, FEED_PAGE_SIZE);
+
   return {
     followingCount: followed.length,
-    items: events.map((event) => ({ event, person: people.get(event.userId)! })),
+    items: page.map((event) => ({ event, person: people.get(event.userId)! })),
+    nextCursor: events.length > FEED_PAGE_SIZE ? page[page.length - 1].at.toISOString() : null,
   };
 }
+
+export type FollowingFeedPage = Awaited<ReturnType<typeof getFollowingFeed>>;
