@@ -347,6 +347,17 @@
    );
 }
 
+/*
+ * Instalado na tela de início (modo app), a barra de status fica por cima
+ * da página sem a barra do navegador para separar: um respiro a mais.
+ */
+@media (display-mode: standalone) {
+   .reader-header {
+      padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+      height: calc(4.5rem + env(safe-area-inset-top));
+   }
+}
+
 .reader-footer {
    padding-bottom: env(safe-area-inset-bottom);
    height: calc(2.5rem + env(safe-area-inset-bottom));
