@@ -30,7 +30,7 @@ export default function ProfileEditor({ avatar, bio, isPublic }: ProfileEditorPr
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="btn-shelf cursor-pointer text-contrast ring-2 ring-inset ring-contrast/25 hover:bg-primary hover:ring-primary"
+        className="btn-shelf cursor-pointer bg-darkest/25 text-current hover:bg-darkest/45"
       >
         Editar perfil
       </button>

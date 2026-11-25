@@ -52,52 +52,55 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     : [];
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-10 pt-32">
+    <div>
       <ProfileHeader profile={profile} isOwner={isOwner} viewerFollows={viewerFollows} />
 
-      {stats ? (
-        <>
-          <ProfileStats stats={stats} />
+      {/* Os números sobem por cima da borda de baixo da faixa. */}
+      <div className="relative mx-auto -mt-14 flex max-w-7xl flex-col gap-8 px-4 pb-10">
+        {stats ? (
+          <>
+            <ProfileStats stats={stats} />
 
-          {isOwner && (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-contrast/70">
-                Os widgets abaixo aparecem para quem visita seu perfil
-                {profile.isPublic ? "." : " (hoje o perfil está privado)."}
+            {isOwner && (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-contrast/70">
+                  Os widgets abaixo aparecem para quem visita seu perfil
+                  {profile.isPublic ? "." : " (hoje o perfil está privado)."}
+                </p>
+                <DashboardEditor
+                  layout={profile.layout}
+                  onSave={saveProfileLayout}
+                  onReset={resetProfileLayout}
+                  note="Aparece para quem visita seu perfil"
+                  hiddenWidgets={PROFILE_HIDDEN_WIDGETS}
+                />
+              </div>
+            )}
+
+            {topSections.length > 0 && (
+              <WidgetSection label="Widgets do perfil, em cima" sections={topSections} />
+            )}
+            {bottomSections.length > 0 && (
+              <WidgetSection label="Widgets do perfil, embaixo" sections={bottomSections} />
+            )}
+            {topSections.length === 0 && bottomSections.length === 0 && (
+              <p className="py-10 text-center text-sm text-contrast/70">
+                {isOwner
+                  ? "Nenhum widget no perfil. Use \"Editar widgets\" para escolher o que mostrar."
+                  : `${profile.name} ainda não escolheu o que mostrar.`}
               </p>
-              <DashboardEditor
-                layout={profile.layout}
-                onSave={saveProfileLayout}
-                onReset={resetProfileLayout}
-                note="Aparece para quem visita seu perfil"
-                hiddenWidgets={PROFILE_HIDDEN_WIDGETS}
-              />
-            </div>
-          )}
-
-          {topSections.length > 0 && (
-            <WidgetSection label="Widgets do perfil, em cima" sections={topSections} />
-          )}
-          {bottomSections.length > 0 && (
-            <WidgetSection label="Widgets do perfil, embaixo" sections={bottomSections} />
-          )}
-          {topSections.length === 0 && bottomSections.length === 0 && (
-            <p className="py-10 text-center text-sm text-contrast/70">
-              {isOwner
-                ? "Nenhum widget no perfil. Use \"Editar widgets\" para escolher o que mostrar."
-                : `${profile.name} ainda não escolheu o que mostrar.`}
+            )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-3 bg-primary px-6 py-14 text-center">
+            <Lock size={28} aria-hidden="true" className="text-contrast/60" />
+            <p className="title-shelf text-3xl text-contrast">Perfil privado</p>
+            <p className="text-sm text-contrast/75">
+              {profile.name} preferiu não mostrar a estante.
             </p>
-          )}
-        </>
-      ) : (
-        <div className="flex flex-col items-center gap-3 bg-primary px-6 py-14 text-center">
-          <Lock size={28} aria-hidden="true" className="text-contrast/60" />
-          <p className="title-shelf text-3xl text-contrast">Perfil privado</p>
-          <p className="text-sm text-contrast/75">
-            {profile.name} preferiu não mostrar a estante.
-          </p>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

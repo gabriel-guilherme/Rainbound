@@ -26,7 +26,10 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
   return (
     <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {items.map((item) => (
-        <div key={item.label} className="flex flex-col-reverse gap-1 bg-primary px-4 py-4 sm:px-5">
+        <div
+          key={item.label}
+          className="flex flex-col-reverse gap-1 bg-primary px-4 py-4 shadow-[8px_8px_0_rgb(0_0_0/0.3)] sm:px-5"
+        >
           <dt className="text-sm text-contrast/75">{item.label}</dt>
           <dd className="title-shelf text-5xl text-contrast">{item.value}</dd>
         </div>

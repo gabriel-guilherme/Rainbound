@@ -9,13 +9,20 @@ type FollowButtonProps = {
   name: string;
   following: boolean;
   size?: "md" | "sm";
+  onColor?: boolean;
 };
 
 /*
  * "Seguir" / "Seguindo". Muda na hora e desfaz se o servidor recusar.
  * Seguindo, o hover mostra "Deixar de seguir".
  */
-export default function FollowButton({ userId, name, following, size = "md" }: FollowButtonProps) {
+export default function FollowButton({
+  userId,
+  name,
+  following,
+  size = "md",
+  onColor = false,
+}: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(following);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -47,9 +54,13 @@ export default function FollowButton({ userId, name, following, size = "md" }: F
         className={[
           "group btn-shelf cursor-pointer disabled:cursor-wait",
           size === "sm" ? "px-3 py-1.5 text-sm" : "",
-          isFollowing
-            ? "text-contrast ring-2 ring-inset ring-contrast/25 hover:text-danger hover:ring-danger/60"
-            : "bg-danger text-primary hover:bg-contrast",
+          onColor
+            ? isFollowing
+              ? "bg-darkest/25 text-current hover:bg-darkest/45"
+              : "bg-primary text-contrast hover:bg-darkest"
+            : isFollowing
+              ? "text-contrast ring-2 ring-inset ring-contrast/25 hover:text-danger hover:ring-danger/60"
+              : "bg-danger text-primary hover:bg-contrast",
         ].join(" ")}
       >
         {isFollowing ? (
