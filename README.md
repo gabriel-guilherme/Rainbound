@@ -325,7 +325,7 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
 ├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
 ├── profile/            Profile: avatar (color + letter), header, numbers and editors
-├── widgets/            Home widgets (registry.tsx) and carousel
+├── widgets/            Home and profile widgets (registry.tsx, types.ts: owner + visitor mode), carousel and section builder
 │   ├── editor/         Layout editor: home map, widget options panel, catalog with previews, layout edits
 │   └── parts/          Shared book pieces: card row, spine shelf, lying stack, featured book, list
 ├── books/              Book display: poster, spine, bookcase, status ribbon, progress, actions menu
