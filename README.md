@@ -339,7 +339,7 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── layout/             Navbar and footer
 ├── auth/               Login, sign-up and sign-out
 ├── admin/              Admin controls (storage limit picker)
-└── common/             Generic pieces: submit/back buttons, scroll reveal, NoSsr, field styles
+└── common/             Generic pieces: submit/back buttons, scroll reveal, NoSsr, field styles, useLoadMore (load more at the end of a list)
 
 lib/
 ├── auth/
@@ -361,7 +361,8 @@ lib/
 ├── reading/
 │   ├── progress.ts       Reading progress (forward-only), manual log and bookmark validation
 │   ├── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
-│   └── activity.ts       Recent activity (started, finished, streak milestones) from existing data
+│   ├── activity.ts       Recent activity (started, finished, streak milestones) from existing data, paged by date
+│   └── activityFormat.ts Activity types and "há 3 dias" text (safe for the browser)
 ├── streak/
 │   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
@@ -374,7 +375,7 @@ lib/
 │   ├── rules.ts          Profile rules shared by server and browser (bio length, username)
 │   ├── server.ts         Profile by username and the header numbers
 │   ├── follow.ts         Follow / unfollow (free, no approval) and the followers / following lists
-│   ├── search.ts         People search by name or @username
+│   ├── search.ts         People search by name or @username (paged; names that start with the text first)
 │   ├── feed.ts           Activity feed of you and who you follow (public profiles)
 │   └── layout.ts         Profile widgets layout (same shape as the home, stored in the database; no Session widget)
 ├── preferences/
