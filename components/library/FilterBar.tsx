@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useTransition } from "react";
 import { statusColor, statusLabel, statusOptions } from "@/lib/books/labels";
+import type { SortOption } from "@/lib/books/library";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import SearchInput from "./SearchInput";
 import SpineRibbon from "../books/SpineRibbon";
@@ -11,6 +12,7 @@ import { FilterButton } from "./FilterButton";
 type FilterBarProps = {
   q?: string;
   status?: ReadingStatus;
+  sort: SortOption;
   marker?: "dot" | "ribbon";
   /* Controles extras à direita (ex.: alternar lombadas/capas). */
   children?: React.ReactNode;
@@ -19,6 +21,7 @@ type FilterBarProps = {
 export function FilterBar({
   q,
   status,
+  sort,
   marker = "dot",
   children,
 }: FilterBarProps) {
@@ -106,7 +109,7 @@ export function FilterBar({
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <FilterButton />
+        <FilterButton sort={sort} />
         {children}
       </div>
     </div>
