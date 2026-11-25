@@ -15,9 +15,9 @@
 Reader.tsx            junta as peças: cabeçalho, conteúdo, rodapé e modo imersivo
 ├── NavigatorPanel    painel de navegação: seletor de página (PDF/CBZ) ou sumário (EPUB)
 ├── BookmarksPanel    painel "Marcadores" ("Onde parei" + marcadores com nome)
-├── SettingsPanel     painel "Configurações" (zoom, tema, mostrar hora/sessão)
+├── SettingsPanel     painel "Configurações" (zoom, tema, mostrar hora/sequência/sessão)
 │   └── SettingSwitch chave liga/desliga das Configurações
-├── ReaderFooter      rodapé: hora | página atual | Sessão
+├── ReaderFooter      rodapé: hora | página atual | Sequência e Sessão
 ├── usePageTurn       virar página com animação (turnPage estável para o motor)
 ├── useReaderKeyboard atalhos ← → + − 0 Esc
 ├── useBookmarks      lista de marcadores e criar/renomear/apagar
@@ -109,10 +109,11 @@ guarda o pedido e só anima quando o motor avisa a nova posição em
 mesmo caminho. Saltos pelo seletor de página/sumário não animam, e
 `prefers-reduced-motion` desliga a animação.
 
-## Rodapé: hora e sessão de leitura
+## Rodapé: hora, sequência e sessão de leitura
 
-O rodapé tem três colunas: hora (`CurrentTime`) | página atual | botão
-**Sessão** (`SessionButton`). As duas laterais somem pelas Configurações.
+O rodapé tem três colunas: hora (`CurrentTime`) | página atual | botões
+**Sequência** (`StreakButton`) e **Sessão** (`SessionButton`). Cada um
+some pelas Configurações.
 
 A sessão (`components/ReadingSession/`) é um cronômetro ou um timer
 (atalhos de 15/25/45/60 min, ou clicar no número grande do timer e digitar
@@ -127,6 +128,23 @@ dos tempos em `sessionTime.ts`, tique de 1 s em `lib/useNow.ts`, ações no hook
 widget "Sessão" da home: começou no leitor, continua contando lá. Guarda
 horários (quando começou / quando acaba), não contagens, então o tempo
 segue certo com a aba fechada. Nada vai para o banco.
+
+## Sequência de leitura
+
+`components/ReadingStreak/` (regras e datas em `lib/streak.ts`, banco em
+`lib/readingStreak.ts`). O `Reader` monta um `ReadingTracker` que conta o
+tempo com a página visível e em uso (algum toque, tecla, rolagem ou página
+virada nos últimos 5 min) e o tempo com o cronômetro/timer da Sessão
+rodando, sem contar em dobro. O layout das outras páginas também tem um
+`ReadingTracker` (só a Sessão conta lá).
+
+O tempo vai para o `localStorage` por dia (`readingTime.ts`) e é enviado
+a `/api/reading-time` (`readingTimeSync.ts`) a cada minuto, ao bater a
+meta e ao esconder a aba (beacon). A resposta é o resumo da sequência
+(`streakStore.ts`), que atualiza o botão do rodapé (anel com "6/10 min";
+com a meta batida, gota cheia com os dias) e mostra o aviso
+`StreakNotice` ("Dia garantido!"). O painel do botão troca a meta diária
+pelo botão "Meta" (`GoalButton` + `GoalPicker`).
 
 ## Temas
 

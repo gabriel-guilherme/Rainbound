@@ -44,6 +44,11 @@ The project was built as a full-stack application, combining a responsive fronte
   reader footer and in a home widget, sharing the same session (stored in the
   browser only); an on-screen notice when the timer ends; each part can be
   hidden in the reader settings
+- Reading streak: consecutive days reading a daily goal (10 min by default,
+  adjustable). Counts the reader while in use and the session stopwatch/timer
+  (for books read outside the app); a calendar day without the goal resets it.
+  Shown in a home widget and in the reader footer, with a notice when the day
+  is secured. The admin has a "Sequência" tab to test it on their own account
 - Customizable home widgets: two carousels with tabs; each widget has a wide
   (top) and a side-by-side (bottom) version; layout saved per device
 - Add, edit, and delete books
@@ -296,15 +301,18 @@ npm run start     # Start the production server
 app/
 ├── (auth)/             Login, sign-up (access request) and waiting screen
 ├── (main)/             Pages with Navbar and Footer
-│   ├── admin/pedidos/  Admin only: access requests (approve / reject) and users' storage (?aba=usuarios)
+│   ├── admin/pedidos/  Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
+├── api/reading-time/   Receives reading time for the streak (fetch every minute, sendBeacon on close)
 ├── read/[id]/          In-app reader
-└── read/actions.ts     Reading progress and bookmark server actions
+├── read/actions.ts     Reading progress and bookmark server actions
+└── streak/actions.ts   Daily reading goal server action
 
-components/             Reusable UI components (Reader, ReadingSession, Home, Widgets, auth, admin, forms, common...)
+components/             Reusable UI components (Reader, ReadingSession, ReadingStreak, Home, Widgets, auth, admin, forms, common...)
+├── ReadingStreak/      Reading streak: time tracker, footer button, widget, goal picker, notice
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 
 lib/
@@ -319,6 +327,9 @@ lib/
 ├── spine.ts             Bookshelf spine look (color, width, height)
 ├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
 ├── readingPages.ts      Current/total pages from a progress locator ("pág. X de Y" on hover)
+├── streak.ts            Reading streak rules and dates (shared by server and browser)
+├── readingStreak.ts     Reading streak in the database (summary, recording time, goal)
+├── readingStreakAdmin.ts  Reading streak test helpers for the admin "Sequência" tab
 ├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
 ├── comicCompression.ts  Browser-side CBZ page compression before upload
 ├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files
@@ -359,10 +370,8 @@ Some ideas planned for future versions include:
 
 - In-app book reading
 - Reading sessions and history
-- Reading goals
 - Statistics and reading insights
 - More advanced library filters
-- Reading streaks
 - Custom shelves and collections
 
 ## License
