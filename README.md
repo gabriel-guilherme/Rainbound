@@ -325,6 +325,7 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── reader/             In-app reader (see components/reader/README.md): engines/, panels/, hooks/
 ├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
 ├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
+├── notifications/      Notification bell (polls the unread count every minute) and the notification list
 ├── profile/            Profile: avatar (color + letter), header, numbers and editors
 ├── widgets/            Home and profile widgets (registry.tsx, types.ts: owner + visitor mode), carousel and section builder
 │   ├── editor/         Layout editor: home map, widget options panel, catalog with previews, layout edits
@@ -364,6 +365,9 @@ lib/
 │   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
 │   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
+├── notifications/
+│   ├── server.ts         Notifications: follow notice (one per pair), unread count, mark read, grouping by type and day
+│   └── format.ts         Notification texts ("há 12 min", "Marina, Caio e mais 2")
 ├── profile/
 │   ├── avatar.ts         Profile avatar: 12-color palette, letter, defaults from the account
 │   ├── rules.ts          Profile rules shared by server and browser (bio length, username)
