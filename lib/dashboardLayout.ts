@@ -214,11 +214,12 @@ export function getWidgetLook(
   widget: WidgetId,
   variant: WidgetVariant,
 ): WidgetLook {
-  return (
-    tab.looks?.[widget] ??
-    DEFAULT_LOOK_BY_VARIANT[widget]?.[variant] ??
-    DEFAULT_WIDGET_LOOK
-  );
+  return tab.looks?.[widget] ?? defaultLookFor(widget, variant);
+}
+
+/* Visual de um widget sem escolha, na versão de um carrossel. */
+export function defaultLookFor(widget: WidgetId, variant: WidgetVariant): WidgetLook {
+  return DEFAULT_LOOK_BY_VARIANT[widget]?.[variant] ?? DEFAULT_WIDGET_LOOK;
 }
 
 function parseArea(value: unknown) {
