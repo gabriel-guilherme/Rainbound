@@ -20,7 +20,7 @@ import WidgetThumb from "./WidgetThumb";
 /* Grupos do catálogo, na ordem em que aparecem. */
 const GROUPS: { title: string; widgets: WidgetId[] }[] = [
   { title: "Livros", widgets: ["reading", "queue", "recent", "nearly", "stalled"] },
-  { title: "Tempo e ritmo de leitura", widgets: ["session", "streak", "activity", "week"] },
+  { title: "Tempo e ritmo de leitura", widgets: ["session", "streak", "activity", "week", "feed"] },
   { title: "Estante", widgets: ["status"] },
 ];
 

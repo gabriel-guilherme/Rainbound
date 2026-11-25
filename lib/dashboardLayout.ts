@@ -28,6 +28,7 @@ export const WIDGET_IDS = [
   "stalled",
   "activity",
   "week",
+  "feed",
 ] as const;
 
 export type WidgetId = (typeof WIDGET_IDS)[number];
@@ -126,6 +127,10 @@ export const WIDGET_INFO: Record<WidgetId, { label: string; description: string 
   activity: {
     label: "Atividade do ano",
     description: "Um quadradinho por dia, mais forte quanto mais você leu.",
+  },
+  feed: {
+    label: "Atividade recente",
+    description: "Livros começados e terminados e marcos da sequência.",
   },
   week: {
     label: "Minutos da semana",

@@ -7,6 +7,7 @@ import BookStatus from "./BookStatus";
 import Nearly from "./Nearly";
 import Queue from "./Queue";
 import Reading from "./Reading";
+import RecentActivity from "./RecentActivity";
 import RecentlyAdded from "./RecentlyAdded";
 import SessionWidget from "./SessionWidget";
 import Stalled from "./Stalled";
@@ -40,4 +41,5 @@ export const WIDGETS = {
   stalled: Stalled,
   activity: ActivityWidget,
   week: WeekWidget,
+  feed: RecentActivity,
 } satisfies Record<WidgetId, unknown> as Record<WidgetId, WidgetComponent>;

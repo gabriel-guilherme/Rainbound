@@ -22,7 +22,8 @@ export default function PeopleSearchInput({ q }: { q: string }) {
   function search(next: string) {
     const query = next.trim();
 
-    router.replace(query ? `/pessoas?q=${encodeURIComponent(query)}` : "/pessoas", {
+    /* "aba=buscar" mantém a aba aberta mesmo com o campo vazio. */
+    router.replace(`/pessoas?aba=buscar${query ? `&q=${encodeURIComponent(query)}` : ""}`, {
       scroll: false,
     });
   }

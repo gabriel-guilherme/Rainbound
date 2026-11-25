@@ -17,7 +17,7 @@ export const DEFAULT_PROFILE_LAYOUT: DashboardLayout = {
     { id: "lendo", label: "Lendo agora", widgets: ["reading"] },
     { id: "atividade", label: "Atividade", widgets: ["activity"] },
   ],
-  bottom: [{ id: "sequencia", label: "Sequência", widgets: ["streak", "status"] }],
+  bottom: [{ id: "sequencia", label: "Sequência", widgets: ["streak", "feed"] }],
 };
 
 function withoutHidden(layout: DashboardLayout): DashboardLayout {
