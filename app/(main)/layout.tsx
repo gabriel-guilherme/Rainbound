@@ -28,7 +28,12 @@ export default async function MainLayout({
   }
 
   return (
-    <div className="flex flex-col bg-secondary">
+    /*
+     * overflow-x-clip: nada alarga a página para os lados (no celular, isso
+     * arrastava o cabeçalho fixo para fora da tela). `clip`, e não
+     * `hidden`, para não virar uma área de rolagem.
+     */
+    <div className="flex flex-col overflow-x-clip bg-secondary">
       <Navbar account={account} />
 
       {/*

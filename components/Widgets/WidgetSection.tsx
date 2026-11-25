@@ -204,7 +204,12 @@ export default function WidgetSection({ sections, label }: WidgetSectionProps) {
         id={`${baseId}-panel`}
         role={total > 1 ? "tabpanel" : undefined}
         aria-labelledby={total > 1 ? `${baseId}-tab-${section.id}` : undefined}
-        className="w-full overflow-hidden"
+        /*
+         * `relative` junto do overflow-hidden: sem ele, o Safari do iPhone
+         * deixa a seção que entra deslizando (transform) escapar do corte e
+         * alargar a página para a direita.
+         */
+        className="relative w-full overflow-hidden"
       >
         <AnimatePresence mode="wait" initial={false} custom={direction}>
           <motion.div
