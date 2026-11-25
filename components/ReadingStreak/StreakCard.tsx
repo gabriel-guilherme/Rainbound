@@ -12,7 +12,7 @@ import StreakNotice from "./StreakNotice";
 import StreakWeek from "./StreakWeek";
 import { useStreak } from "./useStreak";
 
-type StreakWidgetProps = {
+type StreakCardProps = {
   variant: WidgetVariant;
   initial: StreakSummary;
 };
@@ -24,7 +24,7 @@ type StreakWidgetProps = {
  * - wide: dias à esquerda, hoje e semana à direita;
  * - tall: tudo empilhado.
  */
-export default function StreakWidget({ variant, initial }: StreakWidgetProps) {
+export default function StreakCard({ variant, initial }: StreakCardProps) {
   const { summary, todaySeconds, todayProgress } = useStreak(initial);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const isWide = variant === "wide";

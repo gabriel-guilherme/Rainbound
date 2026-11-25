@@ -1,4 +1,4 @@
-import StreakWidget from "@/components/ReadingStreak/StreakWidget";
+import StreakCard from "@/components/ReadingStreak/StreakCard";
 import { getStreakSummary, getTimeZone } from "@/lib/readingStreak";
 import { requireApprovedUser } from "@/lib/session";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
@@ -8,9 +8,9 @@ import type { WidgetVariant } from "@/lib/dashboardLayout";
  * resumo (no fuso do aparelho, pelo cookie); o navegador soma o tempo
  * contado e ainda não enviado (components/ReadingStreak).
  */
-export default async function ReadingStreak({ variant }: { variant: WidgetVariant }) {
+export default async function StreakWidget({ variant }: { variant: WidgetVariant }) {
   const { id: userId } = await requireApprovedUser();
   const summary = await getStreakSummary(userId, await getTimeZone());
 
-  return <StreakWidget variant={variant} initial={summary} />;
+  return <StreakCard variant={variant} initial={summary} />;
 }

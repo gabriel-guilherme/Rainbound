@@ -5,8 +5,8 @@ import type { WidgetId, WidgetVariant } from "@/lib/dashboardLayout";
 import BookStatus from "./BookStatus";
 import Queue from "./Queue";
 import Reading from "./Reading";
-import ReadingSession from "./ReadingSession";
-import ReadingStreak from "./ReadingStreak";
+import SessionWidget from "./SessionWidget";
+import StreakWidget from "./StreakWidget";
 import RecentlyAdded from "./RecentlyAdded";
 
 type WidgetComponent = ComponentType<{ variant: WidgetVariant }>;
@@ -25,6 +25,6 @@ export const WIDGETS = {
   reading: Reading,
   recent: RecentlyAdded,
   queue: Queue,
-  session: ReadingSession,
-  streak: ReadingStreak,
+  session: SessionWidget,
+  streak: StreakWidget,
 } satisfies Record<WidgetId, unknown> as Record<WidgetId, WidgetComponent>;

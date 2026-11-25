@@ -28,7 +28,7 @@ const shortDate = new Intl.DateTimeFormat("pt-BR", {
  * - wide: relógio à esquerda, controles à direita;
  * - tall: tudo empilhado.
  */
-export default function ReadingSession({ variant }: { variant: WidgetVariant }) {
+export default function SessionWidget({ variant }: { variant: WidgetVariant }) {
   const now = useNow();
   const isWide = variant === "wide";
 
