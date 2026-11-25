@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
-import ProgressLabel from "@/components/common/ProgressLabel";
+import ProgressLabel from "@/components/books/ProgressLabel";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/session";

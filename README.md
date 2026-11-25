@@ -311,7 +311,11 @@ app/
 ├── read/actions.ts     Reading progress and bookmark server actions
 └── streak/actions.ts   Daily reading goal server action
 
-components/             Reusable UI components (Reader, ReadingSession, ReadingStreak, Home, Widgets, auth, admin, forms, common...)
+components/             Reusable UI components (Reader, ReadingSession, ReadingStreak, Home, Widgets, auth, admin...)
+├── books/              Book display: poster, spine, bookcase, status ribbon, progress, actions menu
+│   └── forms/          Book forms: edit, log reading, cover and file inputs, Open Library search
+├── library/            Library controls: filters, search, pagination, view toggle, storage meter
+├── common/             Generic pieces: submit/back buttons, scroll reveal, NoSsr, field styles
 ├── ReadingStreak/      Reading streak: time tracker, footer button, widget, goal picker, notice
 └── Widgets/            Home widgets (registry.tsx), carousel and layout editor
 

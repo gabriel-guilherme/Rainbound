@@ -4,7 +4,7 @@ import { unstable_rethrow } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { createBook, getMyStorageUsage } from "../actions";
-import StorageMeter from "@/components/common/StorageMeter";
+import StorageMeter from "@/components/library/StorageMeter";
 import { SubmitButton } from "@/components/common/SubmitButton";
 
 import {
@@ -14,15 +14,15 @@ import {
   statusOptions,
   typeOptions,
 } from "../types";
-import BookSpine from "@/components/common/BookSpine";
+import BookSpine from "@/components/books/BookSpine";
 import type { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import { getSpineLook } from "@/lib/spine";
-import InputBookCover from "@/components/forms/InputBookCover";
+import InputBookCover from "@/components/books/forms/InputBookCover";
 import BackButton from "@/components/common/BackButton";
 import OpenLibrarySearch, {
   OpenLibraryBook,
-} from "@/components/forms/OpenLibrarySearch";
-import InputBookFile from "@/components/forms/InputBookFile";
+} from "@/components/books/forms/OpenLibrarySearch";
+import InputBookFile from "@/components/books/forms/InputBookFile";
 import { prepareBookFormData, UploadError } from "@/lib/clientUpload";
 import {
   fieldClass as stylePattern,

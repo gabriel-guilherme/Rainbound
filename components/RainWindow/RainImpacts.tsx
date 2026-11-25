@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import NoSsr from "../NoSsr";
+import NoSsr from "../common/NoSsr";
 
 const impacts = Array.from({ length: 40 }, (_, i) => ({
   id: i,

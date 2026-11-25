@@ -9,7 +9,7 @@ import {
 } from "@/app/(main)/library/types";
 import type { ReadingStatus } from "@/generated/prisma/enums";
 import SearchInput from "./SearchInput";
-import SpineRibbon from "./SpineRibbon";
+import SpineRibbon from "../books/SpineRibbon";
 import { FilterButton } from "./FilterButton";
 
 type FilterBarProps = {

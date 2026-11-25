@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { DEFAULT_COVER } from "@/app/(main)/library/types";
-import BookSpine from "@/components/common/BookSpine";
+import BookSpine from "@/components/books/BookSpine";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/session";

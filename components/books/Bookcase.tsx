@@ -11,8 +11,8 @@ import {
   statusLabel,
   typeLabel,
 } from "@/app/(main)/library/types";
-import BookSpine from "@/components/common/BookSpine";
-import ProgressLabel from "@/components/common/ProgressLabel";
+import BookSpine from "@/components/books/BookSpine";
+import ProgressLabel from "@/components/books/ProgressLabel";
 import { getSpineLookForBook, type SpineBook } from "@/lib/spine";
 
 type BookcaseProps = {

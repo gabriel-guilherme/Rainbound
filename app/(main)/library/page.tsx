@@ -4,12 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { requireApprovedUser } from "@/lib/session";
 import type { Prisma } from "@/generated/prisma/client";
 
-import { FilterBar } from "@/components/common/FilterBar";
-import BookPoster from "@/components/common/BookPoster";
-import Bookcase from "@/components/common/Bookcase";
-import Pagination from "@/components/common/Pagination";
-import ViewToggle from "@/components/common/ViewToggle";
-import StorageMeter from "@/components/common/StorageMeter";
+import { FilterBar } from "@/components/library/FilterBar";
+import BookPoster from "@/components/books/BookPoster";
+import Bookcase from "@/components/books/Bookcase";
+import Pagination from "@/components/library/Pagination";
+import ViewToggle from "@/components/library/ViewToggle";
+import StorageMeter from "@/components/library/StorageMeter";
 import { getStorageUsage } from "@/lib/storage";
 import { toSpineBook } from "@/lib/spine";
 import {
