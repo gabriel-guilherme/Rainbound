@@ -1,8 +1,10 @@
 import { Lock } from "lucide-react";
+import Link from "next/link";
 
 import type { Profile } from "@/lib/profile/server";
 
 import Avatar from "./Avatar";
+import FollowButton from "./FollowButton";
 import ProfileEditor from "./ProfileEditor";
 
 const sinceFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -13,14 +15,19 @@ const sinceFormatter = new Intl.DateTimeFormat("pt-BR", {
 type ProfileHeaderProps = {
   profile: Profile;
   isOwner: boolean;
+  /* Quem está vendo segue o dono do perfil. */
+  viewerFollows: boolean;
 };
 
 /*
  * Cabeçalho do perfil (direção A, "Estante pessoal"): avatar grande, nome,
  * @usuário, apresentação, desde quando está no Rainbound e seguidores,
- * com a tábua escura da estante embaixo. O dono vê "Editar perfil".
+ * com a tábua escura da estante embaixo. O dono vê "Editar perfil"; quem
+ * visita, "Seguir".
  */
-export default function ProfileHeader({ profile, isOwner }: ProfileHeaderProps) {
+export default function ProfileHeader({ profile, isOwner, viewerFollows }: ProfileHeaderProps) {
+  const base = `/u/${profile.username}`;
+
   return (
     <header className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-x-5 gap-y-4 border-b-[10px] border-darkest pb-6 sm:gap-x-7 sm:pb-7 md:grid-cols-[auto_minmax(0,1fr)_auto]">
       <Avatar avatar={profile.avatar} size={136} className="max-sm:hidden" />
@@ -36,6 +43,9 @@ export default function ProfileHeader({ profile, isOwner }: ProfileHeaderProps) 
       </div>
 
       <div className="col-span-2 flex flex-wrap items-center gap-3 md:col-span-1 md:flex-col md:items-end">
+        {!isOwner && (
+          <FollowButton userId={profile.id} name={profile.name} following={viewerFollows} />
+        )}
         {isOwner && (
           <>
             <ProfileEditor avatar={profile.avatar} bio={profile.bio} isPublic={profile.isPublic} />
@@ -55,13 +65,17 @@ export default function ProfileHeader({ profile, isOwner }: ProfileHeaderProps) 
         </p>
       )}
 
-      <p className="col-span-2 text-sm md:col-span-3">
-        <strong className="tabular-nums">{profile.following}</strong>{" "}
-        <span className="text-contrast/75">seguindo</span> ·{" "}
-        <strong className="tabular-nums">{profile.followers}</strong>{" "}
-        <span className="text-contrast/75">
-          {profile.followers === 1 ? "seguidor" : "seguidores"}
-        </span>
+      <p className="col-span-2 flex flex-wrap gap-x-4 text-sm md:col-span-3">
+        <Link href={`${base}/seguindo`} className="group">
+          <strong className="tabular-nums">{profile.following}</strong>{" "}
+          <span className="text-contrast/75 group-hover:text-danger">seguindo</span>
+        </Link>
+        <Link href={`${base}/seguidores`} className="group">
+          <strong className="tabular-nums">{profile.followers}</strong>{" "}
+          <span className="text-contrast/75 group-hover:text-danger">
+            {profile.followers === 1 ? "seguidor" : "seguidores"}
+          </span>
+        </Link>
       </p>
     </header>
   );

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileStats from "@/components/profile/ProfileStats";
 import { requireApprovedUser } from "@/lib/auth/session";
+import { isFollowing } from "@/lib/profile/follow";
 import { getProfileByUsername, getProfileStats } from "@/lib/profile/server";
 
 type ProfilePageProps = { params: Promise<{ username: string }> };
@@ -30,11 +31,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   const isOwner = profile.id === viewer.id;
   const canSeeContent = isOwner || profile.isPublic;
-  const stats = canSeeContent ? await getProfileStats(profile.id, profile.timeZone) : null;
+  const [stats, viewerFollows] = await Promise.all([
+    canSeeContent ? getProfileStats(profile.id, profile.timeZone) : null,
+    isOwner ? false : isFollowing(viewer.id, profile.id),
+  ]);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-10 pt-32">
-      <ProfileHeader profile={profile} isOwner={isOwner} />
+      <ProfileHeader profile={profile} isOwner={isOwner} viewerFollows={viewerFollows} />
 
       {stats ? (
         <ProfileStats stats={stats} />
