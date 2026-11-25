@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CloudRainWind } from "lucide-react-motion";
-import { Inbox, Plus, Users } from "lucide-react";
+import { House, Library, Plus, Users } from "lucide-react";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useState } from "react";
 
@@ -49,7 +49,6 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
   const isBookRoute =
     pathname === "/library" || pathname.startsWith("/library/");
   const isNewBookRoute = pathname === "/library/new";
-  const isRequestsRoute = pathname === "/admin";
   const isPeopleRoute = pathname === "/pessoas";
 
   return (
@@ -77,14 +76,18 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
           {account && (
             <Link
               href="/dashboard"
+              aria-label="Início"
+              title="Início"
               aria-current={isDashboardRoute ? "page" : undefined}
-              className={`px-1 py-1 text-sm font-medium uppercase tracking-widest text-contrast transition sm:text-base ${
+              className={`flex h-10 items-center px-2 text-sm font-medium uppercase tracking-widest text-contrast transition sm:h-auto sm:px-1 sm:py-1 sm:text-base ${
                 isDashboardRoute
                   ? "shadow-[inset_0_-2px_0_var(--color-danger)]"
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              Início
+              {/* No celular, ícone no lugar do texto. */}
+              <House size={20} aria-hidden="true" className="sm:hidden" />
+              <span className="hidden sm:inline">Início</span>
             </Link>
           )}
 
@@ -107,14 +110,17 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
           {account && (
             <Link
               href="/library"
+              aria-label="Biblioteca"
+              title="Biblioteca"
               aria-current={isBookRoute && !isNewBookRoute ? "page" : undefined}
-              className={`px-1 py-1 text-sm font-medium uppercase tracking-widest text-contrast transition sm:text-base ${
+              className={`flex h-10 items-center px-2 text-sm font-medium uppercase tracking-widest text-contrast transition sm:h-auto sm:px-1 sm:py-1 sm:text-base ${
                 isBookRoute && !isNewBookRoute
                   ? "shadow-[inset_0_-2px_0_var(--color-danger)]"
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              Biblioteca
+              <Library size={20} aria-hidden="true" className="sm:hidden" />
+              <span className="hidden sm:inline">Biblioteca</span>
             </Link>
           )}
         </div>
@@ -145,30 +151,6 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
             </Link>
           )}
 
-          {account?.isAdmin && (
-            <Link
-              href="/admin"
-              aria-label={`Administração (${account.pendingRequests} pedidos esperando)`}
-              title="Administração"
-              aria-current={isRequestsRoute ? "page" : undefined}
-              className={`relative flex h-10 w-10 items-center justify-center transition-colors ${
-                isRequestsRoute
-                  ? "bg-contrast text-primary"
-                  : "text-contrast/70 hover:bg-contrast/10 hover:text-contrast"
-              }`}
-            >
-              <Inbox size={19} />
-              {account.pendingRequests > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center bg-danger px-1 text-[11px] font-semibold tabular-nums text-primary"
-                >
-                  {account.pendingRequests}
-                </span>
-              )}
-            </Link>
-          )}
-
           {account && (
             <Link
               href="/library/new"
@@ -190,6 +172,7 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
               displayName={account.username}
               profileUsername={account.profileUsername}
               avatar={account.avatar}
+              pendingRequests={account.isAdmin ? account.pendingRequests : null}
             />
           )}
         </div>

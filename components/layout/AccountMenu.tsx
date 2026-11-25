@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Palette, UserRound } from "lucide-react";
+import { Inbox, LogOut, Palette, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +14,7 @@ type AccountMenuProps = {
   displayName: string;
   profileUsername: string | null;
   avatar: AvatarData;
+  pendingRequests: number | null;
 };
 
 const itemClass =
@@ -23,7 +24,12 @@ const itemClass =
  * Avatar no canto da barra do topo. Abre um menu com o perfil, a troca do
  * avatar e "Sair".
  */
-export default function AccountMenu({ displayName, profileUsername, avatar }: AccountMenuProps) {
+export default function AccountMenu({
+  displayName,
+  profileUsername,
+  avatar,
+  pendingRequests,
+}: AccountMenuProps) {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -64,11 +70,23 @@ export default function AccountMenu({ displayName, profileUsername, avatar }: Ac
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        aria-label={`Conta de ${displayName}`}
+        aria-label={
+          pendingRequests
+            ? `Conta de ${displayName} (${pendingRequests} pedidos de acesso esperando)`
+            : `Conta de ${displayName}`
+        }
         title={displayName}
-        className="flex size-10 cursor-pointer items-center justify-center transition-opacity hover:opacity-85"
+        className="relative flex size-10 cursor-pointer items-center justify-center transition-opacity hover:opacity-85"
       >
         <Avatar avatar={avatar} size={34} />
+        {pendingRequests ? (
+          <span
+            aria-hidden="true"
+            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center bg-danger px-1 text-[11px] font-semibold tabular-nums text-primary ring-2 ring-primary"
+          >
+            {pendingRequests}
+          </span>
+        ) : null}
       </button>
 
       {isOpen && (
@@ -111,6 +129,20 @@ export default function AccountMenu({ displayName, profileUsername, avatar }: Ac
               Trocar avatar
             </button>
           </div>
+
+          {pendingRequests !== null && (
+            <div className="border-t border-contrast/10 py-1">
+              <Link role="menuitem" href="/admin" onClick={() => setIsOpen(false)} className={itemClass}>
+                <Inbox size={16} aria-hidden="true" />
+                Administração
+                {pendingRequests > 0 && (
+                  <span className="ml-auto bg-danger px-1.5 text-[11px] font-semibold tabular-nums text-primary">
+                    {pendingRequests}
+                  </span>
+                )}
+              </Link>
+            </div>
+          )}
 
           <div className="border-t border-contrast/10 py-1">
             <button
