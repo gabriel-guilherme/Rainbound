@@ -1,25 +1,25 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { requireApprovedUser } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { requireApprovedUser } from "@/lib/auth/session";
 import type { Prisma } from "@/generated/prisma/client";
 
-import { FilterBar } from "@/components/common/FilterBar";
-import BookPoster from "@/components/common/BookPoster";
-import Bookcase from "@/components/common/Bookcase";
-import Pagination from "@/components/common/Pagination";
-import ViewToggle from "@/components/common/ViewToggle";
-import StorageMeter from "@/components/common/StorageMeter";
-import { getStorageUsage } from "@/lib/storage";
-import { toSpineBook } from "@/lib/spine";
+import { FilterBar } from "@/components/library/FilterBar";
+import BookPoster from "@/components/books/BookPoster";
+import Bookcase from "@/components/books/Bookcase";
+import Pagination from "@/components/library/Pagination";
+import ViewToggle from "@/components/library/ViewToggle";
+import StorageMeter from "@/components/library/StorageMeter";
+import { getStorageUsage } from "@/lib/books/quota";
+import { toSpineBook } from "@/lib/books/spine";
+import { isReadingStatus } from "@/lib/books/labels";
 import {
   buildLibraryHref,
   isLibraryView,
-  isReadingStatus,
   LIBRARY_PAGE_SIZE,
   orderByOptions,
   parsePageParam,
-} from "./types";
+} from "@/lib/books/library";
 
 export default async function BooksPage({
   searchParams,

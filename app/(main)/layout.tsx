@@ -1,8 +1,9 @@
 import Navbar, { type NavbarAccount } from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ReadingTracker from "@/components/reading-streak/ReadingTracker";
 import { AccountStatus, Role } from "@/generated/prisma/enums";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser, isApproved } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { getCurrentUser, isApproved } from "@/lib/auth/session";
 
 export default async function MainLayout({
   children,
@@ -27,7 +28,12 @@ export default async function MainLayout({
   }
 
   return (
-    <div className="flex flex-col bg-secondary">
+    /*
+     * overflow-x-clip: nada alarga a página para os lados (no celular, isso
+     * arrastava o cabeçalho fixo para fora da tela). `clip`, e não
+     * `hidden`, para não virar uma área de rolagem.
+     */
+    <div className="flex flex-col overflow-x-clip bg-secondary">
       <Navbar account={account} />
 
       {/*
@@ -39,6 +45,8 @@ export default async function MainLayout({
       <main className="min-h-svh">{children}</main>
 
       <Footer />
+
+      {account && <ReadingTracker />}
     </div>
   );
 }

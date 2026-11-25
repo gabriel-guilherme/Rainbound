@@ -9,7 +9,7 @@ import {
   parseDashboardLayout,
   type DashboardLayout,
 } from "@/lib/dashboardLayout";
-import { getApprovedUserId } from "@/lib/session";
+import { getApprovedUserId } from "@/lib/auth/session";
 
 /* Grava a arrumação dos widgets no cookie deste aparelho. */
 export async function saveDashboardLayout(layout: DashboardLayout) {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CloudRainWind } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import RainWindow from "@/components/RainWindow/RainWindow";
+import RainWindow from "@/components/rain-window/RainWindow";
 
 /*
  * Moldura das telas de login, cadastro e espera

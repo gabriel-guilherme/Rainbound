@@ -1,10 +1,11 @@
-import Reader from "@/components/Reader/Reader";
-import { prisma } from "@/lib/prisma";
+import Reader from "@/components/reader/Reader";
+import { prisma } from "@/lib/services/prisma";
 import { notFound } from "next/navigation";
 
-import { bookmarkSelect } from "@/lib/readingProgress";
-import { requireApprovedUser } from "@/lib/session";
-import { getBookFileUrl, parseBookId } from "@/lib/utils";
+import { bookmarkSelect } from "@/lib/reading/progress";
+import { getStreakSummary, getTimeZone } from "@/lib/streak/server";
+import { requireApprovedUser } from "@/lib/auth/session";
+import { getBookFileUrl, parseBookId } from "@/lib/books/utils";
 
 export default async function Read({
   params,
@@ -38,7 +39,10 @@ export default async function Read({
     notFound();
   }
 
-  const url = await getBookFileUrl(book.filePath);
+  const [url, streak] = await Promise.all([
+    getBookFileUrl(book.filePath),
+    getStreakSummary(userId, await getTimeZone()),
+  ]);
 
   return (
     <div className="min-h-dvh w-full bg-darkest text-contrast">
@@ -59,6 +63,7 @@ export default async function Read({
             : null
         }
         bookmarks={book.bookmarks}
+        streak={streak}
       />
     </div>
   );

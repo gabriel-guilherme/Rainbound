@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { fieldClass, labelClass } from "@/components/common/fieldStyles";
-import { authClient, describeAuthError } from "@/lib/authClient";
+import { authClient, describeAuthError } from "@/lib/auth/client";
 
-/* Mesmos limites de lib/auth.ts (não importado: lá é código de servidor). */
+/* Mesmos limites de lib/auth/server.ts (não importado: lá é código de servidor). */
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
 const PASSWORD_MIN_LENGTH = 8;
 

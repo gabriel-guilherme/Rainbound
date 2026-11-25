@@ -44,8 +44,18 @@ The project was built as a full-stack application, combining a responsive fronte
   reader footer and in a home widget, sharing the same session (stored in the
   browser only); an on-screen notice when the timer ends; each part can be
   hidden in the reader settings
+- Reading streak: consecutive days reading a daily goal (10 min by default,
+  adjustable). Counts the reader while in use and the session stopwatch/timer
+  (for books read outside the app); a calendar day without the goal resets it.
+  Shown in a home widget and in the reader footer, with a notice when the day
+  is secured. The admin has a "Sequência" tab to test it on their own account
 - Customizable home widgets: two carousels with tabs; each widget has a wide
-  (top) and a side-by-side (bottom) version; layout saved per device
+  (top) and a side-by-side (bottom) version; layout saved per device. Widgets:
+  books by status, reading now, recently added, queue, session, streak, almost
+  there (over 70%), stalled (no progress for 30+ days, with resume/abandon),
+  year activity (one square per day) and minutes this week. Book widgets
+  (reading now, recently added, queue, almost there, stalled) can show covers
+  or spines, chosen per tab in the editor
 - Add, edit, and delete books
 - Storage limit per user for book files (1 GB by default, adjustable per user
   by the admin in "Users and storage": presets or a custom value, plus the
@@ -172,7 +182,7 @@ This keeps image files separate from the application server while allowing cover
 Authentication uses **Better Auth** with the Prisma adapter, so users, sessions and passwords live in the app's own database (local Docker Postgres in development, Supabase in production). No extra service or project is needed.
 
 - Sign in with **username or email** and password (username plugin).
-- Anyone can request access at `/cadastro`; the account starts as `PENDING` and only sees the waiting screen until the admin approves it at `/admin/pedidos`.
+- Anyone can request access at `/cadastro`; the account starts as `PENDING` and only sees the waiting screen until the admin approves it at `/admin`.
 - The account created with `ADMIN_EMAIL` is approved and made admin automatically, and receives the books created before authentication existed.
 - Every page, Server Action and API route checks the session and only touches the current user's books. `proxy.ts` only redirects visitors without a session cookie to `/login`.
 - Login and sign-up attempts are rate limited (stored in the database, so it works across serverless instances).
@@ -296,36 +306,64 @@ npm run start     # Start the production server
 app/
 ├── (auth)/             Login, sign-up (access request) and waiting screen
 ├── (main)/             Pages with Navbar and Footer
-│   ├── admin/pedidos/  Admin only: access requests (approve / reject) and users' storage (?aba=usuarios)
+│   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
+├── api/reading-time/   Receives reading time for the streak (fetch every minute, sendBeacon on close)
 ├── read/[id]/          In-app reader
-└── read/actions.ts     Reading progress and bookmark server actions
+├── read/actions.ts     Reading progress and bookmark server actions
+└── streak/actions.ts   Daily reading goal server action
 
-components/             Reusable UI components (Reader, ReadingSession, Home, Widgets, auth, admin, forms, common...)
-└── Widgets/            Home widgets (registry.tsx), carousel and layout editor
+components/             Reusable UI components (folders in lowercase kebab-case)
+├── reader/             In-app reader (see components/reader/README.md): engines/, panels/, hooks/
+├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
+├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
+├── widgets/            Home widgets (registry.tsx) and carousel
+│   ├── editor/         Layout editor: home map, widget options panel, catalog with previews, layout edits
+│   └── parts/          Shared book pieces: card row, spine shelf, lying stack, featured book, list
+├── books/              Book display: poster, spine, bookcase, status ribbon, progress, actions menu
+│   └── forms/          Book forms: edit, log reading, cover and file inputs, Open Library search
+├── library/            Library controls: filters, search, pagination, view toggle, storage meter
+├── home/               Public home page sections
+├── rain-window/        Animated rain window (home hero)
+├── layout/             Navbar and footer
+├── auth/               Login, sign-up and sign-out
+├── admin/              Admin controls (storage limit picker)
+└── common/             Generic pieces: submit/back buttons, scroll reveal, NoSsr, field styles
 
 lib/
-├── prisma.ts            Prisma client configuration
-├── auth.ts              Better Auth configuration (username plugin, approval, rate limit)
-├── authClient.ts        Browser auth client and translated error messages
-├── session.ts           Current user helpers (requireApprovedUser, requireAdmin...)
-├── r2.ts                Cloudflare R2 client (presigned URLs, book file storage)
-├── cloudinary.ts        Cloudinary configuration
-├── upload.ts            Cover and book file uploads
-├── storage.ts           Per-user storage usage and limit checks
-├── spine.ts             Bookshelf spine look (color, width, height)
-├── readingProgress.ts   Reading progress (forward-only), manual log and bookmark validation
-├── readingPages.ts      Current/total pages from a progress locator ("pág. X de Y" on hover)
-├── comicFiles.ts        CBZ page rules (image types, ordering, unzip)
-├── comicCompression.ts  Browser-side CBZ page compression before upload
-├── bookCache.ts         Browser cache of downloaded PDF/CBZ/EPUB files
-├── dashboardLayout.ts   Home widget layout (tabs, widgets, cookie parsing)
-├── swipe.ts             Touch swipe gesture (reader and widget carousel)
-├── useNow.ts            Current time hook, one shared 1 s tick (clocks and reading session)
-└── utils.ts             Book file read URL and id parsing
+├── auth/
+│   ├── server.ts         Better Auth configuration (username plugin, approval, rate limit)
+│   ├── client.ts         Browser auth client and translated error messages
+│   └── session.ts        Current user helpers (requireApprovedUser, requireAdmin...)
+├── books/
+│   ├── files.ts          Book file formats and size limits
+│   ├── labels.ts         Status/type labels and colors, default cover, page count, book page tabs
+│   ├── library.ts        Library listing: sort, view, pagination and filter links
+│   ├── upload.ts         Cover and book file uploads (server)
+│   ├── clientUpload.ts   Browser upload straight to R2 (presigned URL)
+│   ├── quota.ts          Per-user storage usage and limit checks
+│   ├── cache.ts          Browser cache of downloaded PDF/CBZ/EPUB files
+│   ├── comicFiles.ts     CBZ page rules (image types, ordering, unzip)
+│   ├── comicCompression.ts  Browser-side CBZ page compression before upload
+│   ├── spine.ts          Bookshelf spine look (color, width, height)
+│   └── utils.ts          Book file read URL and id parsing
+├── reading/
+│   ├── progress.ts       Reading progress (forward-only), manual log and bookmark validation
+│   └── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
+├── streak/
+│   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
+│   ├── server.ts         Reading streak in the database (summary, recording time, goal)
+│   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
+├── services/
+│   ├── prisma.ts         Prisma client configuration
+│   ├── r2.ts             Cloudflare R2 client (presigned URLs, book file storage)
+│   └── cloudinary.ts     Cloudinary configuration
+├── dashboardLayout.ts    Home widget layout (tabs, widgets, cookie parsing)
+├── swipe.ts              Touch swipe gesture (reader and widget carousel)
+└── useNow.ts             Current time hook, one shared 1 s tick (clocks and reading session)
 
 prisma/
 ├── schema.prisma        Database schema
@@ -359,10 +397,8 @@ Some ideas planned for future versions include:
 
 - In-app book reading
 - Reading sessions and history
-- Reading goals
 - Statistics and reading insights
 - More advanced library filters
-- Reading streaks
 - Custom shelves and collections
 
 ## License

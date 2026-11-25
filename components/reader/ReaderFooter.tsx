@@ -1,0 +1,89 @@
+"use client";
+
+import CurrentTime from "@/components/reading-session/CurrentTime";
+import SessionButton from "@/components/reading-session/SessionButton";
+import StreakButton from "@/components/reading-streak/StreakButton";
+import type { StreakSummary } from "@/lib/streak/rules";
+
+import type { PageInfo } from "./readerTypes";
+
+type ReaderFooterProps = {
+  /* Formato sem motor (ex.: CBR): só as laterais. */
+  hasEngine: boolean;
+  pageInfo: PageInfo;
+  showClock: boolean;
+  showSession: boolean;
+  showStreak: boolean;
+  streak: StreakSummary;
+  /* Modo imersivo do celular: o rodapé some. */
+  isImmersive: boolean;
+};
+
+/*
+ * Rodapé do leitor em três colunas: hora | página atual | sequência e
+ * Sessão. A página fica centralizada (no computador, laterais da mesma
+ * largura; no celular, posicionada no meio do rodapé); hora, sequência e
+ * Sessão somem pelas Configurações.
+ */
+export default function ReaderFooter({
+  hasEngine,
+  pageInfo,
+  showClock,
+  showSession,
+  showStreak,
+  streak,
+  isImmersive,
+}: ReaderFooterProps) {
+  const { currentPage, totalPages, progress } = pageInfo;
+
+  return (
+    <footer
+      className={[
+        "reader-footer relative flex shrink-0 items-center justify-between gap-2 border-t border-contrast/10 px-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] sm:px-4",
+        isImmersive ? "max-sm:hidden" : "",
+      ].join(" ")}
+    >
+      <div className="flex justify-start">
+        {showClock && (
+          <CurrentTime className="text-xs text-contrast/55 sm:text-sm" />
+        )}
+      </div>
+
+      <div className="flex min-w-0 flex-col justify-center gap-1.5 max-sm:absolute max-sm:left-1/2 max-sm:top-0 max-sm:h-10 max-sm:w-max max-sm:-translate-x-1/2">
+        {hasEngine && totalPages === 0 && (
+          <span className="text-center text-xs text-contrast/40">
+            Carregando...
+          </span>
+        )}
+
+        {hasEngine && totalPages > 0 && (
+          <>
+            {/* EPUB: "página" é uma posição de ~1024 caracteres (estável com o zoom). */}
+            <div className="flex items-baseline justify-center gap-2 tabular-nums max-sm:px-4">
+              <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
+                Página {currentPage}{" "}
+                <span className="text-contrast/40">de</span> {totalPages}
+              </span>
+              <span className="text-xs text-contrast/40">{progress}%</span>
+            </div>
+
+            <div
+              aria-hidden="true"
+              className="mx-auto h-0.5 w-full max-w-md overflow-hidden bg-contrast/10"
+            >
+              <div
+                className="h-full bg-danger transition-[width] duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+        {showStreak && <StreakButton initial={streak} />}
+        {showSession && <SessionButton />}
+      </div>
+    </footer>
+  );
+}

@@ -42,7 +42,7 @@ enum Role {
 }
 
 /**
- * Autenticação (Better Auth, lib/auth.ts). User, Session, Account e
+ * Autenticação (Better Auth, lib/auth/server.ts). User, Session, Account e
  * Verification seguem o formato que o Better Auth espera; username vem
  * do plugin de username e status/role são campos do app.
  */
@@ -69,13 +69,20 @@ model User {
 
   /**
    * Limite de espaço dos arquivos de livro, em MB (base decimal). Vazio:
-   * o padrão do app (DEFAULT_STORAGE_LIMIT_MB em lib/bookFiles.ts).
+   * o padrão do app (DEFAULT_STORAGE_LIMIT_MB em lib/books/files.ts).
    */
   storageLimitMb Int?
 
-  sessions Session[]
-  accounts Account[]
-  books    Book[]
+  /**
+   * Sequência de leitura: minutos por dia para o dia contar
+   * (lib/streak/rules.ts → MIN/MAX_DAILY_GOAL_MIN).
+   */
+  dailyGoalMinutes Int @default(10)
+
+  sessions    Session[]
+  accounts    Account[]
+  books       Book[]
+  readingDays ReadingDay[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,7 +192,7 @@ model Book {
   /**
    * Tamanho do arquivo no R2, em bytes (conta para o limite de espaço do
    * dono). Livros enviados antes do limite ficam vazios até o uso ser
-   * calculado pela primeira vez (lib/storage.ts).
+   * calculado pela primeira vez (lib/books/quota.ts).
    */
   fileSize Int?
 
@@ -248,4 +255,31 @@ model Bookmark {
   updatedAt DateTime @updatedAt
 
   @@index([bookId])
+}
+
+/**
+ * Tempo de leitura de um dia, para a sequência (lib/streak/server.ts).
+ * `date` é o dia no fuso do aparelho de quem leu. Conta o leitor em uso e
+ * o cronômetro/timer da Sessão.
+ */
+model ReadingDay {
+  id Int @id @default(autoincrement())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date    DateTime @db.Date
+  seconds Int      @default(0)
+
+  /**
+   * Bateu a meta neste dia. Fica marcado mesmo que a meta suba depois:
+   * dias já garantidos continuam contando.
+   */
+  goalMet Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, goalMet])
 }

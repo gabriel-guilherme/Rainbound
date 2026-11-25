@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Redireciona para o login quem abre uma área protegida sem cookie de
  * sessão. É só um atalho: o cookie pode estar vencido ou ser falso, então
  * páginas, Server Actions e rotas conferem a sessão de verdade
- * (lib/session.ts).
+ * (lib/auth/session.ts).
  */
 export function proxy(request: NextRequest) {
   if (getSessionCookie(request)) {

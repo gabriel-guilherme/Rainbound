@@ -45,7 +45,7 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
   const isBookRoute =
     pathname === "/library" || pathname.startsWith("/library/");
   const isNewBookRoute = pathname === "/library/new";
-  const isRequestsRoute = pathname === "/admin/pedidos";
+  const isRequestsRoute = pathname === "/admin";
 
   return (
     <motion.nav
@@ -126,7 +126,7 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
 
           {account?.isAdmin && (
             <Link
-              href="/admin/pedidos"
+              href="/admin"
               aria-label={`Administração (${account.pendingRequests} pedidos esperando)`}
               title="Administração"
               aria-current={isRequestsRoute ? "page" : undefined}

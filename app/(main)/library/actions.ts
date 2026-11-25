@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { getApprovedUserId } from "@/lib/session";
+import { prisma } from "@/lib/services/prisma";
+import { getApprovedUserId } from "@/lib/auth/session";
 import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
 import {
   cleanupStorage,
@@ -10,12 +10,12 @@ import {
   deleteBookFile,
   uploadBookCover,
   verifyUploadedBookFile,
-} from "@/lib/upload";
-import { getStorageUsage, StorageLimitError } from "@/lib/storage";
+} from "@/lib/books/upload";
+import { getStorageUsage, StorageLimitError } from "@/lib/books/quota";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { parsePageCount } from "./types";
+import { parsePageCount } from "@/lib/books/labels";
 
 /*
  * Gera a URL assinada para o navegador enviar o arquivo do livro

@@ -6,8 +6,8 @@ import {
   parseReadingProgress,
   saveReadingProgress,
   updateStatusFromProgress,
-} from "@/lib/readingProgress";
-import { getCurrentUser, isApproved } from "@/lib/session";
+} from "@/lib/reading/progress";
+import { getCurrentUser, isApproved } from "@/lib/auth/session";
 
 /*
  * Recebe o progresso enviado por `navigator.sendBeacon` quando a aba é

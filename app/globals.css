@@ -12,7 +12,7 @@
 
   /*
    * Status de leitura: selos do modo capa, filtros e fitas das lombadas
-   * (library/types.ts → statusColor; components/common/SpineRibbon.tsx).
+   * (lib/books/labels.ts → statusColor; components/books/SpineRibbon.tsx).
    * "Quero ler" é o contraste a 60% sobre o fundo, em cor sólida.
    */
   --color-status-want: #8a8e81;
@@ -123,7 +123,7 @@
 
 /*
  * Lombadas (components/common/BookSpine.tsx). Tamanho, cores e progresso
- * chegam por variáveis CSS calculadas em lib/spine.ts.
+ * chegam por variáveis CSS calculadas em lib/books/spine.ts.
  */
 @layer components {
   .spine {
@@ -345,6 +345,17 @@
       0 3px 0 -1px rgb(0 0 0 / 0.35),
       0 12px 26px -8px rgb(0 0 0 / 0.8)
    );
+}
+
+/*
+ * Instalado na tela de início (modo app), a barra de status fica por cima
+ * da página sem a barra do navegador para separar: um respiro a mais.
+ */
+@media (display-mode: standalone) {
+   .reader-header {
+      padding-top: calc(env(safe-area-inset-top) + 0.5rem);
+      height: calc(4.5rem + env(safe-area-inset-top));
+   }
 }
 
 .reader-footer {

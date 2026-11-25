@@ -1,24 +1,24 @@
 "use server";
 
 import { ContentType, ReadingStatus } from "@/generated/prisma/enums";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/services/prisma";
 import {
   parseManualProgress,
   statusChangeForProgress,
   type ManualProgressEntry,
-} from "@/lib/readingProgress";
-import { getApprovedUserId } from "@/lib/session";
+} from "@/lib/reading/progress";
+import { getApprovedUserId } from "@/lib/auth/session";
 import {
   cleanupStorage,
   deleteBookCover,
   deleteBookFile,
   uploadBookCover,
   verifyUploadedBookFile,
-} from "@/lib/upload";
+} from "@/lib/books/upload";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { MAX_PAGE_COUNT } from "../types";
+import { MAX_PAGE_COUNT } from "@/lib/books/labels";
 
 /* Livro do usuário atual; de outra pessoa (ou inexistente) é erro. */
 async function findOwnBook(id: number, userId: string) {
@@ -287,6 +287,28 @@ export async function logReadingProgress(id: number, entry: ManualProgressEntry)
       update: readingProgress,
     }),
   ]);
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/library");
+  revalidatePath(`/library/${book.id}`);
+}
+
+/*
+ * Marca o livro como "Abandonado" (atalho do widget "Parados"). O
+ * progresso fica salvo: se a pessoa voltar a ler, o leitor o põe de novo
+ * em "Lendo" (ver `statusChangeForProgress`).
+ */
+export async function abandonBook(id: number) {
+  const userId = await getApprovedUserId();
+  const book = await findOwnBook(id, userId);
+
+  if (book.status === ReadingStatus.ABANDONED) return;
+
+  await prisma.book.update({
+    where: { id: book.id },
+    data: { status: ReadingStatus.ABANDONED },
+  });
 
   revalidatePath("/");
   revalidatePath("/dashboard");
