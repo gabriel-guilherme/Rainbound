@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { saveBookProgress, setBookProgress } from "@/app/read/actions";
 
-import type { ReaderProgress } from "./readerTypes";
+import type { ReaderProgress } from "../readerTypes";
 
 type UseReaderProgressProps = {
   bookId: number;

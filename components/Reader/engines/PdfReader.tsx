@@ -8,9 +8,9 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 
 import { fetchBookFile } from "@/lib/bookCache";
 
-import FileError from "./FileError";
-import { calculateProgress, getPdfPage } from "./readerUtils";
-import type { ReaderEngineProps } from "./readerTypes";
+import FileError from "../FileError";
+import { calculateProgress, getPdfPage } from "../readerUtils";
+import type { ReaderEngineProps } from "../readerTypes";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",

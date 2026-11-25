@@ -15,15 +15,15 @@ import {
   type EpubLocation,
   type Rendition,
 } from "./epubUtils";
-import { buildTocEntries, getEpubPosition, isValidEpubLocator } from "./readerUtils";
+import { buildTocEntries, getEpubPosition, isValidEpubLocator } from "../readerUtils";
 import type {
   Chapter,
   ReaderEngineProps,
   ReaderProgress,
   TurnDirection,
-} from "./readerTypes";
+} from "../readerTypes";
 import { sanitizeEpubDocument } from "./epubSanitize";
-import FileError from "./FileError";
+import FileError from "../FileError";
 
 /*
  * Leitor de EPUB (@likecoin/epub-ts): carrega o livro, liga a rendition

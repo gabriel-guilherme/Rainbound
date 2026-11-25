@@ -10,9 +10,9 @@ import {
   unzipAsync,
 } from "@/lib/comicFiles";
 
-import FileError from "./FileError";
-import { calculateProgress, getComicPage } from "./readerUtils";
-import type { ReaderEngineProps } from "./readerTypes";
+import FileError from "../FileError";
+import { calculateProgress, getComicPage } from "../readerUtils";
+import type { ReaderEngineProps } from "../readerTypes";
 
 /*
  * Leitor de CBZ: o arquivo é um ZIP de imagens. Descompacta no navegador

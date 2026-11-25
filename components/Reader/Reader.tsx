@@ -1,17 +1,17 @@
 "use client";
 
-import BookmarksPanel from "@/components/Reader/BookmarksPanel";
+import BookmarksPanel from "@/components/Reader/panels/BookmarksPanel";
 import FullscreenButton from "@/components/Reader/FullScreenButton";
-import HeaderActionWindow from "@/components/Reader/HeaderActionWindow";
-import NavigatorPanel from "@/components/Reader/NavigatorPanel";
+import HeaderActionWindow from "@/components/Reader/panels/HeaderActionWindow";
+import NavigatorPanel from "@/components/Reader/panels/NavigatorPanel";
 import ReaderFooter from "@/components/Reader/ReaderFooter";
 import ReaderNavigation from "@/components/Reader/ReaderNavigation";
-import SettingsPanel from "@/components/Reader/SettingsPanel";
-import { useBookmarks } from "@/components/Reader/useBookmarks";
-import { usePageTurn } from "@/components/Reader/usePageTurn";
-import { useReaderKeyboard } from "@/components/Reader/useReaderKeyboard";
-import { useReaderProgress } from "@/components/Reader/useReaderProgress";
-import { useReaderSettings } from "@/components/Reader/useReaderSettings";
+import SettingsPanel from "@/components/Reader/panels/SettingsPanel";
+import { useBookmarks } from "@/components/Reader/hooks/useBookmarks";
+import { usePageTurn } from "@/components/Reader/hooks/usePageTurn";
+import { useReaderKeyboard } from "@/components/Reader/hooks/useReaderKeyboard";
+import { useReaderProgress } from "@/components/Reader/hooks/useReaderProgress";
+import { useReaderSettings } from "@/components/Reader/hooks/useReaderSettings";
 import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
 import ReadingTracker from "@/components/ReadingStreak/ReadingTracker";
 import StreakNotice from "@/components/ReadingStreak/StreakNotice";
@@ -47,9 +47,9 @@ import type { FileFormat } from "@/generated/prisma/enums";
  * - CBR: não suportado (converter para CBZ)
  */
 const engines: Partial<Record<FileFormat, ComponentType<ReaderEngineProps>>> = {
-  PDF: dynamic(() => import("@/components/Reader/PdfReader"), { ssr: false }),
-  EPUB: dynamic(() => import("@/components/Reader/EpubReader"), { ssr: false }),
-  CBZ: dynamic(() => import("@/components/Reader/ComicReader"), { ssr: false }),
+  PDF: dynamic(() => import("@/components/Reader/engines/PdfReader"), { ssr: false }),
+  EPUB: dynamic(() => import("@/components/Reader/engines/EpubReader"), { ssr: false }),
+  CBZ: dynamic(() => import("@/components/Reader/engines/ComicReader"), { ssr: false }),
 };
 
 /* Formatos navegados por página (com seletor de página). */

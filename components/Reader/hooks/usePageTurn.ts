@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, type RefObject } from "react";
 
-import type { PageInfo, ReaderController, TurnDirection } from "./readerTypes";
+import type { PageInfo, ReaderController, TurnDirection } from "../readerTypes";
 
 /* Animação ao virar a página: deslocamento (px), duração e validade (ms). */
 const TURN_OFFSET = 48;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { Chapter, PageInfo } from "./readerTypes";
+import type { Chapter, PageInfo } from "../readerTypes";
 
 type NavigatorPanelProps = {
   /* PDF/CBZ: seletor de página; EPUB: sumário. */

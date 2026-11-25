@@ -12,23 +12,31 @@
 ## Arquitetura
 
 ```
-Reader.tsx            junta as peças: cabeçalho, conteúdo, rodapé e modo imersivo
-├── NavigatorPanel    painel de navegação: seletor de página (PDF/CBZ) ou sumário (EPUB)
-├── BookmarksPanel    painel "Marcadores" ("Onde parei" + marcadores com nome)
-├── SettingsPanel     painel "Configurações" (zoom, tema, mostrar hora/sequência/sessão)
-│   └── SettingSwitch chave liga/desliga das Configurações
-├── ReaderFooter      rodapé: hora | página atual | Sequência e Sessão
-├── usePageTurn       virar página com animação (turnPage estável para o motor)
-├── useReaderKeyboard atalhos ← → + − 0 Esc
-├── useBookmarks      lista de marcadores e criar/renomear/apagar
-├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
-├── useReaderSettings zoom, tema e o que mostrar (localStorage, por navegador)
-├── ReaderNavigation  setas laterais + arraste para o lado (lib/swipe.ts)
-├── PdfReader         ┐
-├── EpubReader        ├─ motores: implementam ReaderEngineProps
-│   └── epubUtils     tema do livro, cache das locations, teclado no iframe e posição atual
-├── ComicReader       ┘
-└── FileError         tela de erro dos motores (com "Tentar de novo")
+Reader.tsx               junta as peças: cabeçalho, conteúdo, rodapé e modo imersivo
+├── ReaderFooter         rodapé: hora | página atual | Sequência e Sessão
+├── ReaderNavigation     setas laterais + arraste para o lado (lib/swipe.ts)
+├── FullScreenButton     tela cheia do navegador (a partir de sm)
+├── FileError            tela de erro dos motores (com "Tentar de novo")
+├── readerTypes          tipos compartilhados (ReaderEngineProps, PageInfo...)
+├── readerUtils          progresso, locators e sumário do EPUB
+├── engines/             motores: implementam ReaderEngineProps
+│   ├── PdfReader        react-pdf
+│   ├── EpubReader       @likecoin/epub-ts
+│   │   ├── epubUtils    tema do livro, cache das locations, teclado no iframe e posição atual
+│   │   └── epubSanitize limpeza de cada seção antes de virar HTML do iframe
+│   └── ComicReader      CBZ (fflate)
+├── panels/              janelas do cabeçalho
+│   ├── HeaderActionWindow  moldura comum dos painéis
+│   ├── NavigatorPanel   seletor de página (PDF/CBZ) ou sumário (EPUB)
+│   ├── BookmarksPanel   "Marcadores" ("Onde parei" + marcadores com nome)
+│   ├── SettingsPanel    "Configurações" (zoom, tema, mostrar hora/sequência/sessão)
+│   └── SettingSwitch    chave liga/desliga das Configurações
+└── hooks/
+    ├── usePageTurn       virar página com animação (turnPage estável para o motor)
+    ├── useReaderKeyboard atalhos ← → + − 0 Esc
+    ├── useBookmarks      lista de marcadores e criar/renomear/apagar
+    ├── useReaderProgress salvamento de progresso (só avança; debounce + ao sair/fechar)
+    └── useReaderSettings zoom, tema e o que mostrar (localStorage, por navegador)
 ```
 
 Cada motor recebe `ReaderEngineProps` (`readerTypes.ts`) e:

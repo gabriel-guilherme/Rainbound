@@ -4,7 +4,7 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 import type { FileFormat } from "@/generated/prisma/enums";
 
-import type { ReaderTheme } from "./readerTypes";
+import type { ReaderTheme } from "../readerTypes";
 
 export const READER_THEMES: { value: ReaderTheme; label: string }[] = [
   { value: "night", label: "Noite" },

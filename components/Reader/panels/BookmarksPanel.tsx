@@ -3,7 +3,7 @@
 import { Check, CornerDownRight, MapPinned, Pencil, Trash2, X } from "lucide-react";
 import { useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
 
-import type { Bookmark, ReaderProgress } from "./readerTypes";
+import type { Bookmark, ReaderProgress } from "../readerTypes";
 
 type Position = Pick<
   ReaderProgress,

@@ -8,7 +8,7 @@ import {
   renameBookmark as renameBookmarkAction,
 } from "@/app/read/actions";
 
-import type { Bookmark, ReaderProgress } from "./readerTypes";
+import type { Bookmark, ReaderProgress } from "../readerTypes";
 
 /*
  * Marcadores com nome do livro (modelo Bookmark): a lista na tela e as

@@ -6,8 +6,8 @@ import {
   findCurrentChapter,
   getEpubPosition,
   type TocEntry,
-} from "./readerUtils";
-import type { PageInfo, ReaderProgress, ReaderTheme } from "./readerTypes";
+} from "../readerUtils";
+import type { PageInfo, ReaderProgress, ReaderTheme } from "../readerTypes";
 
 /*
  * Peças do leitor de EPUB (EpubReader.tsx) que não dependem do React:

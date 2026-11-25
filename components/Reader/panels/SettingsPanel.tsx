@@ -2,9 +2,9 @@
 
 import { Clock, Droplet, Minus, Plus, Timer } from "lucide-react";
 
-import type { ReaderTheme } from "./readerTypes";
+import type { ReaderTheme } from "../readerTypes";
 import SettingSwitch from "./SettingSwitch";
-import { READER_THEMES, type ZoomLimits } from "./useReaderSettings";
+import { READER_THEMES, type ZoomLimits } from "../hooks/useReaderSettings";
 
 type SettingsPanelProps = {
   /* Sem motor ou formato sem zoom: o bloco de zoom some. */
