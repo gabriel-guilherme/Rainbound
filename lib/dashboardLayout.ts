@@ -17,12 +17,65 @@ export const DASHBOARD_LAYOUT_COOKIE = "rainbound-dashboard";
 /* Um ano. */
 export const DASHBOARD_LAYOUT_MAX_AGE = 60 * 60 * 24 * 365;
 
-export const WIDGET_IDS = ["status", "reading", "recent", "queue", "session", "streak"] as const;
+export const WIDGET_IDS = [
+  "status",
+  "reading",
+  "recent",
+  "queue",
+  "session",
+  "streak",
+  "nearly",
+  "stalled",
+  "activity",
+  "week",
+] as const;
 
 export type WidgetId = (typeof WIDGET_IDS)[number];
 
 /* Versão do widget: larga (carrossel de cima) ou lado a lado (de baixo). */
 export type WidgetVariant = "wide" | "tall";
+
+/*
+ * Visual de alguns widgets de livros, escolhido no editor: capas
+ * (cartões do "Lendo agora") ou lombadas (prateleira da "Fila" e pilha
+ * deitada).
+ */
+export const WIDGET_LOOKS = ["cover", "spine"] as const;
+
+export type WidgetLook = (typeof WIDGET_LOOKS)[number];
+
+export const DEFAULT_WIDGET_LOOK: WidgetLook = "cover";
+
+/*
+ * Visual padrão por versão, nos widgets que já tinham um visual misto
+ * antes da escolha existir (quem não mexer no editor vê o mesmo de antes).
+ */
+const DEFAULT_LOOK_BY_VARIANT: Partial<Record<WidgetId, Record<WidgetVariant, WidgetLook>>> = {
+  reading: { wide: "cover", tall: "spine" },
+  queue: { wide: "spine", tall: "cover" },
+};
+
+export const WIDGET_LOOK_LABEL: Record<WidgetLook, string> = {
+  cover: "Capa",
+  spine: "Lombada",
+};
+
+/* Widgets que têm as duas versões. */
+export const WIDGETS_WITH_LOOKS: readonly WidgetId[] = [
+  "reading",
+  "recent",
+  "queue",
+  "nearly",
+  "stalled",
+];
+
+export function hasLooks(widget: WidgetId) {
+  return WIDGETS_WITH_LOOKS.includes(widget);
+}
+
+export function isWidgetLook(value: unknown): value is WidgetLook {
+  return WIDGET_LOOKS.includes(value as WidgetLook);
+}
 
 export type DashboardArea = "top" | "bottom";
 
@@ -62,12 +115,30 @@ export const WIDGET_INFO: Record<WidgetId, { label: string; description: string 
     label: "Sequência",
     description: "Dias seguidos lendo a meta diária, o progresso de hoje e a semana.",
   },
+  nearly: {
+    label: "Quase lá",
+    description: "Livros em leitura que passaram de 70%, com o quanto falta.",
+  },
+  stalled: {
+    label: "Parados",
+    description: "Livros em \"Lendo\" sem avançar há mais de 30 dias.",
+  },
+  activity: {
+    label: "Atividade do ano",
+    description: "Um quadradinho por dia, mais forte quanto mais você leu.",
+  },
+  week: {
+    label: "Minutos da semana",
+    description: "Minutos lidos em cada dia da semana, com a meta diária.",
+  },
 };
 
 export type DashboardTab = {
   id: string;
   label: string;
   widgets: WidgetId[];
+  /* Visual dos widgets com duas versões (sem valor: o padrão, ver getWidgetLook). */
+  looks?: Partial<Record<WidgetId, WidgetLook>>;
 };
 
 export type DashboardLayout = Record<DashboardArea, DashboardTab[]>;
@@ -98,7 +169,7 @@ export function isWidgetId(value: unknown): value is WidgetId {
 function parseTab(value: unknown): DashboardTab | null {
   if (typeof value !== "object" || value === null) return null;
 
-  const { id, label, widgets } = value as Record<string, unknown>;
+  const { id, label, widgets, looks } = value as Record<string, unknown>;
 
   if (typeof id !== "string" || !TAB_ID_PATTERN.test(id)) return null;
 
@@ -115,7 +186,39 @@ function parseTab(value: unknown): DashboardTab | null {
     MAX_WIDGETS_PER_TAB,
   );
 
-  return { id, label: cleanLabel, widgets: cleanWidgets };
+  const cleanLooks = parseLooks(looks, cleanWidgets);
+
+  return cleanLooks
+    ? { id, label: cleanLabel, widgets: cleanWidgets, looks: cleanLooks }
+    : { id, label: cleanLabel, widgets: cleanWidgets };
+}
+
+/* Só os visuais válidos de widgets que estão na aba e têm duas versões. */
+function parseLooks(value: unknown, widgets: WidgetId[]) {
+  if (typeof value !== "object" || value === null) return null;
+
+  const looks: Partial<Record<WidgetId, WidgetLook>> = {};
+
+  for (const widget of widgets) {
+    const look = (value as Record<string, unknown>)[widget];
+
+    if (hasLooks(widget) && isWidgetLook(look)) looks[widget] = look;
+  }
+
+  return Object.keys(looks).length > 0 ? looks : null;
+}
+
+/* Visual de um widget numa aba, na versão do carrossel em que ela está. */
+export function getWidgetLook(
+  tab: DashboardTab,
+  widget: WidgetId,
+  variant: WidgetVariant,
+): WidgetLook {
+  return (
+    tab.looks?.[widget] ??
+    DEFAULT_LOOK_BY_VARIANT[widget]?.[variant] ??
+    DEFAULT_WIDGET_LOOK
+  );
 }
 
 function parseArea(value: unknown) {

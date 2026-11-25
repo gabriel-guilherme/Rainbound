@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { requireApprovedUser } from "@/lib/auth/session";
 
-import DashboardEditor from "@/components/widgets/DashboardEditor";
+import DashboardEditor from "@/components/widgets/editor/DashboardEditor";
 import WidgetSection, {
   type WidgetSectionItem,
 } from "@/components/widgets/WidgetSection";
@@ -10,6 +10,7 @@ import { WIDGETS } from "@/components/widgets/registry";
 import {
   AREA_VARIANT,
   DASHBOARD_LAYOUT_COOKIE,
+  getWidgetLook,
   readDashboardLayout,
   type DashboardArea,
   type DashboardLayout,
@@ -46,7 +47,13 @@ function buildSections(
       content: tab.widgets.map((widgetId) => {
         const Widget = WIDGETS[widgetId];
 
-        return <Widget key={widgetId} variant={AREA_VARIANT[area]} />;
+        return (
+          <Widget
+            key={widgetId}
+            variant={AREA_VARIANT[area]}
+            look={getWidgetLook(tab, widgetId, AREA_VARIANT[area])}
+          />
+        );
       }),
     }));
 }

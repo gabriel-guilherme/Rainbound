@@ -1,31 +1,35 @@
-import Image from "next/image";
-import Link from "next/link";
-import type { CSSProperties } from "react";
+import type { ReactNode } from "react";
 
-import { DEFAULT_COVER } from "@/lib/books/labels";
 import ProgressLabel from "@/components/books/ProgressLabel";
-import type { WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/services/prisma";
 import { requireApprovedUser } from "@/lib/auth/session";
-import { getSpineLookForBook, toSpineBook, type SpineBook } from "@/lib/books/spine";
+import { toSpineBook, type SpineBook } from "@/lib/books/spine";
 
+import BookCardRow from "./parts/BookCardRow";
+import { clampProgress, continueHref } from "./parts/bookItem";
+import BookLinkList from "./parts/BookLinkList";
+import BookStack from "./parts/BookStack";
+import ContinueActions from "./parts/ContinueActions";
+import FeaturedBook from "./parts/FeaturedBook";
+import FeaturedBookHeading from "./parts/FeaturedBookHeading";
+import SpineShelf from "./parts/SpineShelf";
 import WidgetCard from "./WidgetCard";
 
-function clampProgress(book: SpineBook) {
-  return Math.round(Math.min(Math.max(book.percentage, 0), 100));
-}
+const EYEBROW = "Continue de onde parou";
 
-function bookHref(book: SpineBook) {
-  return book.hasFile ? `/read/${book.id}` : `/library/${book.id}`;
-}
+type ReadingProps = { variant: WidgetVariant; look: WidgetLook };
 
 /*
- * "Lendo agora".
- * - tall: pilha de livros deitados (espessura vem das páginas, a linha
- *   embaixo mostra o progresso);
- * - wide: fileira de cartões com capa e barra de progresso.
+ * "Lendo agora": livros em andamento, do mexido por último para o mais
+ * antigo. Duas versões (`look`, escolhida no editor; sem escolha, larga
+ * com capas e lado a lado com lombadas, como era antes):
+ * - cover: cartões com capa (larga) ou o último em destaque com capa
+ *   grande e os outros em lista (lado a lado);
+ * - spine: prateleira de lombadas com o último em destaque (larga) ou
+ *   pilha de livros deitados (lado a lado).
  */
-export default async function Reading({ variant }: { variant: WidgetVariant }) {
+export default async function Reading({ variant, look }: ReadingProps) {
   const { id: userId } = await requireApprovedUser();
 
   const books = await prisma.book.findMany({
@@ -44,107 +48,102 @@ export default async function Reading({ variant }: { variant: WidgetVariant }) {
     >
       {currentlyReading.length === 0 ? (
         <p className="text-sm text-contrast/60">Nenhum livro em andamento.</p>
-      ) : variant === "wide" ? (
-        <ReadingRow books={currentlyReading} />
       ) : (
-        <ReadingStack books={currentlyReading} />
+        CONTENT[look][variant]({ books: currentlyReading })
       )}
     </WidgetCard>
   );
 }
 
-function ReadingRow({ books }: { books: SpineBook[] }) {
+type ContentProps = { books: SpineBook[] };
+
+const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
+  cover: { wide: CoverRow, tall: CoverCard },
+  spine: { wide: SpineRow, tall: SpineStack },
+};
+
+function progressText(book: SpineBook) {
+  return `${clampProgress(book)}% lido`;
+}
+
+function CoverRow({ books }: ContentProps) {
   return (
-    <ul className="scrollbar-none -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-      {books.map((book) => {
-        const progress = clampProgress(book);
-
-        return (
-          <li key={book.id} className="w-60 shrink-0">
-            <Link
-              href={bookHref(book)}
-              className="group group/progress grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 bg-darkest/40 p-2 transition-colors hover:bg-secondary"
-            >
-              <span className="relative aspect-[7/10] w-full">
-                <Image
-                  src={book.coverUrl ?? DEFAULT_COVER}
-                  alt=""
-                  fill
-                  sizes="44px"
-                  className="object-cover"
-                />
-              </span>
-
-              <span className="min-w-0">
-                <span className="block truncate font-medium text-contrast group-hover:text-danger">
-                  {book.title}
-                </span>
-                <span className="block text-xs text-contrast/50">
-                  <ProgressLabel
-                    percentage={progress}
-                    pages={book.readPages}
-                    suffix="lido"
-                  />
-                </span>
-                <span aria-hidden="true" className="mt-2 block h-0.5 bg-contrast/15">
-                  <span
-                    className="block h-full bg-danger"
-                    style={{ width: `${progress}%` }}
-                  />
-                </span>
-              </span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <BookCardRow
+      items={books.map((book) => ({
+        book,
+        href: continueHref(book),
+        progress: clampProgress(book),
+        detail: (
+          <ProgressLabel percentage={clampProgress(book)} pages={book.readPages} suffix="lido" />
+        ),
+      }))}
+    />
   );
 }
 
-function ReadingStack({ books }: { books: SpineBook[] }) {
+function CoverCard({ books }: ContentProps) {
+  const [last, ...rest] = books;
+  const progress = clampProgress(last);
+
   return (
-    <ul className="flex flex-col items-start gap-0.5 border-b-[10px] border-darkest pt-2">
-      {books.map((book) => {
-        const look = getSpineLookForBook(book);
-        const progress = clampProgress(book);
+    <div className="flex flex-col gap-5">
+      <FeaturedBook book={last} eyebrow={EYEBROW}>
+        <div className="group/progress mt-1 flex flex-col gap-1.5">
+          <p className="text-sm">
+            <ProgressLabel percentage={progress} pages={last.readPages} suffix="lido" />
+          </p>
+          <span aria-hidden="true" className="block h-0.5 bg-contrast/15">
+            <span className="block h-full bg-danger" style={{ width: `${progress}%` }} />
+          </span>
+        </div>
+      </FeaturedBook>
 
-        /*
-         * Largura do livro na pilha e um leve desalinhamento (0–8 px).
-         * O deslocamento sai do id, não da posição na lista: cada livro
-         * fica sempre no mesmo lugar, mesmo quando a lista muda.
-         */
-        const style = {
-          width: `${70 + (look.height % 4) * 7}%`,
-          height: `${Math.round(look.width * 0.72)}px`,
-          marginLeft: `${(book.id * 5) % 9}px`,
-          background: look.background,
-          color: look.foreground,
-        } satisfies CSSProperties;
+      <ContinueActions book={last} label="Continuar" />
 
-        return (
-          <li key={book.id} className="w-full">
-            <Link
-              href={bookHref(book)}
-              style={style}
-              className="group/progress relative flex max-w-full min-h-8 items-center justify-between gap-3 px-3.5 shadow-[inset_0_3px_0_rgb(255_255_255/0.07),inset_0_-5px_7px_rgb(0_0_0/0.35)] transition-transform hover:translate-x-2.5"
-            >
-              <span className="min-w-0 truncate font-display text-lg font-bold uppercase tracking-wide">
-                {book.title}
-              </span>
+      <BookLinkList
+        label="Também lendo"
+        items={rest.slice(0, 3).map((book) => ({
+          id: book.id,
+          title: book.title,
+          href: continueHref(book),
+          meta: `${clampProgress(book)}%`,
+        }))}
+      />
+    </div>
+  );
+}
 
-              <span className="shrink-0 text-[11px] opacity-75">
-                <ProgressLabel percentage={progress} pages={book.readPages} />
-              </span>
+function SpineRow({ books }: ContentProps) {
+  const [last] = books;
 
-              <span
-                aria-hidden="true"
-                className="absolute bottom-0 left-0 h-[3px]"
-                style={{ width: `${progress}%`, background: look.accent }}
-              />
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+  return (
+    <div className="grid grid-cols-1 items-end gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
+      <SpineShelf
+        label="Livros em andamento"
+        items={books.map((book) => ({
+          book,
+          href: continueHref(book),
+          caption: `${clampProgress(book)}%`,
+        }))}
+      />
+
+      <div className="flex flex-col gap-3">
+        <FeaturedBookHeading eyebrow={EYEBROW} title={last.title} subtitle={progressText(last)} />
+        <ContinueActions book={last} label="Continuar" />
+      </div>
+    </div>
+  );
+}
+
+function SpineStack({ books }: ContentProps) {
+  return (
+    <BookStack
+      items={books.map((book) => ({
+        book,
+        href: continueHref(book),
+        progress: clampProgress(book),
+        detail: <ProgressLabel percentage={clampProgress(book)} pages={book.readPages} />,
+      }))}
+    />
   );
 }

@@ -1,18 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
-import { DEFAULT_COVER } from "@/lib/books/labels";
-import BookSpine from "@/components/books/BookSpine";
-import type { WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
 import { prisma } from "@/lib/services/prisma";
 import { requireApprovedUser } from "@/lib/auth/session";
-import {
-  getLastName,
-  getSpineLookForBook,
-  toSpineBook,
-  type SpineBook,
-} from "@/lib/books/spine";
+import { getLastName, toSpineBook, type SpineBook } from "@/lib/books/spine";
 
+import BookCardRow from "./parts/BookCardRow";
+import BookLinkList from "./parts/BookLinkList";
+import BookStack from "./parts/BookStack";
+import FeaturedBook from "./parts/FeaturedBook";
+import FeaturedBookHeading from "./parts/FeaturedBookHeading";
+import SpineShelf from "./parts/SpineShelf";
 import WidgetCard from "./WidgetCard";
 
 type QueueBook = SpineBook & { description: string | null };
@@ -27,12 +26,18 @@ function pickOfTheDay<T>(items: T[]) {
   return items[day % items.length];
 }
 
+type QueueProps = { variant: WidgetVariant; look: WidgetLook };
+
 /*
- * "Fila": livros em "Quero ler", do mais antigo na fila para o mais novo.
- * - wide: prateleira baixa de lombadas + a sugestão do dia ao lado;
- * - tall: a sugestão do dia com capa e descrição + os próximos da fila.
+ * "Fila": livros em "Quero ler", do mais antigo na fila para o mais novo,
+ * com uma sugestão do dia. Duas versões (`look`, escolhida no editor; sem
+ * escolha, larga com lombadas e lado a lado com capa, como era antes):
+ * - cover: cartões com capa + a sugestão ao lado (larga) ou a sugestão
+ *   com capa e descrição + os próximos (lado a lado);
+ * - spine: prateleira de lombadas + a sugestão ao lado (larga) ou a
+ *   sugestão em cima de uma pilha deitada dos próximos (lado a lado).
  */
-export default async function Queue({ variant }: { variant: WidgetVariant }) {
+export default async function Queue({ variant, look }: QueueProps) {
   const { id: userId } = await requireApprovedUser();
 
   const [books, total] = await Promise.all([
@@ -64,10 +69,8 @@ export default async function Queue({ variant }: { variant: WidgetVariant }) {
             Adicionar
           </Link>
         </p>
-      ) : variant === "wide" ? (
-        <QueueShelf books={queue} suggestion={suggestion} />
       ) : (
-        <QueueCard books={queue} suggestion={suggestion} />
+        CONTENT[look][variant]({ books: queue, suggestion })
       )}
     </WidgetCard>
   );
@@ -92,99 +95,104 @@ function SuggestionActions({ book }: { book: QueueBook }) {
   );
 }
 
-function QueueShelf({ books, suggestion }: { books: QueueBook[]; suggestion: QueueBook }) {
+type ContentProps = { books: QueueBook[]; suggestion: QueueBook };
+
+const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
+  cover: { wide: QueueCoverRow, tall: QueueCard },
+  spine: { wide: QueueShelf, tall: QueueStack },
+};
+
+/* Sugestão do dia ao lado da fileira ou da prateleira (versões largas). */
+function SuggestionAside({ suggestion }: { suggestion: QueueBook }) {
   return (
-    <div className="grid grid-cols-1 items-end gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
-      {/*
-        * Lombadas a 65%: a versão larga é baixa. O espaço em cima deixa
-        * a lombada subir no hover sem ser cortada.
-        */}
-      <ul
-        aria-label="Livros na fila"
-        className="scrollbar-none flex items-end gap-[3px] overflow-x-auto border-b-[10px] border-darkest pt-5 [zoom:0.65]"
-      >
-        {books.map((book) => (
-          <li key={book.id} className="flex shrink-0 items-end">
-            <BookSpine
-              book={book}
-              look={getSpineLookForBook(book)}
-              href={`/library/${book.id}`}
-            />
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-3">
+      <FeaturedBookHeading
+        eyebrow="Que tal este?"
+        title={suggestion.title}
+        subtitle={suggestion.creator ?? "Autor desconhecido"}
+      />
 
-      <div className="flex flex-col gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-widest text-danger">Que tal este?</p>
-          <p className="title-shelf mt-1 truncate text-2xl" title={suggestion.title}>
-            {suggestion.title}
-          </p>
-          <p className="truncate text-sm text-contrast/55">
-            {suggestion.creator ?? "Autor desconhecido"}
-          </p>
-        </div>
-
-        <SuggestionActions book={suggestion} />
-      </div>
+      <SuggestionActions book={suggestion} />
     </div>
   );
 }
 
-function QueueCard({ books, suggestion }: { books: QueueBook[]; suggestion: QueueBook }) {
-  const next = books.filter((book) => book.id !== suggestion.id).slice(0, 4);
+function QueueCoverRow({ books, suggestion }: ContentProps) {
+  return (
+    <div className="grid grid-cols-1 items-center gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
+      <BookCardRow
+        items={books.map((book) => ({
+          book,
+          href: `/library/${book.id}`,
+          detail: book.creator ?? "Autor desconhecido",
+        }))}
+      />
+
+      <SuggestionAside suggestion={suggestion} />
+    </div>
+  );
+}
+
+function QueueStack({ books, suggestion }: ContentProps) {
+  const next = books.filter((book) => book.id !== suggestion.id).slice(0, 5);
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-4">
-        <div className="relative aspect-[7/10] w-full">
-          <Image
-            src={suggestion.coverUrl ?? DEFAULT_COVER}
-            alt={`Capa do livro ${suggestion.title}`}
-            fill
-            sizes="88px"
-            className="object-cover shadow-[0_14px_22px_-12px_rgb(0_0_0/0.8)]"
-          />
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-[11px] uppercase tracking-widest text-danger">Que tal este?</p>
-          <p className="title-shelf text-2xl leading-none">{suggestion.title}</p>
-          <p className="truncate text-sm text-contrast/55">
-            {suggestion.creator ?? "Autor desconhecido"}
-          </p>
-
-          {suggestion.description && (
-            <p className="line-clamp-3 font-reading text-sm italic text-contrast/65">
-              {suggestion.description}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <SuggestionActions book={suggestion} />
+      <SuggestionAside suggestion={suggestion} />
 
       {next.length > 0 && (
         <div>
           <p className="text-[11px] uppercase tracking-widest text-contrast/40">Depois</p>
-
-          <ol className="mt-2 flex flex-col">
-            {next.map((book) => (
-              <li key={book.id} className="border-t border-contrast/10 first:border-t-0">
-                <Link
-                  href={`/library/${book.id}`}
-                  className="flex items-baseline justify-between gap-3 py-2 hover:text-danger"
-                >
-                  <span className="min-w-0 truncate text-sm">{book.title}</span>
-                  <span className="shrink-0 text-xs text-contrast/40">
-                    {getLastName(book.creator)}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
+          <BookStack
+            items={next.map((book) => ({
+              book,
+              href: `/library/${book.id}`,
+              detail: getLastName(book.creator),
+            }))}
+          />
         </div>
       )}
+    </div>
+  );
+}
+
+function QueueShelf({ books, suggestion }: ContentProps) {
+  return (
+    <div className="grid grid-cols-1 items-end gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
+      <SpineShelf
+        label="Livros na fila"
+        items={books.map((book) => ({ book, href: `/library/${book.id}` }))}
+      />
+
+      <SuggestionAside suggestion={suggestion} />
+    </div>
+  );
+}
+
+function QueueCard({ books, suggestion }: ContentProps) {
+  const next = books.filter((book) => book.id !== suggestion.id).slice(0, 4);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <FeaturedBook book={suggestion} eyebrow="Que tal este?">
+        {suggestion.description && (
+          <p className="line-clamp-3 font-reading text-sm italic text-contrast/65">
+            {suggestion.description}
+          </p>
+        )}
+      </FeaturedBook>
+
+      <SuggestionActions book={suggestion} />
+
+      <BookLinkList
+        label="Depois"
+        items={next.map((book) => ({
+          id: book.id,
+          title: book.title,
+          href: `/library/${book.id}`,
+          meta: getLastName(book.creator),
+        }))}
+      />
     </div>
   );
 }
