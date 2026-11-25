@@ -9,6 +9,8 @@ import { useState } from "react";
 
 import type { Avatar } from "@/lib/profile/avatar";
 
+import NotificationBell from "@/components/notifications/NotificationBell";
+
 import AccountMenu from "./AccountMenu";
 
 /* Usuário aprovado logado (null: visitante, vê só a marca e "Entrar"). */
@@ -18,6 +20,7 @@ export type NavbarAccount = {
   avatar: Avatar;
   isAdmin: boolean;
   pendingRequests: number;
+  unreadNotifications: number;
 };
 
 export default function Navbar({ account }: { account: NavbarAccount | null }) {
@@ -150,6 +153,8 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
               <Users size={19} />
             </Link>
           )}
+
+          {account && <NotificationBell initialUnread={account.unreadNotifications} />}
 
           {account && (
             <Link

@@ -4,6 +4,7 @@ import ReadingTracker from "@/components/reading-streak/ReadingTracker";
 import { AccountStatus, Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/services/prisma";
 import { getCurrentUser, isApproved } from "@/lib/auth/session";
+import { countUnread } from "@/lib/notifications/server";
 import { getAvatar } from "@/lib/profile/avatar";
 
 export default async function MainLayout({
@@ -18,13 +19,14 @@ export default async function MainLayout({
   if (isApproved(user)) {
     const isAdmin = user.role === Role.ADMIN;
 
-    const [profile, pendingRequests] = await Promise.all([
+    const [profile, pendingRequests, unreadNotifications] = await Promise.all([
       prisma.user.findUnique({
         where: { id: user.id },
         select: { id: true, name: true, username: true, avatarColor: true, avatarLetter: true },
       }),
       /* Aviso de pedidos esperando, só para o admin. */
       isAdmin ? prisma.user.count({ where: { status: AccountStatus.PENDING } }) : 0,
+      countUnread(user.id),
     ]);
 
     account = {
@@ -35,6 +37,7 @@ export default async function MainLayout({
       ),
       isAdmin,
       pendingRequests,
+      unreadNotifications,
     };
   }
 

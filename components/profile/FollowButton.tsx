@@ -10,6 +10,8 @@ type FollowButtonProps = {
   following: boolean;
   size?: "md" | "sm";
   onColor?: boolean;
+  /* Texto antes de seguir (ex.: "Seguir de volta", nas notificações). */
+  followLabel?: string;
 };
 
 /*
@@ -22,6 +24,7 @@ export default function FollowButton({
   following,
   size = "md",
   onColor = false,
+  followLabel = "Seguir",
 }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(following);
   const [error, setError] = useState("");
@@ -69,7 +72,7 @@ export default function FollowButton({
             <span className="hidden group-hover:inline">Deixar de seguir</span>
           </>
         ) : (
-          "Seguir"
+          followLabel
         )}
       </button>
 
