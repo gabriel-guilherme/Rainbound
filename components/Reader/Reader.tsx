@@ -13,6 +13,9 @@ import { useReaderKeyboard } from "@/components/Reader/useReaderKeyboard";
 import { useReaderProgress } from "@/components/Reader/useReaderProgress";
 import { useReaderSettings } from "@/components/Reader/useReaderSettings";
 import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
+import ReadingTracker from "@/components/ReadingStreak/ReadingTracker";
+import StreakNotice from "@/components/ReadingStreak/StreakNotice";
+import type { StreakSummary } from "@/lib/streak";
 
 import {
   ArrowLeft,
@@ -75,6 +78,7 @@ export default function Reader({
   locator,
   savedProgress,
   bookmarks: initialBookmarks,
+  streak,
 }: {
   bookId: number;
   bookUrl: string;
@@ -84,6 +88,8 @@ export default function Reader({
   /* Marcador padrão: progresso salvo no banco. */
   savedProgress: ReaderProgress | null;
   bookmarks: Bookmark[];
+  /* Sequência de leitura quando a página abriu. */
+  streak: StreakSummary;
 }) {
   const Engine = engines[format];
   const isPaged = PAGED_FORMATS.includes(format);
@@ -285,6 +291,8 @@ export default function Reader({
               onShowClockChange={settings.setShowClock}
               showSession={settings.showSession}
               onShowSessionChange={settings.setShowSession}
+              showStreak={settings.showStreak}
+              onShowStreakChange={settings.setShowStreak}
             />
           </HeaderActionWindow>
 
@@ -370,11 +378,23 @@ export default function Reader({
         pageInfo={pageInfo}
         showClock={settings.showClock}
         showSession={settings.showSession}
+        showStreak={settings.showStreak}
+        streak={streak}
         isImmersive={isImmersive}
       />
 
+      {/* Conta o tempo de leitura (leitor em uso + Sessão) para a sequência. */}
+      <ReadingTracker trackReader={Boolean(Engine)} activityKey={pageInfo.currentPage} />
+
       {settings.showSession && (
         <SessionFinishedNotice className="fixed left-1/2 top-[calc(4.5rem+env(safe-area-inset-top))] z-50 w-[min(28rem,calc(100vw-1rem))] -translate-x-1/2" />
+      )}
+
+      {settings.showStreak && (
+        <StreakNotice
+          initial={streak}
+          className="fixed left-1/2 top-[calc(4.5rem+env(safe-area-inset-top))] z-50 w-[min(28rem,calc(100vw-1rem))] -translate-x-1/2"
+        />
       )}
     </div>
   );

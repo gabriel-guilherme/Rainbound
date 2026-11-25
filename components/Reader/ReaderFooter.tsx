@@ -2,6 +2,8 @@
 
 import CurrentTime from "@/components/ReadingSession/CurrentTime";
 import SessionButton from "@/components/ReadingSession/SessionButton";
+import StreakButton from "@/components/ReadingStreak/StreakButton";
+import type { StreakSummary } from "@/lib/streak";
 
 import type { PageInfo } from "./readerTypes";
 
@@ -11,13 +13,16 @@ type ReaderFooterProps = {
   pageInfo: PageInfo;
   showClock: boolean;
   showSession: boolean;
+  showStreak: boolean;
+  streak: StreakSummary;
   /* Modo imersivo do celular: o rodapé some. */
   isImmersive: boolean;
 };
 
 /*
- * Rodapé do leitor em três colunas: hora | página atual | Sessão. As
- * laterais têm a mesma largura para a página ficar centralizada; hora e
+ * Rodapé do leitor em três colunas: hora | página atual | sequência e
+ * Sessão. A página fica centralizada (no computador, laterais da mesma
+ * largura; no celular, posicionada no meio do rodapé); hora, sequência e
  * Sessão somem pelas Configurações.
  */
 export default function ReaderFooter({
@@ -25,6 +30,8 @@ export default function ReaderFooter({
   pageInfo,
   showClock,
   showSession,
+  showStreak,
+  streak,
   isImmersive,
 }: ReaderFooterProps) {
   const { currentPage, totalPages, progress } = pageInfo;
@@ -32,7 +39,7 @@ export default function ReaderFooter({
   return (
     <footer
       className={[
-        "reader-footer grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] items-center gap-2 border-t border-contrast/10 px-3 sm:px-4",
+        "reader-footer relative flex shrink-0 items-center justify-between gap-2 border-t border-contrast/10 px-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,28rem)_minmax(0,1fr)] sm:px-4",
         isImmersive ? "max-sm:hidden" : "",
       ].join(" ")}
     >
@@ -42,7 +49,7 @@ export default function ReaderFooter({
         )}
       </div>
 
-      <div className="flex min-w-0 flex-col justify-center gap-1.5">
+      <div className="flex min-w-0 flex-col justify-center gap-1.5 max-sm:absolute max-sm:left-1/2 max-sm:top-0 max-sm:h-10 max-sm:w-max max-sm:-translate-x-1/2">
         {hasEngine && totalPages === 0 && (
           <span className="text-center text-xs text-contrast/40">
             Carregando...
@@ -52,7 +59,7 @@ export default function ReaderFooter({
         {hasEngine && totalPages > 0 && (
           <>
             {/* EPUB: "página" é uma posição de ~1024 caracteres (estável com o zoom). */}
-            <div className="flex items-baseline justify-center gap-2 tabular-nums">
+            <div className="flex items-baseline justify-center gap-2 tabular-nums max-sm:px-4">
               <span className="font-display text-base font-bold uppercase tracking-wide text-contrast/85">
                 Página {currentPage}{" "}
                 <span className="text-contrast/40">de</span> {totalPages}
@@ -73,7 +80,8 @@ export default function ReaderFooter({
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-0.5 sm:gap-1">
+        {showStreak && <StreakButton initial={streak} />}
         {showSession && <SessionButton />}
       </div>
     </footer>

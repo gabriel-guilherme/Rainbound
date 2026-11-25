@@ -1,5 +1,6 @@
 import Navbar, { type NavbarAccount } from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ReadingTracker from "@/components/ReadingStreak/ReadingTracker";
 import { AccountStatus, Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isApproved } from "@/lib/session";
@@ -39,6 +40,8 @@ export default async function MainLayout({
       <main className="min-h-svh">{children}</main>
 
       <Footer />
+
+      {account && <ReadingTracker />}
     </div>
   );
 }

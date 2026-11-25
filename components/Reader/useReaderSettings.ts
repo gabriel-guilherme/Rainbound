@@ -37,6 +37,8 @@ type StoredSettings = {
   showClock: boolean;
   /* Botão de cronômetro e timer no rodapé (components/ReadingSession). */
   showSession: boolean;
+  /* Sequência de leitura no rodapé (components/ReadingStreak). */
+  showStreak: boolean;
 };
 
 const DEFAULT_SETTINGS: StoredSettings = {
@@ -44,6 +46,7 @@ const DEFAULT_SETTINGS: StoredSettings = {
   zoom: {},
   showClock: true,
   showSession: true,
+  showStreak: true,
 };
 
 /*
@@ -111,6 +114,7 @@ function parseSettings(raw: string | null): StoredSettings {
       zoom,
       showClock: parsed.showClock !== false,
       showSession: parsed.showSession !== false,
+      showStreak: parsed.showStreak !== false,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -142,6 +146,7 @@ export function useReaderSettings(format: FileFormat) {
         zoom: { ...current.zoom, ...next.zoom },
         showClock: next.showClock ?? current.showClock,
         showSession: next.showSession ?? current.showSession,
+        showStreak: next.showStreak ?? current.showStreak,
       }),
     );
   }, []);
@@ -167,15 +172,22 @@ export function useReaderSettings(format: FileFormat) {
     [update],
   );
 
+  const setShowStreak = useCallback(
+    (showStreak: boolean) => update({ showStreak }),
+    [update],
+  );
+
   return {
     theme: settings.theme,
     zoom,
     limits,
     showClock: settings.showClock,
     showSession: settings.showSession,
+    showStreak: settings.showStreak,
     setTheme,
     setZoom,
     setShowClock,
     setShowSession,
+    setShowStreak,
   };
 }

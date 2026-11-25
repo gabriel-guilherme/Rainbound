@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Minus, Plus, Timer } from "lucide-react";
+import { Clock, Droplet, Minus, Plus, Timer } from "lucide-react";
 
 import type { ReaderTheme } from "./readerTypes";
 import SettingSwitch from "./SettingSwitch";
@@ -20,6 +20,8 @@ type SettingsPanelProps = {
   onShowClockChange: (show: boolean) => void;
   showSession: boolean;
   onShowSessionChange: (show: boolean) => void;
+  showStreak: boolean;
+  onShowStreakChange: (show: boolean) => void;
 };
 
 const zoomButtonClass =
@@ -43,6 +45,8 @@ export default function SettingsPanel({
   onShowClockChange,
   showSession,
   onShowSessionChange,
+  showStreak,
+  onShowStreakChange,
 }: SettingsPanelProps) {
   const zoomPercent = Math.round(zoom * 100);
 
@@ -142,6 +146,12 @@ export default function SettingsPanel({
           icon={<Timer size={16} />}
           checked={showSession}
           onChange={onShowSessionChange}
+        />
+        <SettingSwitch
+          label="Sequência"
+          icon={<Droplet size={16} />}
+          checked={showStreak}
+          onChange={onShowStreakChange}
         />
       </fieldset>
     </div>
