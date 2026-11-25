@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CloudRainWind } from "lucide-react-motion";
-import { Inbox, Plus } from "lucide-react";
+import { Inbox, Plus, Users } from "lucide-react";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useState } from "react";
 
@@ -50,6 +50,7 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
     pathname === "/library" || pathname.startsWith("/library/");
   const isNewBookRoute = pathname === "/library/new";
   const isRequestsRoute = pathname === "/admin";
+  const isPeopleRoute = pathname === "/pessoas";
 
   return (
     <motion.nav
@@ -125,6 +126,22 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
               className="btn-shelf bg-danger text-primary hover:bg-contrast"
             >
               Entrar
+            </Link>
+          )}
+
+          {account && (
+            <Link
+              href="/pessoas"
+              aria-label="Pessoas"
+              title="Pessoas"
+              aria-current={isPeopleRoute ? "page" : undefined}
+              className={`flex h-10 w-10 items-center justify-center transition-colors ${
+                isPeopleRoute
+                  ? "bg-contrast text-primary"
+                  : "text-contrast/70 hover:bg-contrast/10 hover:text-contrast"
+              }`}
+            >
+              <Users size={19} />
             </Link>
           )}
 

@@ -40,7 +40,7 @@ export async function unfollow(followerId: string, followedId: string) {
   await prisma.follow.deleteMany({ where: { followerId, followedId } });
 }
 
-const personSelect = {
+export const personSelect = {
   id: true,
   name: true,
   username: true,
@@ -78,9 +78,21 @@ export async function listFollows(
     select: { follower: { select: personSelect }, followed: { select: personSelect } },
   });
 
-  const people = rows
-    .map((row) => (direction === "followers" ? row.follower : row.followed))
-    .filter((person) => person.username);
+  return toFollowPeople(
+    rows.map((row) => (direction === "followers" ? row.follower : row.followed)),
+    viewerId,
+  );
+}
+
+/*
+ * Pessoas prontas para as listas (FollowList): avatar e se quem está
+ * vendo já segue cada uma. Contas sem usuário (sem perfil) ficam de fora.
+ */
+export async function toFollowPeople(
+  rows: { id: string; name: string; username: string | null; displayUsername: string | null; avatarColor: string | null; avatarLetter: string | null }[],
+  viewerId: string,
+): Promise<FollowPerson[]> {
+  const people = rows.filter((person) => person.username);
 
   const viewerFollows = new Set(
     (

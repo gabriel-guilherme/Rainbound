@@ -23,3 +23,12 @@ export function parseBio(value: unknown): string | null | undefined {
 export function normalizeUsername(value: string) {
   return value.trim().toLowerCase();
 }
+
+export const MAX_PEOPLE_QUERY_LENGTH = 50;
+
+/* Texto da busca de pessoas: sem "@" no começo e sem espaços nas pontas. */
+export function normalizePeopleQuery(value: unknown) {
+  if (typeof value !== "string") return "";
+
+  return value.trim().replace(/^@+/, "").slice(0, MAX_PEOPLE_QUERY_LENGTH);
+}
