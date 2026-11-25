@@ -3,14 +3,18 @@
 import { ArrowDownUp, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { sortOptions } from "@/lib/books/library";
+import { saveLibraryPreferences } from "@/app/preferences/actions";
+import { sortOptions, type SortOption } from "@/lib/books/library";
 import { toolbarFieldClass as stylePattern } from "@/components/common/fieldStyles";
 
 
-export function FilterButton() {
+/*
+ * Menu de ordenação da estante. A escolha vai na URL (?sort=) e fica
+ * salva na conta para a próxima vez (saveLibraryPreferences).
+ */
+export function FilterButton({ sort }: { sort: SortOption }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sort = searchParams.get("sort") ?? "added_desc";
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -36,16 +40,12 @@ export function FilterButton() {
     setIsOpen((prev) => !prev);
   }
 
-  function handleSort(value: string) {
+  function handleSort(value: SortOption) {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (value) {
-      params.set("sort", value);
-    } else {
-      params.delete("sort");
-    }
+    params.set("sort", value);
+    saveLibraryPreferences({ sort: value }).catch(console.error);
 
-    /* Nova ordem, nova lista: volta para a primeira página. */
     params.delete("page");
 
     router.replace(`/library?${params.toString()}`, {

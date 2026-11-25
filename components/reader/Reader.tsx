@@ -11,6 +11,7 @@ import { useBookmarks } from "@/components/reader/hooks/useBookmarks";
 import { usePageTurn } from "@/components/reader/hooks/usePageTurn";
 import { useReaderKeyboard } from "@/components/reader/hooks/useReaderKeyboard";
 import { useReaderProgress } from "@/components/reader/hooks/useReaderProgress";
+import type { ReaderPreferences } from "@/lib/preferences/rules";
 import { useReaderSettings } from "@/components/reader/hooks/useReaderSettings";
 import SessionFinishedNotice from "@/components/reading-session/SessionFinishedNotice";
 import ReadingTracker from "@/components/reading-streak/ReadingTracker";
@@ -79,6 +80,7 @@ export default function Reader({
   savedProgress,
   bookmarks: initialBookmarks,
   streak,
+  preferences,
 }: {
   bookId: number;
   bookUrl: string;
@@ -90,6 +92,8 @@ export default function Reader({
   bookmarks: Bookmark[];
   /* Sequência de leitura quando a página abriu. */
   streak: StreakSummary;
+  /* Configurações do leitor salvas na conta (null: nunca salvou). */
+  preferences: ReaderPreferences | null;
 }) {
   const Engine = engines[format];
   const isPaged = PAGED_FORMATS.includes(format);
@@ -112,7 +116,7 @@ export default function Reader({
    */
   const [isImmersive, setIsImmersive] = useState(false);
 
-  const settings = useReaderSettings(format);
+  const settings = useReaderSettings(format, preferences);
   const { theme, zoom, limits, setZoom } = settings;
   const canZoom = Boolean(Engine) && limits.max > limits.min;
 

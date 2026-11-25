@@ -79,6 +79,14 @@ model User {
    */
   dailyGoalMinutes Int @default(10)
 
+  /**
+   * Preferências que seguem a conta em qualquer aparelho: leitor (tema,
+   * tamanho do texto do EPUB, itens do rodapé) e estante (visualização e
+   * ordem). Formato e validação em lib/preferences/rules.ts. Vazio: nunca
+   * salvou (vale o padrão).
+   */
+  preferences Json?
+
   sessions    Session[]
   accounts    Account[]
   books       Book[]

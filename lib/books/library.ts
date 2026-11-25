@@ -35,7 +35,8 @@ export const orderByOptions = {
 >;
 
 /*
- * Visualizações da biblioteca (`?view=`). Lombadas é o padrão.
+ * Visualizações da biblioteca (`?view=`). Lombadas é o padrão (sem escolha
+ * salva na conta: lib/preferences).
  */
 export const libraryViewOptions = [
   { value: "spines", label: "Lombadas" },
@@ -75,8 +76,9 @@ export type LibraryParams = {
 };
 
 /*
- * Monta o link da biblioteca mantendo os filtros. Valores padrão
- * (lombadas, página 1) ficam fora da URL.
+ * Monta o link da biblioteca mantendo os filtros. Página 1 fica fora da
+ * URL. Visualização e ordem vão sempre que informadas: sem elas, a estante
+ * usa a última escolha salva na conta, que pode não ser a padrão.
  */
 export function buildLibraryHref(params: LibraryParams) {
   const search = new URLSearchParams();
@@ -84,7 +86,7 @@ export function buildLibraryHref(params: LibraryParams) {
   if (params.q) search.set("q", params.q);
   if (params.status) search.set("status", params.status);
   if (params.sort) search.set("sort", params.sort);
-  if (params.view && params.view !== "spines") search.set("view", params.view);
+  if (params.view) search.set("view", params.view);
   if (params.page && params.page > 1) search.set("page", String(params.page));
 
   const query = search.toString();

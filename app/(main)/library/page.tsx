@@ -13,6 +13,8 @@ import StorageMeter from "@/components/library/StorageMeter";
 import { getStorageUsage } from "@/lib/books/quota";
 import { toSpineBook } from "@/lib/books/spine";
 import { isReadingStatus } from "@/lib/books/labels";
+import { isSortOption } from "@/lib/preferences/rules";
+import { getUserPreferences } from "@/lib/preferences/server";
 import {
   buildLibraryHref,
   isLibraryView,
@@ -34,9 +36,17 @@ export default async function BooksPage({
 }) {
   const { id: userId } = await requireApprovedUser();
 
-  const { status, q, sort, view: viewParam, page: pageParam } =
+  const { status, q, sort: sortParam, view: viewParam, page: pageParam } =
     await searchParams;
-  const view = isLibraryView(viewParam) ? viewParam : "spines";
+
+  /*
+   * Sem ?view= ou ?sort= na URL, vale o que a pessoa escolheu da última
+   * vez (salvo na conta por ViewToggle e FilterButton). Os links da página
+   * levam os dois explícitos.
+   */
+  const { library: saved } = await getUserPreferences(userId);
+  const view = isLibraryView(viewParam) ? viewParam : saved.view;
+  const sort = isSortOption(sortParam) ? sortParam : saved.sort;
   const page = parsePageParam(pageParam);
 
   /*
@@ -59,7 +69,7 @@ export default async function BooksPage({
   const isTitleSort = sort === "title_asc" || sort === "title_desc";
 
   const orderBy =
-    sort && sort in orderByOptions
+    sort in orderByOptions
       ? orderByOptions[sort as keyof typeof orderByOptions]
       : orderByOptions.added_desc;
 
@@ -150,6 +160,7 @@ export default async function BooksPage({
       <FilterBar
         q={q}
         status={statusFilter}
+        sort={sort}
         marker={view === "spines" ? "ribbon" : "dot"}
       >
         <ViewToggle view={view} params={{ q, status: statusFilter, sort, page }} />
