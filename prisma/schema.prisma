@@ -87,10 +87,35 @@ model User {
    */
   preferences Json?
 
+  /**
+   * Perfil público (/u/<username>). Avatar = fundo numa cor da paleta +
+   * uma letra; vazios, valem a cor tirada do nome e a inicial
+   * (lib/profile/avatar.ts). Perfil privado: os outros veem só o
+   * cabeçalho (avatar, nome, bio), não os widgets.
+   */
+  avatarColor     String?
+  avatarLetter    String?
+  bio             String?
+  isProfilePublic Boolean @default(true)
+  /**
+   * Widgets do perfil, no mesmo formato da arrumação da home
+   * (lib/dashboardLayout.ts). Vazio: a arrumação padrão do perfil.
+   */
+  profileLayout   Json?
+
+  /**
+   * Fuso do aparelho da última leitura enviada (/api/reading-time). Serve
+   * para mostrar o "hoje" da sequência no perfil, para quem visita.
+   */
+  timeZone String?
+
   sessions    Session[]
   accounts    Account[]
   books       Book[]
   readingDays ReadingDay[]
+  /* Quem esta pessoa segue e quem a segue (Follow). */
+  following   Follow[]     @relation("Follower")
+  followers   Follow[]     @relation("Followed")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -290,4 +315,21 @@ model ReadingDay {
 
   @@unique([userId, date])
   @@index([userId, goalMet])
+}
+
+/**
+ * Seguir: livre (sem pedido para aceitar). Uma linha por par; apagar a
+ * conta apaga as linhas dela.
+ */
+model Follow {
+  followerId String
+  follower   User   @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+
+  followedId String
+  followed   User   @relation("Followed", fields: [followedId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([followerId, followedId])
+  @@index([followedId])
 }
