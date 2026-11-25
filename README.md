@@ -49,6 +49,9 @@ The project was built as a full-stack application, combining a responsive fronte
   (for books read outside the app); a calendar day without the goal resets it.
   Shown in a home widget and in the reader footer, with a notice when the day
   is secured. The admin has a "Sequência" tab to test it on their own account
+- Preferences that follow the account on any device: reader theme, EPUB text
+  size and footer items, and the library view and sort (PDF/CBZ zoom and the
+  home widget layout stay per device)
 - Customizable home widgets: two carousels with tabs; each widget has a wide
   (top) and a side-by-side (bottom) version; layout saved per device. Widgets:
   books by status, reading now, recently added, queue, session, streak, almost
@@ -357,6 +360,9 @@ lib/
 │   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
 │   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
+├── preferences/
+│   ├── rules.ts          Account preferences (reader, library view and sort): shape and validation
+│   └── server.ts         Account preferences in the database (User.preferences)
 ├── services/
 │   ├── prisma.ts         Prisma client configuration
 │   ├── r2.ts             Cloudflare R2 client (presigned URLs, book file storage)
