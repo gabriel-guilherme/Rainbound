@@ -50,7 +50,12 @@ The project was built as a full-stack application, combining a responsive fronte
   Shown in a home widget and in the reader footer, with a notice when the day
   is secured. The admin has a "Sequência" tab to test it on their own account
 - Customizable home widgets: two carousels with tabs; each widget has a wide
-  (top) and a side-by-side (bottom) version; layout saved per device
+  (top) and a side-by-side (bottom) version; layout saved per device. Widgets:
+  books by status, reading now, recently added, queue, session, streak, almost
+  there (over 70%), stalled (no progress for 30+ days, with resume/abandon),
+  year activity (one square per day) and minutes this week. Book widgets
+  (reading now, recently added, queue, almost there, stalled) can show covers
+  or spines, chosen per tab in the editor
 - Add, edit, and delete books
 - Storage limit per user for book files (1 GB by default, adjustable per user
   by the admin in "Users and storage": presets or a custom value, plus the
@@ -314,8 +319,10 @@ app/
 components/             Reusable UI components (folders in lowercase kebab-case)
 ├── reader/             In-app reader (see components/reader/README.md): engines/, panels/, hooks/
 ├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
-├── reading-streak/     Reading streak: time tracker, footer button, widget, goal picker, notice
-├── widgets/            Home widgets (registry.tsx), carousel and layout editor
+├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
+├── widgets/            Home widgets (registry.tsx) and carousel
+│   ├── editor/         Layout editor: dialog, tab card, widget row, layout edits
+│   └── parts/          Shared book pieces: card row, spine shelf, lying stack, featured book, list
 ├── books/              Book display: poster, spine, bookcase, status ribbon, progress, actions menu
 │   └── forms/          Book forms: edit, log reading, cover and file inputs, Open Library search
 ├── library/            Library controls: filters, search, pagination, view toggle, storage meter
