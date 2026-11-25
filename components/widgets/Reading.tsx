@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 import ProgressLabel from "@/components/books/ProgressLabel";
 import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 import { prisma } from "@/lib/services/prisma";
-import { requireApprovedUser } from "@/lib/auth/session";
 import { toSpineBook, type SpineBook } from "@/lib/books/spine";
 
 import BookCardRow from "./parts/BookCardRow";
@@ -18,8 +18,6 @@ import WidgetCard from "./WidgetCard";
 
 const EYEBROW = "Continue de onde parou";
 
-type ReadingProps = { variant: WidgetVariant; look: WidgetLook };
-
 /*
  * "Lendo agora": livros em andamento, do mexido por último para o mais
  * antigo. Duas versões (`look`, escolhida no editor; sem escolha, larga
@@ -29,8 +27,8 @@ type ReadingProps = { variant: WidgetVariant; look: WidgetLook };
  * - spine: prateleira de lombadas com o último em destaque (larga) ou
  *   pilha de livros deitados (lado a lado).
  */
-export default async function Reading({ variant, look }: ReadingProps) {
-  const { id: userId } = await requireApprovedUser();
+export default async function Reading({ variant, look, owner, isOwner }: WidgetProps) {
+  const userId = owner.id;
 
   const books = await prisma.book.findMany({
     where: { userId, status: "READING" },
@@ -44,18 +42,18 @@ export default async function Reading({ variant, look }: ReadingProps) {
   return (
     <WidgetCard
       title="Lendo agora"
-      action={{ href: "/library?status=READING", label: "Ver todos" }}
+      action={isOwner ? { href: "/library?status=READING", label: "Ver todos" } : undefined}
     >
       {currentlyReading.length === 0 ? (
         <p className="text-sm text-contrast/60">Nenhum livro em andamento.</p>
       ) : (
-        CONTENT[look][variant]({ books: currentlyReading })
+        CONTENT[look][variant]({ books: currentlyReading, isOwner })
       )}
     </WidgetCard>
   );
 }
 
-type ContentProps = { books: SpineBook[] };
+type ContentProps = { books: SpineBook[]; isOwner: boolean };
 
 const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
   cover: { wide: CoverRow, tall: CoverCard },
@@ -66,12 +64,12 @@ function progressText(book: SpineBook) {
   return `${clampProgress(book)}% lido`;
 }
 
-function CoverRow({ books }: ContentProps) {
+function CoverRow({ books, isOwner }: ContentProps) {
   return (
     <BookCardRow
       items={books.map((book) => ({
         book,
-        href: continueHref(book),
+        href: isOwner ? continueHref(book) : undefined,
         progress: clampProgress(book),
         detail: (
           <ProgressLabel percentage={clampProgress(book)} pages={book.readPages} suffix="lido" />
@@ -81,7 +79,7 @@ function CoverRow({ books }: ContentProps) {
   );
 }
 
-function CoverCard({ books }: ContentProps) {
+function CoverCard({ books, isOwner }: ContentProps) {
   const [last, ...rest] = books;
   const progress = clampProgress(last);
 
@@ -98,14 +96,14 @@ function CoverCard({ books }: ContentProps) {
         </div>
       </FeaturedBook>
 
-      <ContinueActions book={last} label="Continuar" />
+      {isOwner && <ContinueActions book={last} label="Continuar" />}
 
       <BookLinkList
         label="Também lendo"
         items={rest.slice(0, 3).map((book) => ({
           id: book.id,
           title: book.title,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           meta: `${clampProgress(book)}%`,
         }))}
       />
@@ -113,7 +111,7 @@ function CoverCard({ books }: ContentProps) {
   );
 }
 
-function SpineRow({ books }: ContentProps) {
+function SpineRow({ books, isOwner }: ContentProps) {
   const [last] = books;
 
   return (
@@ -122,25 +120,25 @@ function SpineRow({ books }: ContentProps) {
         label="Livros em andamento"
         items={books.map((book) => ({
           book,
-          href: continueHref(book),
+          href: isOwner ? continueHref(book) : undefined,
           caption: `${clampProgress(book)}%`,
         }))}
       />
 
       <div className="flex flex-col gap-3">
         <FeaturedBookHeading eyebrow={EYEBROW} title={last.title} subtitle={progressText(last)} />
-        <ContinueActions book={last} label="Continuar" />
+        {isOwner && <ContinueActions book={last} label="Continuar" />}
       </div>
     </div>
   );
 }
 
-function SpineStack({ books }: ContentProps) {
+function SpineStack({ books, isOwner }: ContentProps) {
   return (
     <BookStack
       items={books.map((book) => ({
         book,
-        href: continueHref(book),
+        href: isOwner ? continueHref(book) : undefined,
         progress: clampProgress(book),
         detail: <ProgressLabel percentage={clampProgress(book)} pages={book.readPages} />,
       }))}

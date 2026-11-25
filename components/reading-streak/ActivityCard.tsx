@@ -27,6 +27,7 @@ type ActivityCardProps = {
   initial: StreakSummary;
   /* Dias com leitura (lib/streak/server.ts → getReadingDays). */
   days: { date: string; seconds: number; met: boolean }[];
+  isOwner?: boolean;
 };
 
 const RECENT_WEEKS = 17;
@@ -70,8 +71,8 @@ function formatTotal(seconds: number) {
  * - wide: o ano inteiro, com setas para os anos anteriores;
  * - tall: os últimos 4 meses.
  */
-export default function ActivityCard({ variant, initial, days }: ActivityCardProps) {
-  const { summary, todaySeconds } = useStreak(initial);
+export default function ActivityCard({ variant, initial, days, isOwner = true }: ActivityCardProps) {
+  const { summary, todaySeconds } = useStreak(initial, isOwner);
   const { today } = summary;
   const goal = goalSeconds(summary.goalMinutes);
   const currentYear = Number(today.slice(0, 4));

@@ -1,14 +1,14 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { DEFAULT_COVER, typeLabel } from "@/lib/books/labels";
 import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 import { prisma } from "@/lib/services/prisma";
-import { requireApprovedUser } from "@/lib/auth/session";
 import { toSpineBook, type SpineBook } from "@/lib/books/spine";
 
 import BookStack from "./parts/BookStack";
+import MaybeLink from "./parts/MaybeLink";
 import SpineShelf from "./parts/SpineShelf";
 import WidgetCard from "./WidgetCard";
 
@@ -25,8 +25,6 @@ const shortDateFormatter = new Intl.DateTimeFormat("pt-BR", {
 
 type RecentBook = SpineBook & { createdAt: Date };
 
-type RecentlyAddedProps = { variant: WidgetVariant; look: WidgetLook };
-
 /*
  * "Chegaram": últimos livros adicionados. Duas versões (`look`, escolhida
  * no editor; sem escolha, capas):
@@ -35,8 +33,8 @@ type RecentlyAddedProps = { variant: WidgetVariant; look: WidgetLook };
  * - spine: prateleira de lombadas com a data em cima (larga) ou pilha
  *   deitada dos recém-chegados com a data ao lado (lado a lado).
  */
-export default async function RecentlyAdded({ variant, look }: RecentlyAddedProps) {
-  const { id: userId } = await requireApprovedUser();
+export default async function RecentlyAdded({ variant, look, owner, isOwner }: WidgetProps) {
+  const userId = owner.id;
 
   const books = await prisma.book.findMany({
     where: { userId },
@@ -53,18 +51,18 @@ export default async function RecentlyAdded({ variant, look }: RecentlyAddedProp
   return (
     <WidgetCard
       title="Chegaram"
-      action={{ href: "/library/new", label: "+ Adicionar" }}
+      action={isOwner ? { href: "/library/new", label: "+ Adicionar" } : undefined}
     >
       {recentlyAdded.length === 0 ? (
         <p className="text-sm text-contrast/60">Nenhum livro adicionado ainda.</p>
       ) : (
-        CONTENT[look][variant]({ books: recentlyAdded })
+        CONTENT[look][variant]({ books: recentlyAdded, isOwner })
       )}
     </WidgetCard>
   );
 }
 
-type ContentProps = { books: RecentBook[] };
+type ContentProps = { books: RecentBook[]; isOwner: boolean };
 
 const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
   cover: { wide: CoverRow, tall: CoverList },
@@ -79,12 +77,12 @@ function AddedOn({ date, className }: { date: Date; className: string }) {
   );
 }
 
-function CoverRow({ books }: ContentProps) {
+function CoverRow({ books, isOwner }: ContentProps) {
   return (
     <ul className="scrollbar-none -mx-1 flex gap-4 overflow-x-auto px-1 pb-1">
       {books.map((book) => (
         <li key={book.id} className="w-24 shrink-0">
-          <Link href={`/library/${book.id}`} className="group block">
+          <MaybeLink href={isOwner ? `/library/${book.id}` : undefined} className="group block">
             <span className="relative block aspect-[7/10] w-full">
               <Image
                 src={book.coverUrl ?? DEFAULT_COVER}
@@ -103,20 +101,20 @@ function CoverRow({ books }: ContentProps) {
               date={book.createdAt}
               className="block text-xs tabular-nums text-contrast/45"
             />
-          </Link>
+          </MaybeLink>
         </li>
       ))}
     </ul>
   );
 }
 
-function CoverList({ books }: ContentProps) {
+function CoverList({ books, isOwner }: ContentProps) {
   return (
     <ul className="flex flex-col">
       {books.map((book) => (
         <li key={book.id} className="border-t border-contrast/10 first:border-t-0">
-          <Link
-            href={`/library/${book.id}`}
+          <MaybeLink
+            href={isOwner ? `/library/${book.id}` : undefined}
             className="group grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-3 py-2.5"
           >
             <span className="relative aspect-[7/10] w-full">
@@ -139,32 +137,32 @@ function CoverList({ books }: ContentProps) {
             </span>
 
             <AddedOn date={book.createdAt} className="text-xs tabular-nums text-contrast/40" />
-          </Link>
+          </MaybeLink>
         </li>
       ))}
     </ul>
   );
 }
 
-function SpineRow({ books }: ContentProps) {
+function SpineRow({ books, isOwner }: ContentProps) {
   return (
     <SpineShelf
       label="Últimos livros adicionados"
       items={books.map((book) => ({
         book,
-        href: `/library/${book.id}`,
+        href: isOwner ? `/library/${book.id}` : undefined,
         caption: shortDateFormatter.format(book.createdAt),
       }))}
     />
   );
 }
 
-function SpineStack({ books }: ContentProps) {
+function SpineStack({ books, isOwner }: ContentProps) {
   return (
     <BookStack
       items={books.map((book) => ({
         book,
-        href: `/library/${book.id}`,
+        href: isOwner ? `/library/${book.id}` : undefined,
         detail: <AddedOn date={book.createdAt} className="tabular-nums" />,
       }))}
     />

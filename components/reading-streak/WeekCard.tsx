@@ -22,6 +22,7 @@ type WeekCardProps = {
   initial: StreakSummary;
   /* Dias com leitura das últimas semanas (lib/streak/server.ts → getReadingDays). */
   days: { date: string; seconds: number; met: boolean }[];
+  isOwner?: boolean;
 };
 
 const WEEKDAYS = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
@@ -49,8 +50,8 @@ function weekTitle(offset: number, start: string) {
  *   anterior ao lado das barras; setas para semanas passadas;
  * - tall: só esta semana, mais compacta.
  */
-export default function WeekCard({ variant, initial, days }: WeekCardProps) {
-  const { summary, todaySeconds } = useStreak(initial);
+export default function WeekCard({ variant, initial, days, isOwner = true }: WeekCardProps) {
+  const { summary, todaySeconds } = useStreak(initial, isOwner);
   const { today } = summary;
   const goal = goalSeconds(summary.goalMinutes);
   const [offset, setOffset] = useState(0);

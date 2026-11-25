@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { WidgetLook, WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 import { prisma } from "@/lib/services/prisma";
-import { requireApprovedUser } from "@/lib/auth/session";
 import { getLastName, toSpineBook, type SpineBook } from "@/lib/books/spine";
 
 import BookCardRow from "./parts/BookCardRow";
@@ -26,8 +26,6 @@ function pickOfTheDay<T>(items: T[]) {
   return items[day % items.length];
 }
 
-type QueueProps = { variant: WidgetVariant; look: WidgetLook };
-
 /*
  * "Fila": livros em "Quero ler", do mais antigo na fila para o mais novo,
  * com uma sugestão do dia. Duas versões (`look`, escolhida no editor; sem
@@ -37,8 +35,8 @@ type QueueProps = { variant: WidgetVariant; look: WidgetLook };
  * - spine: prateleira de lombadas + a sugestão ao lado (larga) ou a
  *   sugestão em cima de uma pilha deitada dos próximos (lado a lado).
  */
-export default async function Queue({ variant, look }: QueueProps) {
-  const { id: userId } = await requireApprovedUser();
+export default async function Queue({ variant, look, owner, isOwner }: WidgetProps) {
+  const userId = owner.id;
 
   const [books, total] = await Promise.all([
     prisma.book.findMany({
@@ -60,17 +58,19 @@ export default async function Queue({ variant, look }: QueueProps) {
   return (
     <WidgetCard
       title="Fila"
-      action={{ href: "/library?status=WANT_TO_READ", label: `Ver todos (${total})` }}
+      action={isOwner ? { href: "/library?status=WANT_TO_READ", label: `Ver todos (${total})` } : undefined}
     >
       {!suggestion ? (
         <p className="text-sm text-contrast/60">
           Nenhum livro em &quot;Quero ler&quot;.{" "}
-          <Link href="/library/new" className="text-danger hover:underline">
-            Adicionar
-          </Link>
+          {isOwner && (
+            <Link href="/library/new" className="text-danger hover:underline">
+              Adicionar
+            </Link>
+          )}
         </p>
       ) : (
-        CONTENT[look][variant]({ books: queue, suggestion })
+        CONTENT[look][variant]({ books: queue, suggestion, isOwner })
       )}
     </WidgetCard>
   );
@@ -95,7 +95,7 @@ function SuggestionActions({ book }: { book: QueueBook }) {
   );
 }
 
-type ContentProps = { books: QueueBook[]; suggestion: QueueBook };
+type ContentProps = { books: QueueBook[]; suggestion: QueueBook; isOwner: boolean };
 
 const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) => ReactNode>> = {
   cover: { wide: QueueCoverRow, tall: QueueCard },
@@ -103,7 +103,7 @@ const CONTENT: Record<WidgetLook, Record<WidgetVariant, (props: ContentProps) =>
 };
 
 /* Sugestão do dia ao lado da fileira ou da prateleira (versões largas). */
-function SuggestionAside({ suggestion }: { suggestion: QueueBook }) {
+function SuggestionAside({ suggestion, isOwner }: { suggestion: QueueBook; isOwner: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <FeaturedBookHeading
@@ -112,33 +112,33 @@ function SuggestionAside({ suggestion }: { suggestion: QueueBook }) {
         subtitle={suggestion.creator ?? "Autor desconhecido"}
       />
 
-      <SuggestionActions book={suggestion} />
+      {isOwner && <SuggestionActions book={suggestion} />}
     </div>
   );
 }
 
-function QueueCoverRow({ books, suggestion }: ContentProps) {
+function QueueCoverRow({ books, suggestion, isOwner }: ContentProps) {
   return (
     <div className="grid grid-cols-1 items-center gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
       <BookCardRow
         items={books.map((book) => ({
           book,
-          href: `/library/${book.id}`,
+          href: isOwner ? `/library/${book.id}` : undefined,
           detail: book.creator ?? "Autor desconhecido",
         }))}
       />
 
-      <SuggestionAside suggestion={suggestion} />
+      <SuggestionAside suggestion={suggestion} isOwner={isOwner} />
     </div>
   );
 }
 
-function QueueStack({ books, suggestion }: ContentProps) {
+function QueueStack({ books, suggestion, isOwner }: ContentProps) {
   const next = books.filter((book) => book.id !== suggestion.id).slice(0, 5);
 
   return (
     <div className="flex flex-col gap-5">
-      <SuggestionAside suggestion={suggestion} />
+      <SuggestionAside suggestion={suggestion} isOwner={isOwner} />
 
       {next.length > 0 && (
         <div>
@@ -146,7 +146,7 @@ function QueueStack({ books, suggestion }: ContentProps) {
           <BookStack
             items={next.map((book) => ({
               book,
-              href: `/library/${book.id}`,
+              href: isOwner ? `/library/${book.id}` : undefined,
               detail: getLastName(book.creator),
             }))}
           />
@@ -156,20 +156,20 @@ function QueueStack({ books, suggestion }: ContentProps) {
   );
 }
 
-function QueueShelf({ books, suggestion }: ContentProps) {
+function QueueShelf({ books, suggestion, isOwner }: ContentProps) {
   return (
     <div className="grid grid-cols-1 items-end gap-5 md:grid-cols-[minmax(0,1fr)_16rem]">
       <SpineShelf
         label="Livros na fila"
-        items={books.map((book) => ({ book, href: `/library/${book.id}` }))}
+        items={books.map((book) => ({ book, href: isOwner ? `/library/${book.id}` : undefined }))}
       />
 
-      <SuggestionAside suggestion={suggestion} />
+      <SuggestionAside suggestion={suggestion} isOwner={isOwner} />
     </div>
   );
 }
 
-function QueueCard({ books, suggestion }: ContentProps) {
+function QueueCard({ books, suggestion, isOwner }: ContentProps) {
   const next = books.filter((book) => book.id !== suggestion.id).slice(0, 4);
 
   return (
@@ -182,14 +182,14 @@ function QueueCard({ books, suggestion }: ContentProps) {
         )}
       </FeaturedBook>
 
-      <SuggestionActions book={suggestion} />
+      {isOwner && <SuggestionActions book={suggestion} />}
 
       <BookLinkList
         label="Depois"
         items={next.map((book) => ({
           id: book.id,
           title: book.title,
-          href: `/library/${book.id}`,
+          href: isOwner ? `/library/${book.id}` : undefined,
           meta: getLastName(book.creator),
         }))}
       />

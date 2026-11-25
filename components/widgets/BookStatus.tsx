@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/services/prisma";
-import { requireApprovedUser } from "@/lib/auth/session";
 import { statusColor, statusLabel, statusOptions } from "@/lib/books/labels";
 import type { ReadingStatus } from "@/generated/prisma/enums";
-import type { WidgetVariant } from "@/lib/dashboardLayout";
+import type { WidgetProps } from "./types";
 
 import WidgetCard from "./WidgetCard";
 
@@ -19,11 +18,11 @@ const barColor: Record<ReadingStatus, string> = {
  * - wide: uma barra dividida na largura toda + os números embaixo;
  * - tall: uma linha por status, com barra proporcional ao maior.
  */
-export default async function BookStatus({ variant }: { variant: WidgetVariant }) {
+export default async function BookStatus({ variant, owner, isOwner }: WidgetProps) {
   /*
    * Uma única consulta agrupada por status, em vez de um count por status.
    */
-  const { id: userId } = await requireApprovedUser();
+  const userId = owner.id;
 
   const groups = await prisma.book.groupBy({
     by: ["status"],
@@ -45,7 +44,7 @@ export default async function BookStatus({ variant }: { variant: WidgetVariant }
     const max = Math.max(1, ...stats.map((stat) => stat.count));
 
     return (
-      <WidgetCard title="Na estante" action={{ href: "/library", label: "Ver todos" }}>
+      <WidgetCard title="Na estante" action={isOwner ? { href: "/library", label: "Ver todos" } : undefined}>
         <p className="-mt-2 text-sm tabular-nums text-contrast/55">
           {total} {total === 1 ? "livro" : "livros"}
         </p>

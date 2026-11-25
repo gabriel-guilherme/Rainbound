@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CloudRainWind } from "lucide-react-motion";
-import { Inbox, Plus } from "lucide-react";
+import { House, Library, Plus, Users } from "lucide-react";
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useState } from "react";
 
-import SignOutButton from "@/components/auth/SignOutButton";
+import type { Avatar } from "@/lib/profile/avatar";
+
+import NotificationBell from "@/components/notifications/NotificationBell";
+
+import AccountMenu from "./AccountMenu";
 
 /* Usuário aprovado logado (null: visitante, vê só a marca e "Entrar"). */
 export type NavbarAccount = {
   username: string;
+  profileUsername: string | null;
+  avatar: Avatar;
   isAdmin: boolean;
   pendingRequests: number;
+  unreadNotifications: number;
 };
 
 export default function Navbar({ account }: { account: NavbarAccount | null }) {
@@ -45,7 +52,7 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
   const isBookRoute =
     pathname === "/library" || pathname.startsWith("/library/");
   const isNewBookRoute = pathname === "/library/new";
-  const isRequestsRoute = pathname === "/admin";
+  const isPeopleRoute = pathname === "/pessoas";
 
   return (
     <motion.nav
@@ -72,14 +79,18 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
           {account && (
             <Link
               href="/dashboard"
+              aria-label="Início"
+              title="Início"
               aria-current={isDashboardRoute ? "page" : undefined}
-              className={`px-1 py-1 text-sm font-medium uppercase tracking-widest text-contrast transition sm:text-base ${
+              className={`flex h-10 items-center px-2 text-sm font-medium uppercase tracking-widest text-contrast transition sm:h-auto sm:px-1 sm:py-1 sm:text-base ${
                 isDashboardRoute
                   ? "shadow-[inset_0_-2px_0_var(--color-danger)]"
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              Início
+              {/* No celular, ícone no lugar do texto. */}
+              <House size={20} aria-hidden="true" className="sm:hidden" />
+              <span className="hidden sm:inline">Início</span>
             </Link>
           )}
 
@@ -102,14 +113,17 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
           {account && (
             <Link
               href="/library"
+              aria-label="Biblioteca"
+              title="Biblioteca"
               aria-current={isBookRoute && !isNewBookRoute ? "page" : undefined}
-              className={`px-1 py-1 text-sm font-medium uppercase tracking-widest text-contrast transition sm:text-base ${
+              className={`flex h-10 items-center px-2 text-sm font-medium uppercase tracking-widest text-contrast transition sm:h-auto sm:px-1 sm:py-1 sm:text-base ${
                 isBookRoute && !isNewBookRoute
                   ? "shadow-[inset_0_-2px_0_var(--color-danger)]"
                   : "opacity-60 hover:opacity-100"
               }`}
             >
-              Biblioteca
+              <Library size={20} aria-hidden="true" className="sm:hidden" />
+              <span className="hidden sm:inline">Biblioteca</span>
             </Link>
           )}
         </div>
@@ -124,29 +138,23 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
             </Link>
           )}
 
-          {account?.isAdmin && (
+          {account && (
             <Link
-              href="/admin"
-              aria-label={`Administração (${account.pendingRequests} pedidos esperando)`}
-              title="Administração"
-              aria-current={isRequestsRoute ? "page" : undefined}
-              className={`relative flex h-10 w-10 items-center justify-center transition-colors ${
-                isRequestsRoute
+              href="/pessoas"
+              aria-label="Pessoas"
+              title="Pessoas"
+              aria-current={isPeopleRoute ? "page" : undefined}
+              className={`flex h-10 w-10 items-center justify-center transition-colors ${
+                isPeopleRoute
                   ? "bg-contrast text-primary"
                   : "text-contrast/70 hover:bg-contrast/10 hover:text-contrast"
               }`}
             >
-              <Inbox size={19} />
-              {account.pendingRequests > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center bg-danger px-1 text-[11px] font-semibold tabular-nums text-primary"
-                >
-                  {account.pendingRequests}
-                </span>
-              )}
+              <Users size={19} />
             </Link>
           )}
+
+          {account && <NotificationBell initialUnread={account.unreadNotifications} />}
 
           {account && (
             <Link
@@ -164,7 +172,14 @@ export default function Navbar({ account }: { account: NavbarAccount | null }) {
             </Link>
           )}
 
-          {account && <SignOutButton label={`Sair (${account.username})`} />}
+          {account && (
+            <AccountMenu
+              displayName={account.username}
+              profileUsername={account.profileUsername}
+              avatar={account.avatar}
+              pendingRequests={account.isAdmin ? account.pendingRequests : null}
+            />
+          )}
         </div>
       </div>
     </motion.nav>

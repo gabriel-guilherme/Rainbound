@@ -3,7 +3,8 @@ import { getSpineLookForBook, type SpineBook } from "@/lib/books/spine";
 
 export type SpineShelfItem = {
   book: SpineBook;
-  href: string;
+  /* Sem endereço: lombada só para ver. */
+  href?: string;
   /* Rótulo curto acima da lombada (ex.: "92%", "47 d"). */
   caption?: string;
 };

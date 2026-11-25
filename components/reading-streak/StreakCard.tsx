@@ -15,6 +15,7 @@ import { useStreak } from "./useStreak";
 type StreakCardProps = {
   variant: WidgetVariant;
   initial: StreakSummary;
+  isOwner?: boolean;
 };
 
 /*
@@ -24,8 +25,8 @@ type StreakCardProps = {
  * - wide: dias à esquerda, hoje e semana à direita;
  * - tall: tudo empilhado.
  */
-export default function StreakCard({ variant, initial }: StreakCardProps) {
-  const { summary, todaySeconds, todayProgress } = useStreak(initial);
+export default function StreakCard({ variant, initial, isOwner = true }: StreakCardProps) {
+  const { summary, todaySeconds, todayProgress } = useStreak(initial, isOwner);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const isWide = variant === "wide";
 
@@ -40,15 +41,19 @@ export default function StreakCard({ variant, initial }: StreakCardProps) {
       <div className="flex items-center justify-between gap-3">
         <h2 className="title-shelf text-3xl text-contrast">Sequência</h2>
 
-        <GoalButton
-          goalMinutes={summary.goalMinutes}
-          isOpen={isEditingGoal}
-          onToggle={() => setIsEditingGoal((open) => !open)}
-          showPerDay={isWide}
-        />
+        {isOwner ? (
+          <GoalButton
+            goalMinutes={summary.goalMinutes}
+            isOpen={isEditingGoal}
+            onToggle={() => setIsEditingGoal((open) => !open)}
+            showPerDay={isWide}
+          />
+        ) : (
+          <span className="text-xs text-contrast/70">meta: {summary.goalMinutes} min por dia</span>
+        )}
       </div>
 
-      <StreakNotice initial={initial} />
+      {isOwner && <StreakNotice initial={initial} />}
 
       <div
         className={

@@ -109,6 +109,19 @@ export default function WidgetThumb({ widget, look, size = "md" }: WidgetThumbPr
     );
   }
 
+  if (widget === "feed") {
+    return (
+      <span aria-hidden="true" className="flex flex-col gap-1">
+        {[56, 72, 44].map((width, index) => (
+          <span key={index} className="flex items-center gap-1.5">
+            <span className="bg-spine-umber" style={{ width: px(8), height: px(11) }} />
+            <span className="block h-1 bg-contrast/40" style={{ width: px(width) }} />
+          </span>
+        ))}
+      </span>
+    );
+  }
+
   /* Sessão: o relógio. */
   return (
     <span aria-hidden="true" className="flex items-end">

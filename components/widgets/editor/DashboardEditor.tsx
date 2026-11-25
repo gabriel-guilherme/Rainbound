@@ -3,11 +3,7 @@
 import { LayoutGrid, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 
-import {
-  resetDashboardLayout,
-  saveDashboardLayout,
-} from "@/app/(main)/dashboard/actions";
-import type { DashboardLayout } from "@/lib/dashboardLayout";
+import type { DashboardLayout, WidgetId } from "@/lib/dashboardLayout";
 
 import EditorArea from "./EditorArea";
 import EditorFooter from "./EditorFooter";
@@ -23,10 +19,27 @@ import WidgetPanel from "./WidgetPanel";
  * direita, as opções do widget escolhido (WidgetPanel; no celular, uma
  * folha que sobe de baixo). "Adicionar widget" abre o catálogo
  * (WidgetCatalog). O rascunho e as ações ficam em useLayoutDraft; as
- * mudanças na arrumação, em layoutEdits.ts. Salva num cookie deste
- * aparelho (saveDashboardLayout).
+ * mudanças na arrumação, em layoutEdits.ts.
+ *
+ * Serve à home (salva num cookie do aparelho: saveDashboardLayout) e ao
+ * perfil (salva no banco: saveProfileLayout); quem usa passa as actions.
  */
-export default function DashboardEditor({ layout }: { layout: DashboardLayout }) {
+type DashboardEditorProps = {
+  layout: DashboardLayout;
+  onSave: (layout: DashboardLayout) => Promise<void>;
+  onReset: () => Promise<void>;
+  /* Linha abaixo do título (onde a arrumação vale). */
+  note: string;
+  hiddenWidgets?: readonly WidgetId[];
+};
+
+export default function DashboardEditor({
+  layout,
+  onSave,
+  onReset,
+  note,
+  hiddenWidgets = [],
+}: DashboardEditorProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const editor = useLayoutDraft(layout);
   const { draft, selection, catalogTarget } = editor;
@@ -89,7 +102,7 @@ export default function DashboardEditor({ layout }: { layout: DashboardLayout })
               <h2 id="dashboard-editor-title" className="title-shelf text-3xl">
                 Widgets do Início
               </h2>
-              <p className="text-xs text-contrast/70">Vale só para este aparelho</p>
+              <p className="text-xs text-contrast/70">{note}</p>
             </div>
 
             <button type="button" onClick={close} aria-label="Fechar" className={iconButtonClass}>
@@ -152,11 +165,11 @@ export default function DashboardEditor({ layout }: { layout: DashboardLayout })
             error={error}
             isValid={editor.isValid}
             isPending={isPending}
-            onReset={() => run(resetDashboardLayout, "Não foi possível restaurar o padrão.")}
+            onReset={() => run(onReset, "Não foi possível restaurar o padrão.")}
             onCancel={close}
             onSave={() =>
               run(
-                () => saveDashboardLayout(draft),
+                () => onSave(draft),
                 "Não foi possível salvar. Confira os nomes das abas.",
               )
             }
@@ -167,6 +180,7 @@ export default function DashboardEditor({ layout }: { layout: DashboardLayout })
           <WidgetCatalog
             layout={draft}
             target={catalogTarget}
+            hiddenWidgets={hiddenWidgets}
             onAdd={editor.addFromCatalog}
             onClose={editor.closeCatalog}
           />

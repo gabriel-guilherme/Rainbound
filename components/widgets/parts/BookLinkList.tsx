@@ -1,9 +1,9 @@
-import Link from "next/link";
+import MaybeLink from "./MaybeLink";
 
 type BookLinkListProps = {
   /* Título da lista (ex.: "Depois"). */
   label: string;
-  items: { id: number; title: string; href: string; meta: string }[];
+  items: { id: number; title: string; href?: string; meta: string }[];
 };
 
 /*
@@ -20,13 +20,13 @@ export default function BookLinkList({ label, items }: BookLinkListProps) {
       <ol className="mt-2 flex flex-col">
         {items.map((item) => (
           <li key={item.id} className="border-t border-contrast/10 first:border-t-0">
-            <Link
+            <MaybeLink
               href={item.href}
-              className="flex items-baseline justify-between gap-3 py-2 hover:text-danger"
+              className={`flex items-baseline justify-between gap-3 py-2 ${item.href ? "hover:text-danger" : ""}`}
             >
               <span className="min-w-0 truncate text-sm">{item.title}</span>
               <span className="shrink-0 text-xs text-contrast/40">{item.meta}</span>
-            </Link>
+            </MaybeLink>
           </li>
         ))}
       </ol>
