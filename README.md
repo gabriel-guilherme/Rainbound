@@ -313,7 +313,7 @@ app/
 │   ├── dashboard/      Dashboard
 │   ├── library/        Library list, new book, book details and server actions
 │   ├── pessoas/        People search (name or @username; newest members when empty)
-│   └── u/[username]/   Public profile (avatar, bio, follow, numbers; private profiles show only the header), plus seguidores/ and seguindo/ lists (open as a modal over the profile via @modal intercepted routes; full page when opened directly)
+│   └── u/[username]/   Public profile (avatar, bio, follow, numbers, widgets chosen by the owner; private profiles show only the header), plus seguidores/ and seguindo/ lists (open as a modal over the profile via @modal intercepted routes; full page when opened directly)
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
 ├── api/reading-time/   Receives reading time for the streak (fetch every minute, sendBeacon on close)
@@ -368,7 +368,8 @@ lib/
 │   ├── rules.ts          Profile rules shared by server and browser (bio length, username)
 │   ├── server.ts         Profile by username and the header numbers
 │   ├── follow.ts         Follow / unfollow (free, no approval) and the followers / following lists
-│   └── search.ts         People search by name or @username
+│   ├── search.ts         People search by name or @username
+│   └── layout.ts         Profile widgets layout (same shape as the home, stored in the database; no Session widget)
 ├── preferences/
 │   ├── rules.ts          Account preferences (reader, library view and sort): shape and validation
 │   └── server.ts         Account preferences in the database (User.preferences)
