@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
-import Collection from "@/components/Home/Collection";
-import Hero from "@/components/Home/Hero";
-import Landing from "@/components/Home/Landing";
-import Thoughts from "@/components/Home/Thoughts";
+import Collection from "@/components/home/Collection";
+import Hero from "@/components/home/Hero";
+import Landing from "@/components/home/Landing";
+import Thoughts from "@/components/home/Thoughts";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/services/prisma";
 import { getCurrentUser, isApproved } from "@/lib/auth/session";

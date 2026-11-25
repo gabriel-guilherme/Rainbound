@@ -35,9 +35,9 @@ type StoredSettings = {
   zoom: Partial<Record<FileFormat, number>>;
   /* Hora no rodapé. */
   showClock: boolean;
-  /* Botão de cronômetro e timer no rodapé (components/ReadingSession). */
+  /* Botão de cronômetro e timer no rodapé (components/reading-session). */
   showSession: boolean;
-  /* Sequência de leitura no rodapé (components/ReadingStreak). */
+  /* Sequência de leitura no rodapé (components/reading-streak). */
   showStreak: boolean;
 };
 

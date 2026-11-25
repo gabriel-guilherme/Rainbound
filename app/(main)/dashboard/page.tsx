@@ -2,11 +2,11 @@ import { cookies } from "next/headers";
 
 import { requireApprovedUser } from "@/lib/auth/session";
 
-import DashboardEditor from "@/components/Widgets/DashboardEditor";
+import DashboardEditor from "@/components/widgets/DashboardEditor";
 import WidgetSection, {
   type WidgetSectionItem,
-} from "@/components/Widgets/WidgetSection";
-import { WIDGETS } from "@/components/Widgets/registry";
+} from "@/components/widgets/WidgetSection";
+import { WIDGETS } from "@/components/widgets/registry";
 import {
   AREA_VARIANT,
   DASHBOARD_LAYOUT_COOKIE,

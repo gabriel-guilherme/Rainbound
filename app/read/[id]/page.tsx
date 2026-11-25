@@ -1,4 +1,4 @@
-import Reader from "@/components/Reader/Reader";
+import Reader from "@/components/reader/Reader";
 import { prisma } from "@/lib/services/prisma";
 import { notFound } from "next/navigation";
 

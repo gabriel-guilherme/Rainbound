@@ -1,6 +1,6 @@
 import Navbar, { type NavbarAccount } from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import ReadingTracker from "@/components/ReadingStreak/ReadingTracker";
+import ReadingTracker from "@/components/reading-streak/ReadingTracker";
 import { AccountStatus, Role } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/services/prisma";
 import { getCurrentUser, isApproved } from "@/lib/auth/session";

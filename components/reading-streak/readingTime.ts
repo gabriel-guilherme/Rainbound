@@ -14,8 +14,8 @@
  * O envio ao servidor está em readingTimeSync.ts.
  */
 
-import { readSessionState } from "@/components/ReadingSession/sessionState";
-import type { SessionState } from "@/components/ReadingSession/sessionState";
+import { readSessionState } from "@/components/reading-session/sessionState";
+import type { SessionState } from "@/components/reading-session/sessionState";
 import { addDays, localDateKey, nextLocalMidnight } from "@/lib/streak/rules";
 
 const STORAGE_KEY = "rainbound:reading-time";

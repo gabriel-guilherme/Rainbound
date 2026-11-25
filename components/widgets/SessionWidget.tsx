@@ -1,8 +1,8 @@
 "use client";
 
-import CurrentTime from "@/components/ReadingSession/CurrentTime";
-import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
-import SessionPanel from "@/components/ReadingSession/SessionPanel";
+import CurrentTime from "@/components/reading-session/CurrentTime";
+import SessionFinishedNotice from "@/components/reading-session/SessionFinishedNotice";
+import SessionPanel from "@/components/reading-session/SessionPanel";
 import { useNow } from "@/lib/useNow";
 import type { WidgetVariant } from "@/lib/dashboardLayout";
 
@@ -22,7 +22,7 @@ const shortDate = new Intl.DateTimeFormat("pt-BR", {
 
 /*
  * "Sessão": relógio + cronômetro/timer de leitura. É a mesma sessão do
- * rodapé do leitor (components/ReadingSession): o que começou lá continua
+ * rodapé do leitor (components/reading-session): o que começou lá continua
  * contando aqui. Diferente dos outros widgets, roda no navegador (a hora
  * e a sessão são do aparelho, não do servidor).
  * - wide: relógio à esquerda, controles à direita;

@@ -1,20 +1,20 @@
 "use client";
 
-import BookmarksPanel from "@/components/Reader/panels/BookmarksPanel";
-import FullscreenButton from "@/components/Reader/FullScreenButton";
-import HeaderActionWindow from "@/components/Reader/panels/HeaderActionWindow";
-import NavigatorPanel from "@/components/Reader/panels/NavigatorPanel";
-import ReaderFooter from "@/components/Reader/ReaderFooter";
-import ReaderNavigation from "@/components/Reader/ReaderNavigation";
-import SettingsPanel from "@/components/Reader/panels/SettingsPanel";
-import { useBookmarks } from "@/components/Reader/hooks/useBookmarks";
-import { usePageTurn } from "@/components/Reader/hooks/usePageTurn";
-import { useReaderKeyboard } from "@/components/Reader/hooks/useReaderKeyboard";
-import { useReaderProgress } from "@/components/Reader/hooks/useReaderProgress";
-import { useReaderSettings } from "@/components/Reader/hooks/useReaderSettings";
-import SessionFinishedNotice from "@/components/ReadingSession/SessionFinishedNotice";
-import ReadingTracker from "@/components/ReadingStreak/ReadingTracker";
-import StreakNotice from "@/components/ReadingStreak/StreakNotice";
+import BookmarksPanel from "@/components/reader/panels/BookmarksPanel";
+import FullscreenButton from "@/components/reader/FullScreenButton";
+import HeaderActionWindow from "@/components/reader/panels/HeaderActionWindow";
+import NavigatorPanel from "@/components/reader/panels/NavigatorPanel";
+import ReaderFooter from "@/components/reader/ReaderFooter";
+import ReaderNavigation from "@/components/reader/ReaderNavigation";
+import SettingsPanel from "@/components/reader/panels/SettingsPanel";
+import { useBookmarks } from "@/components/reader/hooks/useBookmarks";
+import { usePageTurn } from "@/components/reader/hooks/usePageTurn";
+import { useReaderKeyboard } from "@/components/reader/hooks/useReaderKeyboard";
+import { useReaderProgress } from "@/components/reader/hooks/useReaderProgress";
+import { useReaderSettings } from "@/components/reader/hooks/useReaderSettings";
+import SessionFinishedNotice from "@/components/reading-session/SessionFinishedNotice";
+import ReadingTracker from "@/components/reading-streak/ReadingTracker";
+import StreakNotice from "@/components/reading-streak/StreakNotice";
 import type { StreakSummary } from "@/lib/streak/rules";
 
 import {
@@ -47,9 +47,9 @@ import type { FileFormat } from "@/generated/prisma/enums";
  * - CBR: não suportado (converter para CBZ)
  */
 const engines: Partial<Record<FileFormat, ComponentType<ReaderEngineProps>>> = {
-  PDF: dynamic(() => import("@/components/Reader/engines/PdfReader"), { ssr: false }),
-  EPUB: dynamic(() => import("@/components/Reader/engines/EpubReader"), { ssr: false }),
-  CBZ: dynamic(() => import("@/components/Reader/engines/ComicReader"), { ssr: false }),
+  PDF: dynamic(() => import("@/components/reader/engines/PdfReader"), { ssr: false }),
+  EPUB: dynamic(() => import("@/components/reader/engines/EpubReader"), { ssr: false }),
+  CBZ: dynamic(() => import("@/components/reader/engines/ComicReader"), { ssr: false }),
 };
 
 /* Formatos navegados por página (com seletor de página). */

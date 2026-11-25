@@ -1,8 +1,8 @@
 "use client";
 
-import CurrentTime from "@/components/ReadingSession/CurrentTime";
-import SessionButton from "@/components/ReadingSession/SessionButton";
-import StreakButton from "@/components/ReadingStreak/StreakButton";
+import CurrentTime from "@/components/reading-session/CurrentTime";
+import SessionButton from "@/components/reading-session/SessionButton";
+import StreakButton from "@/components/reading-streak/StreakButton";
 import type { StreakSummary } from "@/lib/streak/rules";
 
 import type { PageInfo } from "./readerTypes";

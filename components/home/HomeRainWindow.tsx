@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import RainWindow from "@/components/RainWindow/RainWindow";
+import RainWindow from "@/components/rain-window/RainWindow";
 
 /* Janela de chuva do hero das homes (o estado de pausa é dela). */
 export default function HomeRainWindow() {

@@ -125,7 +125,7 @@ O rodapé tem três colunas: hora (`CurrentTime`) | página atual | botões
 **Sequência** (`StreakButton`) e **Sessão** (`SessionButton`). Cada um
 some pelas Configurações.
 
-A sessão (`components/ReadingSession/`) é um cronômetro ou um timer
+A sessão (`components/reading-session/`) é um cronômetro ou um timer
 (atalhos de 15/25/45/60 min, ou clicar no número grande do timer e digitar
 os minutos, de 1 a 180). O
 painel abre para cima a partir do botão; no celular, como uma folha logo
@@ -141,7 +141,7 @@ segue certo com a aba fechada. Nada vai para o banco.
 
 ## Sequência de leitura
 
-`components/ReadingStreak/` (regras e datas em `lib/streak/rules.ts`, banco em
+`components/reading-streak/` (regras e datas em `lib/streak/rules.ts`, banco em
 `lib/streak/server.ts`). O `Reader` monta um `ReadingTracker` que conta o
 tempo com a página visível e em uso (algum toque, tecla, rolagem ou página
 virada nos últimos 5 min) e o tempo com o cronômetro/timer da Sessão
