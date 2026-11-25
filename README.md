@@ -56,7 +56,7 @@ The project was built as a full-stack application, combining a responsive fronte
   (top) and a side-by-side (bottom) version; layout saved per device. Widgets:
   books by status, reading now, recently added, queue, session, streak, almost
   there (over 70%), stalled (no progress for 30+ days, with resume/abandon),
-  year activity (one square per day) and minutes this week. Book widgets
+  year activity (one square per day), minutes this week and recent activity (started, finished, streak milestones). Book widgets
   (reading now, recently added, queue, almost there, stalled) can show covers
   or spines, chosen per tab in the editor
 - Add, edit, and delete books
@@ -312,7 +312,7 @@ app/
 │   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
 │   ├── library/        Library list, new book, book details and server actions
-│   ├── pessoas/        People search (name or @username; newest members when empty)
+│   ├── pessoas/        People: activity feed (you + who you follow, newest first) and search (name or @username)
 │   └── u/[username]/   Public profile (avatar, bio, follow, numbers, widgets chosen by the owner; private profiles show only the header), plus seguidores/ and seguindo/ lists (open as a modal over the profile via @modal intercepted routes; full page when opened directly)
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
@@ -358,7 +358,8 @@ lib/
 │   └── utils.ts          Book file read URL and id parsing
 ├── reading/
 │   ├── progress.ts       Reading progress (forward-only), manual log and bookmark validation
-│   └── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
+│   ├── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
+│   └── activity.ts       Recent activity (started, finished, streak milestones) from existing data
 ├── streak/
 │   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
@@ -369,6 +370,7 @@ lib/
 │   ├── server.ts         Profile by username and the header numbers
 │   ├── follow.ts         Follow / unfollow (free, no approval) and the followers / following lists
 │   ├── search.ts         People search by name or @username
+│   ├── feed.ts           Activity feed of you and who you follow (public profiles)
 │   └── layout.ts         Profile widgets layout (same shape as the home, stored in the database; no Session widget)
 ├── preferences/
 │   ├── rules.ts          Account preferences (reader, library view and sort): shape and validation
