@@ -160,6 +160,17 @@ export function parseReadingTimeEntries(value: unknown, timeZone: string) {
   return entries;
 }
 
+/*
+ * Guarda o fuso do aparelho de quem leu (User.timeZone), para o perfil
+ * mostrar a sequência no "hoje" do dono a quem visita. Só grava se mudou.
+ */
+export async function rememberTimeZone(userId: string, timeZone: string) {
+  await prisma.user.updateMany({
+    where: { id: userId, OR: [{ timeZone: null }, { timeZone: { not: timeZone } }] },
+    data: { timeZone },
+  });
+}
+
 /* Soma o tempo lido e marca o dia quando a meta é batida. */
 export async function recordReadingTime(userId: string, entries: ReadingTimeEntry[]) {
   if (entries.length === 0) return;

@@ -1,21 +1,18 @@
 import ActivityCard from "@/components/reading-streak/ActivityCard";
-import { requireApprovedUser } from "@/lib/auth/session";
-import type { WidgetVariant } from "@/lib/dashboardLayout";
-import { getReadingDays, getStreakSummary, getTimeZone } from "@/lib/streak/server";
+import { getReadingDays, getStreakSummary } from "@/lib/streak/server";
+
+import type { WidgetProps } from "./types";
 
 /*
  * "Atividade do ano": mapa dos dias lidos, a partir dos mesmos registros
- * da sequência (ReadingDay). O navegador soma o tempo de hoje ainda não
- * enviado (components/reading-streak).
+ * da sequência (ReadingDay). Para o próprio dono, o navegador soma o tempo
+ * de hoje ainda não enviado (components/reading-streak).
  */
-export default async function ActivityWidget({ variant }: { variant: WidgetVariant }) {
-  const { id: userId } = await requireApprovedUser();
-  const timeZone = await getTimeZone();
-
+export default async function ActivityWidget({ variant, owner, isOwner }: WidgetProps) {
   const [summary, days] = await Promise.all([
-    getStreakSummary(userId, timeZone),
-    getReadingDays(userId),
+    getStreakSummary(owner.id, owner.timeZone),
+    getReadingDays(owner.id),
   ]);
 
-  return <ActivityCard variant={variant} initial={summary} days={days} />;
+  return <ActivityCard variant={variant} initial={summary} days={days} isOwner={isOwner} />;
 }

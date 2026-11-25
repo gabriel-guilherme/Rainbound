@@ -20,7 +20,7 @@ import WidgetThumb from "./WidgetThumb";
 /* Grupos do catálogo, na ordem em que aparecem. */
 const GROUPS: { title: string; widgets: WidgetId[] }[] = [
   { title: "Livros", widgets: ["reading", "queue", "recent", "nearly", "stalled"] },
-  { title: "Tempo e ritmo de leitura", widgets: ["session", "streak", "activity", "week"] },
+  { title: "Tempo e ritmo de leitura", widgets: ["session", "streak", "activity", "week", "feed"] },
   { title: "Estante", widgets: ["status"] },
 ];
 
@@ -34,6 +34,7 @@ const CATALOG = UNGROUPED.length > 0 ? [...GROUPS, { title: "Outros", widgets: U
 type WidgetCatalogProps = {
   layout: DashboardLayout;
   target: { area: DashboardArea; tabId: string };
+  hiddenWidgets: readonly WidgetId[];
   onAdd: (widget: WidgetId) => void;
   onClose: () => void;
 };
@@ -42,7 +43,13 @@ type WidgetCatalogProps = {
  * Catálogo para adicionar um widget numa aba: miniatura, descrição e onde
  * mais ele já está. Os que já estão na aba ficam desativados.
  */
-export default function WidgetCatalog({ layout, target, onAdd, onClose }: WidgetCatalogProps) {
+export default function WidgetCatalog({
+  layout,
+  target,
+  hiddenWidgets,
+  onAdd,
+  onClose,
+}: WidgetCatalogProps) {
   const tab = findTab(layout, target.area, target.tabId);
 
   if (!tab) return null;
@@ -70,7 +77,12 @@ export default function WidgetCatalog({ layout, target, onAdd, onClose }: Widget
         </div>
 
         <div className="flex flex-col gap-5 p-4 md:p-5">
-          {CATALOG.map((group) => (
+          {CATALOG.map((group) => ({
+            ...group,
+            widgets: group.widgets.filter((widget) => !hiddenWidgets.includes(widget)),
+          }))
+            .filter((group) => group.widgets.length > 0)
+            .map((group) => (
             <section key={group.title} className="flex flex-col gap-2">
               <h4 className={sectionLabelClass}>{group.title}</h4>
 

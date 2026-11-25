@@ -1,13 +1,15 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { DEFAULT_COVER } from "@/lib/books/labels";
 import type { SpineBook } from "@/lib/books/spine";
 
+import MaybeLink from "./MaybeLink";
+
 export type BookCardRowItem = {
   book: SpineBook;
-  href: string;
+  /* Sem endereço: o cartão não é clicável. */
+  href?: string;
   /* Linha embaixo do título. */
   detail: ReactNode;
   /* 0 a 100; sem valor, o cartão fica sem barra (ex.: fila). */
@@ -29,9 +31,9 @@ export default function BookCardRow({ items, muted = false }: BookCardRowProps) 
     <ul className="scrollbar-none -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
       {items.map(({ book, href, detail, progress }) => (
         <li key={book.id} className="w-60 shrink-0">
-          <Link
+          <MaybeLink
             href={href}
-            className="group group/progress grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 bg-darkest/40 p-2 transition-colors hover:bg-secondary"
+            className={`group group/progress grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 bg-darkest/40 p-2 transition-colors ${href ? "hover:bg-secondary" : ""}`}
           >
             <span className="relative aspect-[7/10] w-full">
               <Image
@@ -44,7 +46,7 @@ export default function BookCardRow({ items, muted = false }: BookCardRowProps) 
             </span>
 
             <span className="min-w-0">
-              <span className="block truncate font-medium text-contrast group-hover:text-danger">
+              <span className={`block truncate font-medium text-contrast ${href ? "group-hover:text-danger" : ""}`}>
                 {book.title}
               </span>
               <span className="block text-xs text-contrast/50">{detail}</span>
@@ -57,7 +59,7 @@ export default function BookCardRow({ items, muted = false }: BookCardRowProps) 
                 </span>
               )}
             </span>
-          </Link>
+          </MaybeLink>
         </li>
       ))}
     </ul>

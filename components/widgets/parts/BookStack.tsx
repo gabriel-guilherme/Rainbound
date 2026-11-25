@@ -1,11 +1,13 @@
-import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 import { getSpineLookForBook, type SpineBook } from "@/lib/books/spine";
 
+import MaybeLink from "./MaybeLink";
+
 export type BookStackItem = {
   book: SpineBook;
-  href: string;
+  /* Sem endereço: o livro não é clicável. */
+  href?: string;
   /* Texto à direita do título (ex.: "45%", "há 40 dias"). */
   detail: ReactNode;
   /* 0 a 100: a linha embaixo do livro; sem valor, sem linha (ex.: fila). */
@@ -44,11 +46,12 @@ export default function BookStack({ items, muted = false }: BookStackProps) {
 
         return (
           <li key={book.id} className="w-full">
-            <Link
+            <MaybeLink
               href={href}
               style={style}
               className={[
-                "group/progress relative flex max-w-full min-h-8 items-center justify-between gap-3 px-3.5 shadow-[inset_0_3px_0_rgb(255_255_255/0.07),inset_0_-5px_7px_rgb(0_0_0/0.35)] transition hover:translate-x-2.5",
+                "group/progress relative flex max-w-full min-h-8 items-center justify-between gap-3 px-3.5 shadow-[inset_0_3px_0_rgb(255_255_255/0.07),inset_0_-5px_7px_rgb(0_0_0/0.35)] transition",
+                href ? "hover:translate-x-2.5" : "",
                 muted ? "opacity-60 hover:opacity-100" : "",
               ].join(" ")}
             >
@@ -65,7 +68,7 @@ export default function BookStack({ items, muted = false }: BookStackProps) {
                   style={{ width: `${progress}%`, background: look.accent }}
                 />
               )}
-            </Link>
+            </MaybeLink>
           </li>
         );
       })}

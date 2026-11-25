@@ -56,7 +56,7 @@ The project was built as a full-stack application, combining a responsive fronte
   (top) and a side-by-side (bottom) version; layout saved per device. Widgets:
   books by status, reading now, recently added, queue, session, streak, almost
   there (over 70%), stalled (no progress for 30+ days, with resume/abandon),
-  year activity (one square per day) and minutes this week. Book widgets
+  year activity (one square per day), minutes this week and recent activity (started, finished, streak milestones). Book widgets
   (reading now, recently added, queue, almost there, stalled) can show covers
   or spines, chosen per tab in the editor
 - Add, edit, and delete books
@@ -311,7 +311,10 @@ app/
 ├── (main)/             Pages with Navbar and Footer
 │   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
-│   └── library/        Library list, new book, book details and server actions
+│   ├── library/        Library list, new book, book details and server actions
+│   ├── notificacoes/   All notifications by day (loads more on scroll)
+│   ├── pessoas/        People: activity feed (you + who you follow, newest first) and search (name or @username)
+│   └── u/[username]/   Public profile (avatar, bio, follow, numbers, widgets chosen by the owner; private profiles show only the header), plus seguidores/ and seguindo/ lists (open as a modal over the profile via @modal intercepted routes; full page when opened directly)
 ├── api/auth/[...all]/  Better Auth endpoints
 ├── api/reading-progress/  Saves progress sent by sendBeacon when the reader tab closes
 ├── api/reading-time/   Receives reading time for the streak (fetch every minute, sendBeacon on close)
@@ -323,7 +326,9 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── reader/             In-app reader (see components/reader/README.md): engines/, panels/, hooks/
 ├── reading-session/    Clock, stopwatch and timer shared by the reader and the home widget
 ├── reading-streak/     Reading streak: time tracker, footer button, widgets (streak, year activity, week), goal picker, notice
-├── widgets/            Home widgets (registry.tsx) and carousel
+├── notifications/      Notification bell (polls the unread count every minute), feed that loads more on scroll, list
+├── profile/            Profile: avatar (color + letter), header, numbers and editors
+├── widgets/            Home and profile widgets (registry.tsx, types.ts: owner + visitor mode), carousel and section builder
 │   ├── editor/         Layout editor: home map, widget options panel, catalog with previews, layout edits
 │   └── parts/          Shared book pieces: card row, spine shelf, lying stack, featured book, list
 ├── books/              Book display: poster, spine, bookcase, status ribbon, progress, actions menu
@@ -334,7 +339,7 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── layout/             Navbar and footer
 ├── auth/               Login, sign-up and sign-out
 ├── admin/              Admin controls (storage limit picker)
-└── common/             Generic pieces: submit/back buttons, scroll reveal, NoSsr, field styles
+└── common/             Generic pieces: submit/back buttons, scroll reveal, NoSsr, field styles, useLoadMore (load more at the end of a list)
 
 lib/
 ├── auth/
@@ -355,11 +360,24 @@ lib/
 │   └── utils.ts          Book file read URL and id parsing
 ├── reading/
 │   ├── progress.ts       Reading progress (forward-only), manual log and bookmark validation
-│   └── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
+│   ├── pages.ts          Current/total pages from a progress locator ("pág. X de Y" on hover)
+│   ├── activity.ts       Recent activity (started, finished, streak milestones) from existing data, paged by date
+│   └── activityFormat.ts Activity types and "há 3 dias" text (safe for the browser)
 ├── streak/
 │   ├── rules.ts          Reading streak rules and dates (shared by server and browser)
 │   ├── server.ts         Reading streak in the database (summary, recording time, goal)
 │   └── admin.ts          Reading streak test helpers for the admin "Sequência" tab
+├── notifications/
+│   ├── server.ts         Notifications: follow notice (one per pair), unread count, mark read (+ 90-day cleanup), grouping by type and day (paged in SQL)
+│   └── format.ts         Notification texts ("há 12 min", "Marina, Caio e mais 2")
+├── profile/
+│   ├── avatar.ts         Profile avatar: 12-color palette, letter, defaults from the account
+│   ├── rules.ts          Profile rules shared by server and browser (bio length, username)
+│   ├── server.ts         Profile by username and the header numbers
+│   ├── follow.ts         Follow / unfollow (free, no approval) and the followers / following lists
+│   ├── search.ts         People search by name or @username (paged; names that start with the text first)
+│   ├── feed.ts           Activity feed of you and who you follow (public profiles)
+│   └── layout.ts         Profile widgets layout (same shape as the home, stored in the database; no Session widget)
 ├── preferences/
 │   ├── rules.ts          Account preferences (reader, library view and sort): shape and validation
 │   └── server.ts         Account preferences in the database (User.preferences)
