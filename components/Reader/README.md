@@ -26,6 +26,7 @@ Reader.tsx            junta as peças: cabeçalho, conteúdo, rodapé e modo ime
 ├── ReaderNavigation  setas laterais + arraste para o lado (lib/swipe.ts)
 ├── PdfReader         ┐
 ├── EpubReader        ├─ motores: implementam ReaderEngineProps
+│   └── epubUtils     tema do livro, cache das locations, teclado no iframe e posição atual
 ├── ComicReader       ┘
 └── FileError         tela de erro dos motores (com "Tentar de novo")
 ```
@@ -64,7 +65,8 @@ Além disso, todo motor recebe `zoom` e `theme` (`ReaderDisplayProps`):
   capítulos).
 
 No EPUB, o título do cabeçalho é o do capítulo atual
-(`buildTocEntries` + `findCurrentChapter` em `readerUtils.ts`): a última
+(`buildTocEntries` + `findCurrentChapter` em `readerUtils.ts`; o
+capítulo é calculado em `readLocation`, no `epubUtils.ts`): a última
 entrada do sumário que começa até a última posição visível. Seções sem
 entrada própria herdam o capítulo anterior; entradas com âncora (`#id`,
 vários capítulos num arquivo) só contam depois que a âncora aparece. Antes

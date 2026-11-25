@@ -1,168 +1,35 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ePub, { EpubCFI, type Contents } from "@likecoin/epub-ts";
+import ePub, { EpubCFI } from "@likecoin/epub-ts";
 
 import { fetchBookFile } from "@/lib/bookCache";
+import { attachSwipe } from "@/lib/swipe";
 
 import {
-  buildTocEntries,
-  calculateProgress,
-  findCurrentChapter,
-  getEpubPosition,
-  isValidEpubLocator,
-} from "./readerUtils";
+  BASE_FONT_SIZE,
+  buildBookTheme,
+  forwardKeyToReader,
+  loadLocations,
+  readLocation,
+  type EpubLocation,
+  type Rendition,
+} from "./epubUtils";
+import { buildTocEntries, getEpubPosition, isValidEpubLocator } from "./readerUtils";
 import type {
   Chapter,
   ReaderEngineProps,
   ReaderProgress,
-  ReaderTheme,
   TurnDirection,
 } from "./readerTypes";
 import { sanitizeEpubDocument } from "./epubSanitize";
 import FileError from "./FileError";
-import { attachSwipe } from "@/lib/swipe";
 
 /*
- * O tipo `Location` do @likecoin/epub-ts aponta para um `types.d.ts`
- * que não é publicado no pacote; por isso definimos só o que usamos.
+ * Leitor de EPUB (@likecoin/epub-ts): carrega o livro, liga a rendition
+ * ao Reader e reage a tema, zoom e tamanho da área. Tema, cache das
+ * locations, teclado e leitura da posição ficam em epubUtils.ts.
  */
-type EpubLocationPoint = {
-  cfi: string;
-  index: number;
-  displayed: { page: number; total: number };
-};
-
-type EpubLocation = {
-  start: EpubLocationPoint;
-  end: EpubLocationPoint;
-  atStart?: boolean;
-  atEnd?: boolean;
-};
-
-/*
- * O teclado dentro do iframe do livro não chega ao window do Reader;
- * repassamos a tecla para ele tratar setas, zoom e Esc como nos outros
- * formatos. Campos de texto do próprio livro ficam com a tecla.
- */
-function forwardKeyToReader(event: KeyboardEvent) {
-  const target = event.target as HTMLElement | null;
-
-  if (
-    target &&
-    (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
-      target.isContentEditable)
-  ) {
-    return;
-  }
-
-  window.dispatchEvent(
-    new KeyboardEvent("keydown", {
-      key: event.key,
-      code: event.code,
-      ctrlKey: event.ctrlKey,
-      metaKey: event.metaKey,
-      altKey: event.altKey,
-      shiftKey: event.shiftKey,
-    }),
-  );
-}
-
-type Rendition = ReturnType<ReturnType<typeof ePub>["renderTo"]>;
-
-/* Tamanho do texto em 100% de zoom. */
-const BASE_FONT_SIZE = 18;
-
-/*
- * Estilos do livro. As cores vêm das variáveis do tema do leitor
- * (data-reader-theme no Reader), lidas do elemento que contém o iframe.
- *
- * O site usa `color-scheme: dark`; se o documento do livro ficar com o
- * esquema claro padrão, o navegador pinta o iframe de branco opaco. Por
- * isso o livro recebe o esquema do tema e o fundo do leitor explícito.
- */
-function buildBookTheme(element: HTMLElement, theme: ReaderTheme) {
-  const styles = getComputedStyle(element);
-  const background =
-    styles.getPropertyValue("--color-darkest").trim() || "#080c0d";
-  const text = styles.getPropertyValue("--color-contrast").trim() || "#e0e4ce";
-  const link = styles.getPropertyValue("--color-danger").trim() || "#d4a09a";
-
-  return {
-    html: {
-      "color-scheme": theme === "night" ? "dark" : "light",
-      background: `${background} !important`,
-    },
-    /*
-     * Muitos EPUBs fixam texto preto e fundos brancos no próprio CSS;
-     * sem isso o texto some no tema noite.
-     */
-    "body *": {
-      color: "inherit !important",
-      "background-color": "transparent !important",
-    },
-    body: {
-      "font-family": "Georgia, serif",
-      "font-size": `${BASE_FONT_SIZE}px`,
-      "line-height": "1.7",
-      color: `${text} !important`,
-      background: "none !important",
-      margin: "0",
-      padding: "40px",
-    },
-    p: {
-      "text-align": "justify",
-      "margin-bottom": "1em",
-    },
-    h1: {
-      "font-family": "Georgia, serif",
-      "margin-bottom": "1em",
-    },
-    /*
-     * Mesma cor de destaque do site (--color-danger). Seletores mais
-     * específicos que `body *` para não herdarem a cor do texto.
-     */
-    "html body a, html body a *": {
-      color: `${link} !important`,
-    },
-  };
-}
-
-/* Tamanho (em caracteres) de cada "posição" usada no progresso. */
-const LOCATION_CHARS = 1024;
-
-/*
- * Gerar as locations percorre o livro inteiro e pode levar alguns
- * segundos; o resultado fica em cache no navegador por arquivo.
- */
-function locationsCacheKey(bookId: number, bookUrl: string) {
-  let path = bookUrl;
-
-  try {
-    path = new URL(bookUrl).pathname;
-  } catch {
-    /* URL relativa: usa como está. */
-  }
-
-  return `rainbound:epub-locations:${bookId}:${path}:${LOCATION_CHARS}`;
-}
-
-function readCachedLocations(key: string) {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function writeCachedLocations(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* Sem espaço ou storage bloqueado: só não guarda o cache. */
-  }
-}
-
 export default function EpubReader({
   bookId,
   bookUrl,
@@ -266,15 +133,7 @@ export default function EpubReader({
         /*
          * 2. Locations (com cache no navegador)
          */
-        const cacheKey = locationsCacheKey(bookId, bookUrl);
-        const cached = readCachedLocations(cacheKey);
-
-        if (cached) {
-          book.locations.load(cached);
-        } else {
-          await book.locations.generate(LOCATION_CHARS);
-          writeCachedLocations(cacheKey, book.locations.save());
-        }
+        await loadLocations(book, bookId, bookUrl);
 
         if (cancelled || !viewerRef.current) return;
 
@@ -345,70 +204,13 @@ export default function EpubReader({
          * 5. Mudança de posição
          */
         rendition.on("relocated", (location: EpubLocation) => {
-          const cfi = location.start.cfi;
+          const current = readLocation(book, rendition, tocEntries, epubCfi, location);
 
-          if (!cfi) return;
+          if (!current) return;
 
-          const startPosition = getEpubPosition(book, cfi);
+          const { pageInfo, progress } = current;
 
-          if (startPosition === null) return;
-
-          const totalPositions = book.locations.length();
-          /*
-           * A última tela começa algumas posições antes do fim; nela o
-           * livro conta como terminado (última página, 100%).
-           */
-          const currentPosition = location.atEnd
-            ? Math.max(totalPositions - 1, startPosition)
-            : startPosition;
-          const percentage = calculateProgress(
-            currentPosition + 1,
-            totalPositions,
-          );
-
-          /*
-           * Capítulo pela última posição visível: se o título de um
-           * capítulo aparece na tela, o cabeçalho já mostra ele.
-           */
-          const sectionIndex = location.end.index;
-          const endCfi = location.end.cfi;
-
-          const chapter = findCurrentChapter(
-            tocEntries,
-            sectionIndex,
-            (fragment) => {
-              const contents = (rendition.getContents() as Contents[]).find(
-                (item) => item.sectionIndex === sectionIndex,
-              );
-              const anchor = contents?.document.getElementById(fragment);
-
-              /* Sem como conferir: considera que o capítulo começou. */
-              if (!contents || !anchor || !endCfi) return true;
-
-              try {
-                return epubCfi.compare(contents.cfiFromNode(anchor), endCfi) <= 0;
-              } catch {
-                return true;
-              }
-            },
-          );
-
-          callbacksRef.current.onPageChange({
-            currentPage: currentPosition + 1,
-            totalPages: totalPositions,
-            progress: percentage,
-            atStart: Boolean(location.atStart),
-            atEnd: Boolean(location.atEnd),
-            chapterTitle: chapter?.title ?? "",
-            chapterHref: chapter?.href,
-          });
-
-          const progress = {
-            currentPosition,
-            totalPositions,
-            percentage,
-            locator: cfi,
-          };
+          callbacksRef.current.onPageChange(pageInfo);
 
           /*
            * Durante a restauração da posição salva, o epub-ts pode passar
