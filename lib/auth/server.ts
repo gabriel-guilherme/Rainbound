@@ -11,7 +11,7 @@ import { prisma } from "@/lib/services/prisma";
  * schema.prisma): no dev, o Postgres do Docker; em produção, o Supabase.
  *
  * Cadastro aberto com aprovação: toda conta nasce PENDING e só usa a
- * estante depois que o admin aprova (/admin/pedidos). A conta com o
+ * estante depois que o admin aprova (/admin). A conta com o
  * e-mail de ADMIN_EMAIL já nasce aprovada e como admin.
  */
 

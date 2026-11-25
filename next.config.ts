@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
       ],
     },
   },
+  /*
+   * O admin saiu de /admin/pedidos para /admin (agora com abas). A query
+   * (?aba=...) é repassada.
+   */
+  async redirects() {
+    return [{ source: "/admin/pedidos", destination: "/admin", permanent: true }];
+  },
   images: {
     remotePatterns: [
       {

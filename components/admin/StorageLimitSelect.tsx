@@ -2,7 +2,7 @@
 
 import { useId, useState, useTransition, type FormEvent } from "react";
 
-import { updateStorageLimit } from "@/app/(main)/admin/pedidos/actions";
+import { updateStorageLimit } from "@/app/(main)/admin/actions";
 import { fieldClass } from "@/components/common/fieldStyles";
 import {
   DEFAULT_STORAGE_LIMIT_MB,
@@ -37,7 +37,7 @@ function optionFor(limitMb: number | null) {
 }
 
 /*
- * Limite de espaço de um usuário em /admin/pedidos (aba "Usuários e
+ * Limite de espaço de um usuário em /admin (aba "Usuários e
  * espaço"). Escolher uma opção pronta salva na hora; "Personalizado…"
  * abre um campo em GB com botão Salvar.
  */

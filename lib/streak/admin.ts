@@ -9,7 +9,7 @@ import {
 } from "./rules";
 
 /*
- * Testes da sequência de leitura (aba "Sequência" em /admin/pedidos).
+ * Testes da sequência de leitura (aba "Sequência" em /admin).
  * Mexem direto nos dias (ReadingDay), de jeitos que a leitura de verdade
  * (lib/streak/server.ts) nunca faz, como tirar minutos de um dia batido.
  * Para tirar a aba de testes, basta apagar este arquivo e o que o usa.

@@ -32,7 +32,7 @@ async function reviewRequest(userId: string, status: AccountStatus) {
     data: { status, reviewedAt: new Date() },
   });
 
-  revalidatePath("/admin/pedidos");
+  revalidatePath("/admin");
   revalidatePath("/", "layout");
 }
 
@@ -79,7 +79,7 @@ export async function updateStorageLimit(
     return { error: "Usuário não encontrado." };
   }
 
-  revalidatePath("/admin/pedidos");
+  revalidatePath("/admin");
   revalidatePath("/library");
 
   return {};
@@ -94,7 +94,7 @@ export async function updateStorageLimit(
 const STREAK_TEST_MAX_DAYS = 400;
 
 function revalidateStreak() {
-  revalidatePath("/admin/pedidos");
+  revalidatePath("/admin");
   revalidatePath("/");
   revalidatePath("/dashboard");
 }

@@ -96,7 +96,7 @@ export default async function AdminPage({
           return (
             <Link
               key={item.id}
-              href={`/admin/pedidos?aba=${item.id}`}
+              href={`/admin?aba=${item.id}`}
               aria-current={isCurrent ? "page" : undefined}
               className={[
                 "flex min-h-10 items-center justify-center gap-2 px-2 py-1 text-center text-sm leading-tight transition-colors sm:px-4",

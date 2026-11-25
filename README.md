@@ -177,7 +177,7 @@ This keeps image files separate from the application server while allowing cover
 Authentication uses **Better Auth** with the Prisma adapter, so users, sessions and passwords live in the app's own database (local Docker Postgres in development, Supabase in production). No extra service or project is needed.
 
 - Sign in with **username or email** and password (username plugin).
-- Anyone can request access at `/cadastro`; the account starts as `PENDING` and only sees the waiting screen until the admin approves it at `/admin/pedidos`.
+- Anyone can request access at `/cadastro`; the account starts as `PENDING` and only sees the waiting screen until the admin approves it at `/admin`.
 - The account created with `ADMIN_EMAIL` is approved and made admin automatically, and receives the books created before authentication existed.
 - Every page, Server Action and API route checks the session and only touches the current user's books. `proxy.ts` only redirects visitors without a session cookie to `/login`.
 - Login and sign-up attempts are rate limited (stored in the database, so it works across serverless instances).
@@ -301,7 +301,7 @@ npm run start     # Start the production server
 app/
 ├── (auth)/             Login, sign-up (access request) and waiting screen
 ├── (main)/             Pages with Navbar and Footer
-│   ├── admin/pedidos/  Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
+│   ├── admin/          Admin only: access requests (approve / reject), users' storage (?aba=usuarios) and streak tests (?aba=sequencia)
 │   ├── dashboard/      Dashboard
 │   └── library/        Library list, new book, book details and server actions
 ├── api/auth/[...all]/  Better Auth endpoints

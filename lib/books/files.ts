@@ -88,7 +88,7 @@ export const BYTES_PER_MB = 1000 * 1000;
 
 /*
  * Espaço padrão de cada usuário para arquivos de livro (1 GB). O admin
- * pode mudar o de cada pessoa em /admin/pedidos?aba=usuarios
+ * pode mudar o de cada pessoa em /admin?aba=usuarios
  * (User.storageLimitMb).
  */
 export const DEFAULT_STORAGE_LIMIT_MB = 1000;
