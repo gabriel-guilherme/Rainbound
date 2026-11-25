@@ -104,6 +104,31 @@ export async function getStreakSummary(
   };
 }
 
+/* Um dia lido, para os widgets de histórico (Atividade do ano, Semana). */
+export type ReadingDayRecord = { date: string; seconds: number; met: boolean };
+
+/* Dias com leitura a partir de `from` (sem ele, todos), do mais antigo ao mais novo. */
+export async function getReadingDays(
+  userId: string,
+  from?: string,
+): Promise<ReadingDayRecord[]> {
+  const rows = await prisma.readingDay.findMany({
+    where: {
+      userId,
+      seconds: { gt: 0 },
+      ...(from ? { date: { gte: dateKeyToUtc(from) } } : {}),
+    },
+    orderBy: { date: "asc" },
+    select: { date: true, seconds: true, goalMet: true },
+  });
+
+  return rows.map((row) => ({
+    date: utcToDateKey(row.date),
+    seconds: row.seconds,
+    met: row.goalMet,
+  }));
+}
+
 export type ReadingTimeEntry = { date: string; seconds: number };
 
 /*

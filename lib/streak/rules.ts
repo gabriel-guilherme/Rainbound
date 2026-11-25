@@ -152,3 +152,28 @@ export function formatDays(count: number) {
 export function toMinutes(seconds: number) {
   return Math.floor(seconds / 60);
 }
+
+/* Dia da semana de um "AAAA-MM-DD": 0 = domingo, 6 = sábado. */
+export function weekdayOf(key: string) {
+  return dateKeyToUtc(key).getUTCDay();
+}
+
+/* "45 min", "2h 14min", "3h". */
+export function formatDuration(seconds: number) {
+  const minutes = toMinutes(seconds);
+
+  if (minutes < 60) return `${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}min`;
+}
+
+/* Segunda-feira da semana de um dia. */
+export function weekStartOf(key: string) {
+  return addDays(key, -((weekdayOf(key) + 6) % 7));
+}
+
+/* Semanas que o widget "Minutos da semana" deixa voltar com as setas. */
+export const MAX_WEEKS_BACK = 11;
