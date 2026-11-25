@@ -2,6 +2,7 @@ import {
   getStreakSummary,
   parseReadingTimeEntries,
   recordReadingTime,
+  rememberTimeZone,
 } from "@/lib/streak/server";
 import { getCurrentUser, isApproved } from "@/lib/auth/session";
 import { isValidTimeZone } from "@/lib/streak/rules";
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Tempo de leitura inválido." }, { status: 400 });
   }
 
-  await recordReadingTime(user.id, parsed);
+  await Promise.all([recordReadingTime(user.id, parsed), rememberTimeZone(user.id, timeZone)]);
 
   return Response.json(await getStreakSummary(user.id, timeZone));
 }
