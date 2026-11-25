@@ -4,6 +4,7 @@ import { prisma } from "../services/prisma";
 import { DEFAULT_TIME_ZONE, dateKeyToUtc, isValidTimeZone } from "../streak/rules";
 import { getStreakSummary, todayIn } from "../streak/server";
 import { getAvatar } from "./avatar";
+import { readProfileLayout } from "./layout";
 import { normalizeUsername } from "./rules";
 
 /*
@@ -24,6 +25,7 @@ export async function getProfileByUsername(username: string) {
       avatarLetter: true,
       bio: true,
       isProfilePublic: true,
+      profileLayout: true,
       timeZone: true,
       createdAt: true,
       _count: { select: { followers: true, following: true } },
@@ -40,6 +42,7 @@ export async function getProfileByUsername(username: string) {
     avatar: getAvatar(user),
     bio: user.bio,
     isPublic: user.isProfilePublic,
+    layout: readProfileLayout(user.profileLayout),
     /* Fuso da última leitura; sem nenhuma ainda, o padrão do app. */
     timeZone: isValidTimeZone(user.timeZone) ? user.timeZone : DEFAULT_TIME_ZONE,
     createdAt: user.createdAt,

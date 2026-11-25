@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { requireApprovedUser } from "@/lib/auth/session";
 
 import DashboardEditor from "@/components/widgets/editor/DashboardEditor";
+
+import { resetDashboardLayout, saveDashboardLayout } from "./actions";
 import WidgetSection from "@/components/widgets/WidgetSection";
 import { buildWidgetSections } from "@/components/widgets/buildWidgetSections";
 import { DASHBOARD_LAYOUT_COOKIE, readDashboardLayout } from "@/lib/dashboardLayout";
@@ -38,7 +40,12 @@ export default async function DashBoardPage() {
           </p>
         </div>
 
-        <DashboardEditor layout={layout} />
+        <DashboardEditor
+          layout={layout}
+          onSave={saveDashboardLayout}
+          onReset={resetDashboardLayout}
+          note="Vale só para este aparelho"
+        />
       </div>
 
       {topSections.length > 0 && (

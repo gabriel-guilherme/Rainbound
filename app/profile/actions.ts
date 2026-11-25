@@ -2,9 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
+import { Prisma } from "@/generated/prisma/client";
 import { getApprovedUserId } from "@/lib/auth/session";
+import type { DashboardLayout } from "@/lib/dashboardLayout";
 import { findAvatarColor, parseAvatarLetter } from "@/lib/profile/avatar";
 import { findFollowTarget, follow, unfollow } from "@/lib/profile/follow";
+import { parseProfileLayout } from "@/lib/profile/layout";
 import { MAX_BIO_LENGTH, parseBio } from "@/lib/profile/rules";
 import { prisma } from "@/lib/services/prisma";
 
@@ -88,4 +91,30 @@ export async function setFollowing(value: { userId: unknown; follow: unknown }) 
   if (viewer?.username) revalidatePath(`/u/${viewer.username}`, "layout");
 
   return {};
+}
+
+/* Revalida o perfil de quem está logado (/u/<username> e as listas). */
+async function revalidateOwnProfile(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+
+  if (user?.username) revalidatePath(`/u/${user.username}`, "layout");
+}
+
+export async function saveProfileLayout(layout: DashboardLayout) {
+  const userId = await getApprovedUserId();
+  const parsed = parseProfileLayout(layout);
+
+  if (!parsed) {
+    throw new Error("Arrumação de widgets inválida.");
+  }
+
+  await prisma.user.update({ where: { id: userId }, data: { profileLayout: parsed } });
+  await revalidateOwnProfile(userId);
+}
+
+export async function resetProfileLayout() {
+  const userId = await getApprovedUserId();
+
+  await prisma.user.update({ where: { id: userId }, data: { profileLayout: Prisma.DbNull } });
+  await revalidateOwnProfile(userId);
 }
