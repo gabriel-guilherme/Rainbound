@@ -36,6 +36,16 @@ enum AccountStatus {
   REJECTED
 }
 
+/**
+ * Tipo da notificação. LIKE e COMMENT ficam para quando a atividade
+ * ganhar curtidas e comentários (vão apontar para Notification.activityId).
+ */
+enum NotificationType {
+  FOLLOW
+  LIKE
+  COMMENT
+}
+
 enum Role {
   USER
   ADMIN
@@ -116,6 +126,9 @@ model User {
   /* Quem esta pessoa segue e quem a segue (Follow). */
   following   Follow[]     @relation("Follower")
   followers   Follow[]     @relation("Followed")
+  /* Notificações recebidas e as que esta pessoa gerou para os outros. */
+  notifications     Notification[] @relation("NotificationRecipient")
+  sentNotifications Notification[] @relation("NotificationActor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -332,4 +345,30 @@ model Follow {
 
   @@id([followerId, followedId])
   @@index([followedId])
+}
+
+/**
+ * Notificações (sino da barra do topo, /notificacoes). Quem recebe
+ * (userId), quem fez (actorId) e o quê (type). `activityId` fica vazio em
+ * FOLLOW; em curtidas e comentários vai apontar para o post da atividade.
+ * Lida quando `readAt` tem data; as lidas são apagadas depois de 90 dias.
+ * Regras em lib/notifications/.
+ */
+model Notification {
+  id Int @id @default(autoincrement())
+
+  userId String
+  user   User   @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  actorId String
+  actor   User   @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  type       NotificationType
+  activityId Int?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
 }
