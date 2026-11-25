@@ -6,6 +6,7 @@ import BookStatus from "./BookStatus";
 import Queue from "./Queue";
 import Reading from "./Reading";
 import ReadingSession from "./ReadingSession";
+import ReadingStreak from "./ReadingStreak";
 import RecentlyAdded from "./RecentlyAdded";
 
 type WidgetComponent = ComponentType<{ variant: WidgetVariant }>;
@@ -25,4 +26,5 @@ export const WIDGETS = {
   recent: RecentlyAdded,
   queue: Queue,
   session: ReadingSession,
+  streak: ReadingStreak,
 } satisfies Record<WidgetId, unknown> as Record<WidgetId, WidgetComponent>;
