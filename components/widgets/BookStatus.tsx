@@ -86,10 +86,10 @@ export default async function BookStatus({ variant, owner, isOwner }: WidgetProp
               <div
                 key={stat.status}
                 style={{ flexGrow: stat.count }}
-                className={`flex min-w-0 basis-0 items-center overflow-hidden whitespace-nowrap px-3 font-display text-lg font-bold uppercase tracking-wide ${barColor[stat.status]}`}
+                className={`flex min-w-0 basis-0 flex-row-reverse flex-wrap content-start justify-end gap-x-[0.35em] overflow-hidden whitespace-nowrap px-3 font-display text-lg leading-10 font-bold uppercase tracking-wide ${barColor[stat.status]}`}
               >
-                {stat.count / total > 0.12 ? `${statusLabel[stat.status]} ` : ""}
-                {stat.count}
+                <span className="shrink-0 max-sm:hidden">{stat.count}</span>
+                <span className="shrink-0 max-sm:hidden">{statusLabel[stat.status]}</span>
               </div>
             ))}
         </div>
