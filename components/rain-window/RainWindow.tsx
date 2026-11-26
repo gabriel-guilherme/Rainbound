@@ -17,7 +17,12 @@ export default function RainWindow({ isPaused, setIsPaused }: RainWindowProps) {
 
   return (
     <div className="relative mx-auto flex max-w-7xl items-center justify-center px-4 py-10">
-      <div className="group relative aspect-square w-[min(75vh,90vw)] max-w-xl overflow-hidden">
+      {/*
+        * Fundo na cor da moldura, e céu e chuva começando por dentro dela
+        * (inset-3, sob a moldura de 20px): com o tamanho fracionado do
+        * celular, a borda arredondada não deixa o céu aparecer por fora.
+        */}
+      <div className="group relative aspect-square w-[min(75vh,90vw)] max-w-xl overflow-hidden bg-primary">
         {/* Céu */}
         <Sky />
 
