@@ -8,6 +8,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/services/prisma";
 import { getCurrentUser, isApproved } from "@/lib/auth/session";
 import { toSpineBook } from "@/lib/books/spine";
+import { getStreakSummary, getTimeZone } from "@/lib/streak/server";
 
 /* Campos do cartão "Continuar" no Hero. */
 const continueReadingSelect = {
@@ -67,8 +68,9 @@ export default async function Home() {
 
   const userId = user.id;
 
-  /* As três consultas são independentes: vão juntas ao banco. */
-  const [thoughts, books, continueReading] = await Promise.all([
+  const timeZone = await getTimeZone();
+
+  const [thoughts, books, continueReading, streak] = await Promise.all([
     prisma.$queryRaw<{ title: string; note: string }[]>`
       SELECT title, notes AS note
       FROM "Book"
@@ -87,11 +89,13 @@ export default async function Home() {
     }),
 
     findContinueReading(userId),
+
+    getStreakSummary(userId, timeZone),
   ]);
 
   return (
     <div className="w-full">
-      <Hero continueReading={continueReading} />
+      <Hero continueReading={continueReading} streak={streak} timeZone={timeZone} />
 
       <Thoughts books={thoughts} />
 
