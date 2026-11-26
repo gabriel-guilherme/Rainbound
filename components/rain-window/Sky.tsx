@@ -83,7 +83,7 @@ export default function Sky() {
     <>
       {/* Céu */}
       <div
-        className="absolute inset-0 transition-[background] duration-[1000ms]"
+        className="absolute inset-3 transition-[background] duration-[1000ms]"
         style={{
           background: `
             linear-gradient(

@@ -334,7 +334,8 @@ components/             Reusable UI components (folders in lowercase kebab-case)
 ├── books/              Book display: poster, spine, bookcase, status ribbon, progress, actions menu
 │   └── forms/          Book forms: edit, log reading, cover and file inputs, Open Library search
 ├── library/            Library controls: filters, search, pagination, view toggle, storage meter
-├── home/               Public home page sections
+├── home/               Home sections (visitor landing and the signed-in home)
+│   └── landing/        Visitor home: feature sections with sample previews (shelf, reader, streak, widgets, people)
 ├── rain-window/        Animated rain window (home hero)
 ├── layout/             Navbar and footer
 ├── auth/               Login, sign-up and sign-out

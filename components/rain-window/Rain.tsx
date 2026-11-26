@@ -133,7 +133,7 @@ export default function Rain({ isPaused, isMuted }: RainProps) {
     <>
       <canvas
         ref={canvasRef}
-        className="pointer-events-none absolute inset-0 h-full w-full"
+        className="pointer-events-none absolute left-3 top-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)]"
         aria-hidden="true"
       />
 
